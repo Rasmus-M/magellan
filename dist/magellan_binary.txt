@@ -1,0 +1,98 @@
+Magellan Binary Data File Format
+================================================
+
+Note: The binary format and the associated export routine have not been updated yet to support Enhanced Color Modes.
+
+STRUCTURE
+=================
+
+<FILE HEADER>
+	<COLORSET CHUNK (optional)>
+	<CHARDATA CHUNK (optional)>
+	<MAP 0 - MAP HEADER>
+		<MAP 0 - MAP DATA>
+		<MAP SPRITE HEADER (optional)>
+		<MAP SPRITE DATA (optional)>
+	<MAP 1 - MAP HEADER>
+		<MAP 1 - MAP DATA>
+		<MAP SPRITE HEADER (optional)>
+		<MAP SPRITE DATA (optional)>
+	   .
+	   .
+
+A) FILE HEADER
+=================
+byte 0-1        2b: String constant MG
+byte 2-3        2b: Magellan version identifier
+byte 4          1b: Chunk header byte *
+byte 5          1b: Number of maps in file
+
+B) COLORSET CHUNK
+=================
+byte 0-31       32b: Full colorset definition table (32 1b foreground/background pairs) **
+
+In bitmap color mode:
+byte 0          1b: Number of character definitions
+byte 2-9        8b: Color data (each byte contains 4 bits foreground color and 4 bits background color)
+   .
+   .
+
+C) CHARDATA CHUNK
+=================
+byte 0          1b: Number of character definitions
+byte 1          1b: Character to define (missing?)
+byte 2-9        8b: Character data ***
+   .
+   .
+
+D) MAP HEADER
+=================
+byte  0-3       4b: Magellan option flags for map [reserved for future expansion, such as RLE support]
+byte  4-11      8b: Size of (E) in bytes ****
+byte 12-13      2b: Number of columns in map
+byte 14-15      2b: Number of rows in map
+byte 16         1b: Screen background color
+
+E) MAP DATA
+=================
+byte 0-xxxx     Tile character values (0-255) [later may be RLE encoded data]
+   .
+   .
+
+F) MAP SPRITE HEADER
+====================
+
+byte  0-3       4b: Magellan option flags for sprites in current map  
+byte  4-11      8b: Size of (G) in bytes 
+byte  12-xx     Some Specific stuff for sprites
+
+G) MAP SPRITE DATA
+==================
+byte 0-xxxx     Sprite data
+   .
+   .
+
+*	The "chunk header" byte uses bit flags to specify if optional data chunks are included.
+	The following bit flags are currently supported:
+
+	1 = Colorset Chunk Is Present
+	2 = Character Data Chunk Is Present
+	4 = Sprite Chunks Are Present For Maps
+
+	Multiple flags can be specified by OR'ing them together.
+	For example, a file with both Colorset and Character Data chunks would have a chunk header flag of 3.
+
+**	Foreground is shifted 4 bits upward into high bits, so that a color pair like this:
+		Foreground = 10 (in hex, A), Background = 2
+	becomes the file byte:
+		A2
+
+***	Odd numbered character rows are shifted 4 bits upward into high bits, same as the color pairs,
+	so that the upper half contains the odd data row's on/off bits, and the lower half the subsequent even row's bits
+
+****	The map size is currently stored by looping through the integer value of the size (rows * cols)
+		and breaking that up into max byte (255) chunks, then storing the final remainder and any padding 0s
+		For example, a map size of 768 breaks down like this:
+			255 255 255 3 0 0 0 0
+		or in file bytes:
+			FF FF FF 03 00 00 00 00

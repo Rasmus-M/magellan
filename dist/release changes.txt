@@ -1,0 +1,239 @@
+Magellan V3.3.2
+---------------
+* Bug fixes
+
+Magellan V3.3.1
+---------------
+* Bug fix to clone
+* Bug fix to width and height boxes
+
+Magellan V3.3
+---------------
+* Export XB 256 Program
+* Analyze Character Usage tool
+
+Magellan V3.2
+---------------
+* Export BASIC Program
+
+Magellan V3.1
+---------------
+* Tolerance setting for map image import
+
+Magellan V3.0.5
+---------------
+* Bug fixes to export dialog
+
+Magellan V3.0.4
+---------------
+* Bug fixes
+
+Magellan V3.0.3
+---------------
+* Bug fixes
+
+Magellan V3.0.2
+---------------
+
+* Swap two characters by holding down shift and clicking another character
+* Ability to toggle character/sprite layers on/off
+* Bug fixes
+
+Magellan V3.0
+---------------
+
+* Added sprite editor functionality
+* Ask to save on exit if project changed
+* Always re-uses last directory
+
+Magellan V2.1.2
+---------------
+
+* Improvements to import of map images in Graphics 1 and bitmap color modes
+
+Magellan V2.1.1
+---------------
+
+* Choice of grid size
+* Automatic inversion of color sets and patterns when exporting Assembler Character Transition Data
+
+
+Magellan V2.1
+-------------
+
+* Replace Characters dialog now has option for repeating action for the next n characters
+* Confirmation dialog before critical fill and delete map actions 
+* Empty characters are never excluded from Assembler exports
+
+Bug fixes:
+- Scroll bar refreshed when changing magnification
+
+Magellan V2.0
+-------------
+
+* Import Map Image
+* Copy and Paste buttons for easy copying of characters
+* Color mode check when opening files
+* ECM screen colors and transparency
+* Shifting of character patterns is now cyclic
+* For various Export options the Setting dialog is now shown before the Save As dialog
+* Windows installer
+
+
+Magellan V1.9
+-------------
+
+* Undo/Redo support in the map editor. Note that this works separately from undo support in the pattern editor, and that the undo history is cleared when you switch to another map.
+* F18A Enhanced Color Mode (ECM) support with a choice between 2 or 3 bits per pixel. In these modes the color of each pixel can be set independently from a palette of 4 or 8 colors. Each character can be set to use a different palette from a pool of 16 (ECM 2) or 8 (ECM 3) palettes. The colors of the palettes can be changed by double clicking on a color. The only export option that supports ECM modes is 'Assembler Data'. The extra color information is exported as additional bit planes, ready to upload to VDP RAM on an F18A enhanced system.
+
+
+Magellan V1.8.2
+---------------
+
+Bug fixes:
+- If you click Save without having opened a file it will overwrite your last opened file with an empty one.
+
+
+Magellan V1.8.1
+---------------
+
+* Added '2-character Strips' option when exporting 'Assembler Character Transition Data'. Instead of exporting each frame separately, the patterns and colors are exported in strips of 16 bytes, each strip representing the transition between two original characters. In terms of the Transition Character Pairs table it's the 'to' character (pattern or color) followed by the 'from' character (pattern or color). This reduces the required buffer space by 75%.
+* Added 'Vertical bitmap scroll.a99' sample assembly code for generating a smooth scrolling demo from an export file.
+
+Magellan V1.8
+-------------
+
+* The most recently used directory is saved between sessions
+* The Replace Characters dialog shows the actual character images in the pick lists instead of A,B,C...
+* The export dialog shows the actual character images in the pick lists 
+* Empty character patterns are now exported (Assembler Data) unless the background color is transparent
+* Support for run length encoding maps when exporting 'Assembler Character Transition Data':
+
+RLE compression (byte)
+----------------------
+We assume all characters codes are < 128. If msb is set, the next byte determines how many times (2 - 256) the current byte (with msb cleared) should be repeated. A repeat count of 0 is used as end marker.
+ 
+RLE compression (word)
+----------------------
+We assume all characters codes are < 128. If msb of the MSB is set, the byte following the current word determines how many times (2 - 256) the current word (with msb cleared) should be repeated. A repeat count of 0 is used as end marker.
+
+
+Magellan V1.7.6
+---------------
+
+* Added wrap around option when exporting 'Assembler Character Transition Data'
+
+Bug fixes:
+- Color definitions for empty characters not exported in bitmap color mode
+- Map not exported properly if width is not dividable by 8
+- Various bugs in export of 'Assembler Character Transition Data' in bitmap color mode
+
+Magellan V1.7.5
+---------------
+
+Modifications by Rasmus M - mostly related to support for smooth scrolling
+
+* Current foreground and background colors are now also marked with F and B in standard color mode
+* In standard color mode empty characters are no longer shown with a question mark when a background color other than transparent is selected
+* Clone tool is more responsive
+* (Slightly) clearer indication of foreground and background pixels in bitmap color mode
+* The tool for analyzing character transitions (for use with smooth scrolling) has been expanded with support for checking that color transitions are OK for scrolling
+* Export option for Binary Map (Current). Produces a simple binary file of the current map
+* Export option for 'Assembler Character Transition Data' for use with smooth scrolling. The generated file includes the following information:
+    - The original character patterns that you have defined in Magellan
+    - Colorset definitions for transition characters (standard mode) or original character colors (bitmap mode)
+    - List of transition character pairs (from, to). For instance, an entry of "BYTE >08,>01" at position 4 in the list (zero based) means that the transition from character 8 to character 1 will be represented by character 4 in the transformed map. This list is essential for generating the scrolled patterns
+    - Transition map data. Each unique transition between characters (horizontally or vertically, as specified on export) in the original map is assigned a new number according to the list of transition character pairs (see above). The map will be one column or row shorter than the original map since a map of n rows has n-1 row transitions
+    - Scrolled character patterns, each representing the transition between two original characters. You can choose between generating 0, 2, 4 or 8 frames. 0 turns this option off, in case you want to generate the scrolled character patterns programmatically
+    - Scrolled character colors - for bitmap color vertical scrolling only, where the colors can be smoothly scrolled
+* Included 'space-mode-1h.mag' file as an example of a valid map for vertical scrolling
+
+Magellan V1.7
+-------------
+
+Modifications by Rasmus M
+
+* Undo/Redo functions for character editor
+* Foreground color pixels are shown with a white border in bitmap color mode
+* Added Save Map Project as... function (actually renamed old Save function to Save As and added new Save function)
+* Moved clone tool to map editor tool bar (where it really belongs)
+* When using the clone tool, multiple clones can be made by holding down shift or ctrl
+* Bitmap colors included in Binary Data export
+* Tool for analyzing character transitions (for use with smooth scrolling)
+ 
+
+Magellan V1.6
+-------------
+
+Modifications by Rasmus M
+
+* Added support for bitmap mode colors (Options/Bitmap Mode Colors)
+* Added support for half bitmap mode VRAM import (auto detected)
+* Fixed bug that all characters became identical when starting a new project
+* Doubled size of characters in dock
+* Improved performance by removing redundant map redraws
+* Screen background color now visible behind transparent characters in character dock and character editor
+
+
+Magellan V1.5
+-------------
+
+Modifications by sometimes99er
+
+* A new item has been added to the Export menu. Namely XB Display Merge.
+  Exports a map (screen size must be 32x24) in MERGE format for use with XB DISPLAY AT or XB C-XTRAS' VWRITE.
+  With DISPLAY AT, you could use this to display the 28x24 part:
+    100 CALL CLEAR
+    110 FOR I=0 TO 5::READ T$::DISPLAY AT(1+I*4,1):T$; ::NEXT I
+    120 GOTO 120
+  With C-XTRAS' VWRITE (Wilhelms XB Compiler), you could use this to display all of the 32x24:
+    CALL INIT
+    CALL LOAD("DSK1.C-XTRAS")
+    100 FOR I=0 TO 5::READ T$::CALL LINK("VWRITE",I*128,T$)::NEXT I
+    110 GOTO 110
+
+
+Magellan V1.4
+-------------
+
+Modifications by sometimes99er
+
+* Import, VRAM Dump
+  o Fixed bug with color extraction.
+  o Fixed bug when VDP tables overlapped.
+  o Added filetype ".bin" (Classic99 naming).
+  o Looks for VDP registers at end of dump (Classic99 feature). If found, then dialog is skipped, and everything is set
+      automatically including screen color (remember characters can use transparency).
+  o If both the screen and patterns start at >0000 then the Basic/XB offset of >60 is assumed, and everything (patterns,
+      character codes and colors) are adjusted. Making something like the space character into 32 (>20) and not 128 (>80).
+
+* Images
+  o Added filetype ".gif" (alongside ".png").
+
+
+Magellan V1.3
+-------------
+
+Modifications by retroclouds
+
+* Fixed some bugs in the assembler data export:
+  a) Colorset export was using data statements instead of byte statements and values misaligned. 
+  b) Map row data: The 2nd byte of the generated data statement was wrong if it contained zeroes. This caused some messed-up screens.
+
+
+Magellan V1.2
+-------------
+
+Modifications by retroclouds:
+
+* Additionally show the screen XY position in hexadecimal.
+
+* Added new item to Options menu "Base 0 for Position". 
+  Normally the map upper left corner is identified as
+  position 1/1. However, if the "Base 0 for Position" option is in effect it will 
+  be identified as 0/0. This is useful when dealing with maps for assembler programs. 
+
+* Show version number in window title
+
+* Added changes to Magellan.txt
+

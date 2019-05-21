@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<install4j version="5.1.15" transformSequenceNumber="4">
+  <directoryPresets config="D:/Google Drive/Magellan/dist/magellan_binary.txt" />
+  <application name="Magellan" distributionSourceDir="" applicationId="3243-7163-2367-4969" mediaDir="./media" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="Magellan" publisher="TI-99/4A Community" publisherWeb="http://atariage.com/forums/topic/161356-magellan/" version="3.3.2" allPathsRelative="true" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="true" jdkMode="runtimeJre" jdkName="">
+    <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
+      <principalLanguage id="en" customLocalizationFile="" />
+      <additionalLanguages />
+    </languages>
+    <searchSequence>
+      <registry />
+      <envVar name="JAVA_HOME" />
+      <envVar name="JDK_HOME" />
+    </searchSequence>
+    <variables />
+    <mergedProjects />
+    <codeSigning macEnabled="false" macPkcs12File="" windowsEnabled="false" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="" />
+  </application>
+  <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
+    <filesets />
+    <roots>
+      <root id="111" fileset="" location="${installer:sys.userHome}" />
+    </roots>
+    <mountPoints>
+      <mountPoint id="56" root="" location="examples" mode="755" />
+      <mountPoint id="57" root="" location="src" mode="755" />
+      <mountPoint id="55" root="" location="" mode="755" />
+      <mountPoint id="112" root="111" location="" mode="755" />
+    </mountPoints>
+    <entries>
+      <dirEntry mountPoint="56" file="./examples" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="examples" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
+      <dirEntry mountPoint="57" file="../src" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="src" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
+      <fileEntry mountPoint="55" file="./Magellan.jar" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="55" file="./Magellan.prefs" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="55" file="./Magellan.sh" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="55" file="./Magellan.txt" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="55" file="./release changes.txt" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="55" file="./magellan_binary.txt" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="112" file="./Magellan.prefs" overwriteMode="0" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="true" overrideUninstallMode="false" />
+    </entries>
+    <components />
+  </files>
+  <launchers>
+    <launcher name="Magellan" id="58" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="false" fileset="" macBundleBinary="JavaApplicationStub" addMacEntitlements="false" macEntitlementsFile="">
+      <executable name="Magellan" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false" singleInstanceActivate="true">
+        <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
+      </executable>
+      <splashScreen show="true" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="./images/splash.png" java6SplashScreen="true">
+        <text>
+          <statusLine x="20" y="20" text="" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+          <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+        </text>
+      </splashScreen>
+      <java mainClass="com.dreamcodex.ti.Magellan" vmParameters="-Xmx256m" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+        <classPath>
+          <archive location="Magellan.jar" failOnError="false" />
+        </classPath>
+        <nativeLibraryDirectories />
+      </java>
+      <includedFiles />
+      <unextractableFiles />
+      <vmOptionsFile mode="template" overwriteMode="0" fileMode="644">
+        <content />
+      </vmOptionsFile>
+      <customScript mode="1" file="">
+        <content />
+      </customScript>
+      <infoPlist mode="1" file="">
+        <content />
+      </infoPlist>
+      <iconImageFiles>
+        <file path="./images/icon16.png" />
+        <file path="./images/icon32.png" />
+        <file path="./images/icon48.png" />
+        <file path="./images/icon64.png" />
+      </iconImageFiles>
+    </launcher>
+  </launchers>
+  <installerGui installerType="1" addOnAppId="" suggestPreviousLocations="true" autoUpdateDescriptorUrl="" useAutoUpdateBaseUrl="false" autoUpdateBaseUrl="">
+    <customCode />
+    <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+      <commentFiles />
+      <customAttributes />
+    </autoUpdate>
+    <applications>
+      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+        <serializedBean>
+          <java class="java.beans.XMLDecoder">
+            <object class="com.install4j.runtime.beans.applications.InstallerApplication" />
+          </java>
+        </serializedBean>
+        <launcherIds />
+        <variables />
+        <startup>
+          <screen name="" id="1" customizedId="" beanClass="com.install4j.runtime.beans.screens.StartupScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.StartupScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions>
+              <action name="" id="13" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" />
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+            </actions>
+            <formComponents />
+          </screen>
+        </startup>
+        <screens>
+          <screen name="" id="2" customizedId="" beanClass="com.install4j.runtime.beans.screens.WelcomeScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.WelcomeScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions>
+              <action name="" id="3" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction">
+                      <void property="excludedVariables">
+                        <array class="java.lang.String" length="1">
+                          <void index="0">
+                            <string>sys.installationDir</string>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
+              </action>
+            </actions>
+            <formComponents />
+          </screen>
+          <screen name="" id="4" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" />
+              </java>
+            </serializedBean>
+            <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions>
+              <action name="" id="5" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction">
+                      <void property="excludedVariables">
+                        <array class="java.lang.String" length="1">
+                          <void index="0">
+                            <string>sys.installationDir</string>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>context.getVariable("sys.responseFile") == null</condition>
+              </action>
+            </actions>
+            <formComponents />
+          </screen>
+          <screen name="" id="7" customizedId="" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.StandardProgramGroupScreen">
+                  <void property="programGroupName">
+                    <string>${compiler:sys.fullName}</string>
+                  </void>
+                </object>
+              </java>
+            </serializedBean>
+            <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents />
+          </screen>
+          <screen name="" id="114" customizedId="" beanClass="com.install4j.runtime.beans.screens.FileAssociationsScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.FileAssociationsScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents />
+          </screen>
+          <screen name="" id="69" customizedId="" beanClass="com.install4j.runtime.beans.screens.AdditionalConfirmationsScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.AdditionalConfirmationsScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents>
+              <formComponent name="Add a desktop link" id="70" customizedId="" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
+                      <void property="checkboxText">
+                        <string>${i18n:CreateDesktopIcon}</string>
+                      </void>
+                      <void property="initiallySelected">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="variableName">
+                        <string>createDesktopLinkAction</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibilityScript />
+              </formComponent>
+            </formComponents>
+          </screen>
+          <screen name="" id="8" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="true" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.InstallationScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions>
+              <action name="" id="9" customizedId="" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="${i18n:FileCorrupted}">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.InstallFilesAction" />
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="10" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction">
+                      <void property="uninstallerMenuName">
+                        <string>${i18n:UninstallerMenuEntry(${compiler:sys.fullName})}</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
+              </action>
+              <action name="" id="11" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction">
+                      <void property="itemName">
+                        <string>${compiler:sys.fullName} ${compiler:sys.version}</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="109" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.CreateDesktopLinkAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.desktop.CreateDesktopLinkAction">
+                      <void property="file">
+                        <object class="java.io.File">
+                          <string>Magellan</string>
+                        </object>
+                      </void>
+                      <void property="name">
+                        <string>${compiler:sys.fullName}</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>context.getBooleanVariable("createDesktopLinkAction")</condition>
+              </action>
+              <action name="" id="113" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.CreateFileAssociationAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.desktop.CreateFileAssociationAction">
+                      <void property="description">
+                        <string>Magellan map editor files</string>
+                      </void>
+                      <void property="extension">
+                        <string>mag</string>
+                      </void>
+                      <void property="launcherId">
+                        <string>58</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+            </actions>
+            <formComponents />
+          </screen>
+          <screen name="" id="12" customizedId="" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.FinishedScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents />
+          </screen>
+        </screens>
+      </application>
+      <application name="" id="uninstaller" customizedId="" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+        <serializedBean>
+          <java class="java.beans.XMLDecoder">
+            <object class="com.install4j.runtime.beans.applications.UninstallerApplication" />
+          </java>
+        </serializedBean>
+        <launcherIds />
+        <variables />
+        <startup>
+          <screen name="" id="14" customizedId="" beanClass="com.install4j.runtime.beans.screens.StartupScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.StartupScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions>
+              <action name="" id="20" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" />
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="21" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequireInstallerPrivilegesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.RequireInstallerPrivilegesAction" />
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+            </actions>
+            <formComponents />
+          </screen>
+        </startup>
+        <screens>
+          <screen name="" id="15" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallWelcomeScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.UninstallWelcomeScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents />
+          </screen>
+          <screen name="" id="16" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.UninstallationScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions>
+              <action name="" id="17" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.UninstallFilesAction" />
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+            </actions>
+            <formComponents />
+          </screen>
+          <screen name="" id="19" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallFailureScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.UninstallFailureScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents />
+          </screen>
+          <screen name="" id="18" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallSuccessScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.UninstallSuccessScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents />
+          </screen>
+        </screens>
+      </application>
+    </applications>
+  </installerGui>
+  <mediaSets>
+    <windows name="Windows" id="60" customizedId="" mediaFileName="" installDir="Magellan" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+      <excludedLaunchers />
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude />
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+      <excludedComponents />
+      <includedDownloadableComponents />
+    </windows>
+    <macosFolderArchive name="Mac OS X Folder Archive" id="116" customizedId="" mediaFileName="" installDir="Magellan" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" appleJre="true">
+      <excludedLaunchers />
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location=".i4j_external_111" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+    </macosFolderArchive>
+    <unixArchive name="Unix Archive" id="117" customizedId="" mediaFileName="" installDir="Magellan" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false">
+      <excludedLaunchers />
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location=".i4j_external_111" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+    </unixArchive>
+    <windows name="Windows64" id="173" customizedId="" mediaFileName="" installDir="Magellan" overridePrincipalLanguage="false" jreBitType="64" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+      <excludedLaunchers />
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude />
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+      <excludedComponents />
+      <includedDownloadableComponents />
+    </windows>
+    <windowsArchive name="Windows Archive" id="176" customizedId="" mediaFileName="${compiler:sys.shortName}_${compiler:sys.version}" installDir="Magellan" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false">
+      <excludedLaunchers>
+        <launcher id="58" />
+      </excludedLaunchers>
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location=".i4j_external_111" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+    </windowsArchive>
+  </mediaSets>
+  <buildIds buildAll="false">
+    <mediaSet refId="60" />
+    <mediaSet refId="173" />
+    <mediaSet refId="176" />
+  </buildIds>
+  <buildOptions verbose="false" faster="false" disableSigning="false" debug="false" />
+</install4j>
+

@@ -1,0 +1,409 @@
+======================================================
+Magellan - TI-99/4A Map Editor
+(copyright 2010 Howard Kistler/Dream Codex Retrogames)
+Free Software - may use with attribution but not sell
+======================================================
+
+Unpack the archive to the location where you wish to
+install Magellan.
+
+On Windows computers you can launch Magellan with the
+executable wrapper (Magellan.exe).
+
+Alternately, you may start Magellan with the appropriate
+batch script:
+
+Unix/MacOSX - Magellan.sh
+Windows     - Magellan.bat
+
+If you have trouble launching the application, please
+confirm you have Java (version 1.6 or later) installed.
+You may need to adjust your CLASSPATH environment
+variable if it is excluding the Magellan location.
+
+------------------------------------------------------
+WHAT DOES IT DO?
+------------------------------------------------------
+
+Magellan lets you edit map files for use on the TI-99/4A
+computer. It is largely designed to output the map in
+a format congenial to BASIC, but also supports assembler
+data statements and direct save to images.
+
+Magellan stores maps in its own ".mag" files, which
+contain grids of character values that make up the maps,
+plus font glyph in order, from character 32 (space) to
+character 143 (custom character #16), and screen colors.
+It exports maps and whole or partial font sets to
+BASIC/Extended BASIC format (with a file extension of .xb,
+.bas, or .txt), to assembler (.asm) data format,
+or to a binary (.mgb) file format [see included
+magellan_binary.txt file for details of this format].
+BASIC exports are sequentially numbered DATA
+statements, and you can control what set of characters
+is exported, as well as the numbering the export will
+use.
+
+------------------------------------------------------
+HOW TO USE
+------------------------------------------------------
+
+When you launch Magellan it will open with an editor and
+a blank map and font set. The following menu options are
+available:
+
+FILE MENU
+
+New Map Project - Start a new map project. This will
+clean up all existing data, clear character and color
+definitions and erasing all maps. Make sure you save
+your existing work before starting a new project.
+
+Open Map Project - Open a ".mag" data file. You can
+load the included "city.mag" file to see an example
+of a map data file with custom characters and color sets.
+
+Save Map Project - Save a ".mag" data file. You will
+want to save your work and this is the default format
+that Magellan uses. It saves the current screen color,
+the color set definitions, the entire character set, 
+and the map data. This file can be reopened later for
+further editing or to export data to BASIC.
+
+Append Maps - Add maps from a saved ".mag" data file into
+the current map project. Appended maps are added to the
+end of the map list and they inherit the character data
+and colorset values of the current project.
+
+Exit - Quit the Magellan program. Make sure you have saved
+any modified data before doing so.
+
+IMPORT MENU
+
+Character Image - Load an image that contains character
+graphics you'd like to use in the Character Dock.
+This image should be pure black-and-white, with black
+pixels representing "drawn" data and white pixels
+representing "clear" data. The imported image should
+have the same dimensions and layout as the image that
+is created using the "Export -> Character Image (Mono)"
+function described below. You can export one of these
+images to get a starting image that you can then edit
+with your own character graphics.
+
+EXPORT MENU
+
+The export menu contains options for saving your maps
+in a variety of different formats. Some are for use with
+the TI as part of a larger program (in BASIC or assembly).
+Other options let you save images of your data.
+For the data export options, there are additional ways
+to modify your saved data, such as including or excluding
+comment lines, or saving the whole collection versus saving
+just the current active map.
+
+BASIC Data - Save a map collectio (with screen, color set,
+and character data definitions) to file for use with
+BASIC/Extended BASIC. Magellan recognises files with .xb,
+.bas, and .txt file extensions for BASIC saves.
+.xb and .bas are the recommended extensions, as many people
+use those for BASIC/Extended BASIC programs.
+If you export a BASIC file without any of these extensions,
+Magellan will add the .xb extension automatically.
+
+XB Program - Similar to Export To XB Data, only with
+two major differences:
+(1) Adds program lines which load the character data
+and draw the map to the screen, with the correct color
+set settings.
+(2) Comments out color set lines which are unavailable
+in Extended BASIC, and excludes characters above the
+Extended BASIC maximum value of 143. Character definitions
+beyond 143 are not saved, and any map cells that contain
+characters beyond 143 are replaced with spaces.
+This function ensures that your saved data will work in
+Extended BASIC, but you must be careful to design your
+maps to use only character sets 1-14, since 15 & 16 will
+be omitted in this output. Alternately you can use the
+Export To XB Data option and adjust the output yourself
+to be compatible with the version of BASIC you are using.
+
+Assembler Data - Saves a series of labeled data blocks
+contain colorset, character, and map data suitable for
+use with assembly code files. Magellan recognises the
+.asm file extension for Assembler data files. If you
+export an assembler data file without this extension,
+Magellan will add the .asm extension automatically.
+
+Binary Data - Saves the maps, and optionally the colorset
+and character data, to a binary file. This compact file
+is ideal for loading into your own programs, as it is
+pure data. The format of the file is spelled out in the
+included magellan_binary.txt file, and you can control
+what data chunks get exported when you save the file.
+
+Character Image - Saves a PNG image of the character data
+for use in other programs. You can save a monochrome
+black-and-white (Mono) verion of the image, or one rendered
+int the colorset choices (Color).
+
+Map Image - Saves a PNG image of the current active map.
+
+OPTIONS MENU
+
+This menu contains settings that let you tailor how you
+interact with Magellan.
+
+Show Position - This turns on and off the position indicator
+in the tool bar. The indicator shows you the coordinates of
+the current map grid square the mouse is over. This is
+useful for exactly positioning screen elements.
+
+Base 0 for Position -   Normally the map upper left corner is identified as
+position 1/1. However, if the "Base 0 for Position" option is in effect it will 
+be identified as 0/0. This is useful when dealing with maps for assembler programs. 
+
+Expand Characters - This toggles whether the standard
+16 character sets are shown, or whether the expanded
+32 character sets are available. These additional characters
+are not typically available in BASIC but can be accessed by
+assembly programs and other languages that go straight to
+the system memory.
+
+------------------------------------------------------
+CHARACTER EDITOR
+------------------------------------------------------
+
+The character editor allows you to edit individual
+character glyphs. It consists of the following elements:
+
+Character Dock - This 8x16 grid shows all the font
+characters you can edit. Clicking on one makes it the
+active character, and loads its current glyph into the
+Drawing Grid. If a character does not have a defined
+glyph yet, it is shown as the character itself in grey,
+or as a question mark if it a glyph without a character
+defined.
+
+Color Dock - Below the Character Dock is the Color Dock.
+You can use it to select the Foreground and
+Background colors used in the currently selected
+character set. Select the foreground color for the active
+glyph by left-clicking that color in the Color Dock, and
+select the background color by right-clicking it.
+The TI colors each group of 8 characters with the same
+foreground and background color, and your color pair
+selections will be displayed in the Character Dock,
+as well as on the Drawing Grid and in the Map Editor.
+Transparency is indicated by a light blue color in the
+Color Dock, as well as in the Character Dock and the
+Drawing Grid. It is truly transparent in the Map Editor.
+NOTE: Be sure you don't select the same color
+for both Foreground and Background, or else you won't
+be able to see your drawing on the grid.
+
+Drawing Grid - You can draw and erase pixels in the main
+grid area by clicking or dragging the left mouse button.
+If the clicked pixel is clear, then paint mode is active.
+If the clicked pixel is painted, then erase mode is active.
+The current character is updated in real time in the
+Character Dock as you edit it here.
+
+Character Value Indicators - Above the drawing grid there
+are two numeric displays. These show the value of the
+character being edited. The left indicator shows the
+decimal value, and the right shows the hexadecimal value.
+
+Paintcan - Click this to fill the current Drawing Grid,
+as well as its associated glyph. Pixels are filled with
+the current foreground color.
+
+Eraser - Click this to clear the current Drawing Grid,
+as well as its associated glyph. Pixels are erased to
+the current background color.
+
+Invert Image - Click the inversion diamond to invert
+the current glyph (on pixels become off, and off pixels
+become on).
+
+Grid - Click this to toggle the drawing grid on and off
+in the character editor. This has no effect on the actual
+character data, it is merely an aid to drawing.
+
+Eye - Click this to activate the character selector mode.
+When active, you can click on any character on the map
+and it will become the active character for both
+painting and editing.
+
+Clone - Click this to begin the cloning process. Once the
+clone tool is active, click on the map where you wish
+to define the start of a region to copy. Once you've done
+this you will see a translucent red rectangle stretch from
+this starting point to the current mouse position. Click
+again when the rectangle covers the area you want. Now a
+blue rectangle appears under the mouse, showing you where
+the data will be copied to. Click the mouse where you
+want the paste to happen. Any parts of the paste rectangle
+that fall outside the map canvas will be ignored. You can
+paste data between maps as well by first copying the region
+as normal and then navigating to the map you want to paste
+onto using the map navigation buttons.
+
+Shift Image - The four arrows surrounding the character
+editor allow you to shift the character graphic one pixel
+in that direction for each click. Please note that you will
+lose whatever part of the graphic that is scrolled out of
+the editor boundary. Newly exposed drawing areas start with
+blank pixels.
+
+Rotate Left - Click the arrow that curves to the left to
+rotate the current glyph counterclockwise.
+
+Rotate Right - Click the arrow that curves to the right
+to rotate the current glyph clockwise.
+
+Flip Horizontal - Click the double-headed arrow pointing
+left and right to flip the current glyph horizontally.
+
+Flip Vertical - Click the double-headed arrow pointing
+up and down to flip the current glyph vertically.
+
+Hex Field - Below the Drawing Grid is the Hex Field. This
+shows the hex string for the currently active glyph. You
+can use this to copy-and-paste the value if you are
+creating one-off characters, for example.
+
+Set Char - Click this to set the active glyph and the
+Drawing Grid to the values shown in the Hex Field. This can
+be used to manually tweak the glyph by directly editing the
+hex, or to copy in hex strings from another source. You can
+also use it to copy glyph patterns between characters, by
+clicking on the character you want to copy, selecting and
+copying the value in the Hex Field, then clicking on the
+character you want to paste to and pasting the value in the
+Hex Field, then clicking Set Char.
+
+------------------------------------------------------
+MAP EDITOR
+------------------------------------------------------
+
+The main area of the Magellan is taken up by the Map Editor.
+This consists of a grid where you can "paint" characters
+to create a custom screen map, plus some tools at the top
+to adjust screen and editor settings. The components are:
+
+Map Editor - A large canvas where you can paint your
+custom characters into a map layout. Click the character
+you wish to paint with in the Character Dock and then
+position the mouse within the Map Editor where you wish
+to place that character. A left-click paints the character
+onto the map. Repeated clicks in different places paints
+that character again in each spot, and you can hold down the
+left mouse button to "drag paint" the character as you move
+the mouse around.
+
+Map Tools - This toolbar appears above the Map Editor and
+contains tools that directly effect the Map Editor. They are:
+
+Screen Color - This dropdown allows you to select the background
+color of the current map screen. The choices are the same as the
+16 color palette of the TI. Changes to this are immediately
+reflected in the Map Editor, and this value is saved and loaded
+in ".mag" map data files, as well as exported in BASIC as a
+"CALL SCREEN" command. Each map can have its own screen color value.
+
+Magnification - This dropdown lets you select the magnification
+of the Map Editor. Values range from 1x (actual size) to
+4x (quadruple magnification). These values don't affect the
+actual map or underlying data, they just make the editor easier
+to see on screens of high resolution.
+
+Fill Buttons - There are two Fill buttons, each of which fills
+the Map Editor with a specific character. These are useful at
+the beginning of editing a map, or for clearing a map you have
+saved so that you can draw another one with the same character
+definitions.
+
+	Fill With Space - fills the map with the space character,
+	which is character 32 in the TI character table, and is
+	the first character in the Character Dock
+
+	Fill With Active - fills the map with whatever character
+	you currently have selected in the Character Dock
+
+Toggle Grid - Turns display of the ghost grid on and off.
+The grid will only appear in portions of the map that contain
+the "blank" character. By default the map starts out filled
+with blanks, so that the ghost grid is available for ease
+of positioning.
+
+Text Cursor - Turns display of the text cursor outline on and off.
+The text cursor is where the next typed character will appear on
+the map. It usually is where you last clicked on the map, and it
+automatically advances forward one unit each time you type a
+character. If it goes off the right edge of the map it will wrap
+to the beginning of the next lowest row.
+
+Add Map - Adds a new blank map to the current map collection.
+This map uses the same screen color and character set as the
+other maps in the collection.
+
+Previous Map - Navigates to the previous map in the collection.
+If you are the beginning of the map collection, it will jump to
+the last map. If there is only one map in the collection, this
+button will not be enabled.
+
+Next Map - Navigates to the next map in the collection.
+If you are the end of the map collection, it will jump to
+the first map. If there is only one map in the collection, this
+button will not be enabled.
+
+Delete Map - Deletes the visible map from the current map collection.
+If there is only one map in the collection, it will delete the
+existing map and add a new blank one into the collection.
+
+Move Map Backward/Forward In Set - These two buttons with their
+heavy arrow symbols allow you to change the order of maps.
+Click the appropriate button to move the current map backward
+or forward in the map sequence. If there is only one map
+in the current project then these buttons will not be active.
+
+Grid Width/Height - You can modify the width and height of
+the current map using these input boxes. The default size
+is the standard TI screen grid of 32x24, but you can make it
+almost any reasonable size you like. You can have different
+sized maps in the same project as well.
+When you increase a map in size, it will add additional
+empty squares to the right and the bottom of the current
+map. Decreasing a map size causes squares to be lost from
+these same edges. Once a map is reduced in size the trimmed
+data is lost, so be careful about shrinking a map that
+contains a layout you might want to keep for later.
+
+Position Indicator - If enabled, this shows you the X/Y
+coordinates of the grid square currently under the mouse pointer.
+
+Typing - You can also type text and characters directly
+onto the map. Click on the grid square where you want
+the text to start and type away. Magellan is not a full
+text editor so it won't do things like backspace or
+wrap to the next line, but with a click and some keystrokes
+it's easy to place text wherever you want in the map.
+
+------------------------------------------------------
+NOTES
+------------------------------------------------------
+
+I hope you find this a useful tool for working with your
+TI programs. You are free to use this software, provided
+my copyrights remain included and that you do not sell
+or hire this software in any way, including as part of a
+compilation.
+
+Please send comments and questions to me at:
+hexidec@mindspring.com
+
+Enjoy!
+
+Howard Kistler
+www.dreamcodex.com

@@ -1,0 +1,9 @@
+# Created by .ignore support plugin (hsz.mobi)
+/.idea/
+/src/Magellan.iml
+/META-INF/
+/images/
+/maps/
+/out/
+/dist/Magellan.jar
+/dist/media/
