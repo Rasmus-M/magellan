@@ -4,8 +4,8 @@ Map editor for the TI-99/4A Home Computer.
 
 ## About
 
-This repository contains a fork of the [original Magellan program](https://bitbucket.org/hakistler/ti994a/src/master/) by Howard Kistler 
-with further developments by people from the TI-99/4A community at [AtariAge](http://atariage.com/forums/forum/164-ti-994a-computers/).
+This repository contains a fork of the [original Magellan application](https://bitbucket.org/hakistler/ti994a/src/master/) by Howard Kistler 
+with further developments by contributors from the TI-99/4A community at [AtariAge](http://atariage.com/forums/forum/164-ti-994a-computers/).
 
 Added features include:
 
