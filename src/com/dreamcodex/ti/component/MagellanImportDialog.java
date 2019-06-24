@@ -41,7 +41,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
         jcmbStartChar = new JComboBox();
         jcmbStartChar.setRenderer(new CharListCellRenderer());
-        for (int i = TIGlobals.MINCHAR; i <= TIGlobals.MAXCHAR; i += 8) {
+        for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i += 8) {
             Icon icon = ip.getIconForChar(i);
             int chardex = i - TIGlobals.CHARMAPSTART;
             NamedIcon namedIcon = new NamedIcon(icon, (icon == null && chardex >= 0 && chardex < TIGlobals.CHARMAP.length ? TIGlobals.CHARMAP[chardex] + " " : "") + Integer.toString(i));
@@ -52,7 +52,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
         jcmbEndChar = new JComboBox();
         jcmbEndChar.setRenderer(new CharListCellRenderer());
-        for (int i = TIGlobals.MINCHAR; i <= TIGlobals.MAXCHAR; i++) {
+        for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
             Icon icon = ip.getIconForChar(i);
             int chardex = i - TIGlobals.CHARMAPSTART;
             NamedIcon namedIcon = new NamedIcon(icon, (icon == null && chardex >= 0 && chardex < TIGlobals.CHARMAP.length ? TIGlobals.CHARMAP[chardex] + " " : "") + Integer.toString(i));
@@ -62,7 +62,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
         jcmbStartSprite = new JComboBox();
         jcmbStartSprite.setRenderer(new CharListCellRenderer());
-        for (int i = TIGlobals.MINSPRITE; i <= TIGlobals.MAXSPRITE; i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
             Icon icon = ip.getIconForSprite(i);
             NamedIcon namedIcon = new NamedIcon(icon, Integer.toString(i));
             jcmbStartSprite.addItem(namedIcon);

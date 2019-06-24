@@ -6,7 +6,6 @@ import com.dreamcodex.ti.util.NamedIcon;
 import com.dreamcodex.ti.util.TIGlobals;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -55,7 +54,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     private int maxChar = 0;
 
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, boolean currentMapOnly, boolean excludeBlank) {
-        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MINSPRITE, TIGlobals.MAXSPRITE, currentMapOnly, excludeBlank, false, false, false, 0, 0, -1);
+        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, TIGlobals.MAX_SPRITE, currentMapOnly, excludeBlank, false, false, false, 0, 0, -1);
     }
 
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeSpriteData, int compression, int scrollOrientation, int scrollFrames) {
@@ -136,7 +135,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         jcmbStartSprite.setRenderer(new CharListCellRenderer());
         jcmbEndSprite = new JComboBox();
         jcmbEndSprite.setRenderer(new CharListCellRenderer());
-        for (int i = TIGlobals.MINSPRITE; i <= TIGlobals.MAXSPRITE; i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
             Icon icon = ip.getIconForSprite(i);
             NamedIcon namedIcon = new NamedIcon(icon, Integer.toString(i));
             jcmbStartSprite.addItem(namedIcon);

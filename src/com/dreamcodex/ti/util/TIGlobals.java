@@ -220,15 +220,22 @@ public class TIGlobals
         "0000000000000000"
     };
 
-    public static final int MINCHAR = 0;
-	public static final int MAXCHAR = 255;
-    public static final int MINSPRITE = 0;
-    public static final int MAXSPRITE = 63;
+    public static final int MIN_CHAR = 0;
+	public static final int MAX_CHAR = 1023;
+    public static final int MIN_SPRITE = 0;
+    public static final int MAX_SPRITE = 63;
+	public static final int BASIC_FIRST_CHAR = 32;
+	public static final int BASIC_LAST_CHAR = BASIC_FIRST_CHAR + (8 * 16) - 1;
+	public static final int EXP_FIRST_CHAR = 0;
+	public static final int EXP_LAST_CHAR = 255;
+	public static final int SUPER_FIRST_CHAR = 0;
+	public static final int SUPER_LAST_CHAR = 1023;
 	public static final int CHARMAPSTART = 32;
 	public static final int CHARMAPEND = 127;
-	public static final int FIRSTCHAR = 32;
-	public static final int LASTCHAR = FIRSTCHAR + (8 * 16) - 1;
 	public static final int SPACECHAR = 32;
-	public static final int CUSTOMCHAR = FIRSTCHAR + (8 * 12);
-	public static final int FINALXBCHAR = FIRSTCHAR + (8 * 14) - 1;
+	public static final int CUSTOMCHAR = BASIC_FIRST_CHAR + (8 * 12);
+	public static final int FINALXBCHAR = BASIC_FIRST_CHAR + (8 * 14) - 1;
+	public static final int N_CHARS = (MAX_CHAR - MIN_CHAR) + 1;
+	public static final int COLOR_SET_SIZE = 8;
+	public static final int COLOR_SETS = N_CHARS / COLOR_SET_SIZE;
 }

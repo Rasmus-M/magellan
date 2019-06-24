@@ -13,7 +13,6 @@ import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.io.*;
-import java.nio.charset.IllegalCharsetNameException;
 import java.util.*;
 
 /**
@@ -88,8 +87,8 @@ public class MagellanImportExport {
             int mapColor = 15;
             int mapWidth = 32;
             int mapHeight = 24;
-            int charStart = TIGlobals.FIRSTCHAR;
-            int charEnd = TIGlobals.LASTCHAR;
+            int charStart = TIGlobals.BASIC_FIRST_CHAR;
+            int charEnd = TIGlobals.BASIC_LAST_CHAR;
             int charRead = charStart;
             int charRead1 = charStart;
             int charRead2 = charStart;
@@ -99,9 +98,9 @@ public class MagellanImportExport {
             int charPalNo = charStart;
             int charTransNo = charStart;
             int currMap = 0;
-            int spriteRead = TIGlobals.MINSPRITE;
-            int spriteRead1 = TIGlobals.MINSPRITE;
-            int spriteRead2 = TIGlobals.MINSPRITE;
+            int spriteRead = TIGlobals.MIN_SPRITE;
+            int spriteRead1 = TIGlobals.MIN_SPRITE;
+            int spriteRead2 = TIGlobals.MIN_SPRITE;
             int spritePalNo = 0;
             int spriteColNo = 0;
             do {
@@ -308,7 +307,7 @@ public class MagellanImportExport {
         } catch (Exception e) {
             e.printStackTrace(System.out);
         }
-        return TIGlobals.MINCHAR;
+        return TIGlobals.MIN_CHAR;
     }
 
     protected void readAppendDataFile(File mapDataFile) {
@@ -401,8 +400,8 @@ public class MagellanImportExport {
         try {
             BufferedReader br = new BufferedReader(new FileReader(mapDataFile));
             String lineIn = "";
-            int charStart = TIGlobals.FIRSTCHAR;
-            int charEnd = TIGlobals.LASTCHAR;
+            int charStart = TIGlobals.BASIC_FIRST_CHAR;
+            int charEnd = TIGlobals.BASIC_LAST_CHAR;
             int charRead = charStart;
             do {
                 lineIn = br.readLine();
@@ -438,8 +437,8 @@ public class MagellanImportExport {
             }
             int readPos = 0;
             int readInt;
-            int charStart = TIGlobals.MINCHAR;
-            int charEnd = TIGlobals.MAXCHAR;
+            int charStart = TIGlobals.MIN_CHAR;
+            int charEnd = TIGlobals.MAX_CHAR;
             StringBuilder sbChar = new StringBuilder();
             int charByte = 0;
             int charRead = charStart;
@@ -1077,7 +1076,7 @@ public class MagellanImportExport {
                         int y0 = sy * size;
                         for (int sx = 0; sx < xSprites; sx++) {
                             int x0 = sx * size;
-                            if (spriteIndex <= TIGlobals.MAXSPRITE) {
+                            if (spriteIndex <= TIGlobals.MAX_SPRITE) {
                                 if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP) {
                                     Map<Integer, int[][]> colorLayers = new TreeMap<Integer, int[][]>();
                                     int[] pixel = new int[1];
@@ -1162,7 +1161,7 @@ public class MagellanImportExport {
             // output overall character range (this is for backwards compatibility with earlier Magellan releases, will be phased out)
             bw.write("* CHARACTER RANGE");
             bw.newLine();
-            bw.write(Globals.KEY_CHARRANG + TIGlobals.MINCHAR + "|" + +TIGlobals.MAXCHAR);
+            bw.write(Globals.KEY_CHARRANG + TIGlobals.MIN_CHAR + "|" + +TIGlobals.MAX_CHAR);
             bw.newLine();
             // save colorsets
             bw.write("* COLORSET");
@@ -1206,7 +1205,7 @@ public class MagellanImportExport {
             // save chardefs
             bw.write("* CHAR DEFS");
             bw.newLine();
-            for (int i = TIGlobals.MINCHAR; i <= TIGlobals.MAXCHAR; i++) {
+            for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                 bw.write(Globals.KEY_CHARDATA);
                 if (hmCharGrids.get(i) != null) {
                     String hexstr = Globals.getHexString(hmCharGrids.get(i));
@@ -1220,7 +1219,7 @@ public class MagellanImportExport {
             if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
                 bw.write("* CHAR DEFS PLANE 1");
                 bw.newLine();
-                for (int i = TIGlobals.MINCHAR; i <= TIGlobals.MAXCHAR; i++) {
+                for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                     bw.write(Globals.KEY_CHARDATA1);
                     if (hmCharGrids.get(i) != null) {
                         String hexstr = Globals.getHexString(hmCharGrids.get(i), 2);
@@ -1235,7 +1234,7 @@ public class MagellanImportExport {
             if (colorMode == Magellan.COLOR_MODE_ECM_3) {
                 bw.write("* CHAR DEFS PLANE 2");
                 bw.newLine();
-                for (int i = TIGlobals.MINCHAR; i <= TIGlobals.MAXCHAR; i++) {
+                for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                     bw.write(Globals.KEY_CHARDATA2);
                     if (hmCharGrids.get(i) != null) {
                         String hexstr = Globals.getHexString(hmCharGrids.get(i), 4);
@@ -1251,7 +1250,7 @@ public class MagellanImportExport {
             if (colorMode == Magellan.COLOR_MODE_BITMAP) {
                 bw.write("* CHAR COLORS");
                 bw.newLine();
-                for (int i = TIGlobals.MINCHAR; i <= TIGlobals.MAXCHAR; i++) {
+                for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                     bw.write(Globals.KEY_CHARCOLOR);
                     int[][] charColors = hmCharColors.get(i);
                     if (charColors != null) {
@@ -1303,7 +1302,7 @@ public class MagellanImportExport {
             // Save sprites
             bw.write("* SPRITES PATTERNS");
             bw.newLine();
-            for (int i = TIGlobals.MINSPRITE; i <= TIGlobals.MAXSPRITE; i++) {
+            for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                 bw.write(Globals.KEY_SPRITE_PATTERN);
                 if (hmSpriteGrids.get(i) != null) {
                     bw.write(Globals.getHexString(hmSpriteGrids.get(i)));
@@ -1316,7 +1315,7 @@ public class MagellanImportExport {
             if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
                 bw.write("* SPRITES PATTERNS PLANE 1");
                 bw.newLine();
-                for (int i = TIGlobals.MINSPRITE; i <= TIGlobals.MAXSPRITE; i++) {
+                for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                     bw.write(Globals.KEY_SPRITE_PATTERN1);
                     if (hmSpriteGrids.get(i) != null) {
                         bw.write(Globals.getHexString(hmSpriteGrids.get(i), 2));
@@ -1330,7 +1329,7 @@ public class MagellanImportExport {
             if (colorMode == Magellan.COLOR_MODE_ECM_3) {
                 bw.write("* SPRITES PATTERNS PLANE 2");
                 bw.newLine();
-                for (int i = TIGlobals.MINSPRITE; i <= TIGlobals.MAXSPRITE; i++) {
+                for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                     bw.write(Globals.KEY_SPRITE_PATTERN2);
                     if (hmSpriteGrids.get(i) != null) {
                         bw.write(Globals.getHexString(hmSpriteGrids.get(i), 4));
@@ -1343,7 +1342,7 @@ public class MagellanImportExport {
             }
             bw.write("* SPRITE COLORS/PALETTES");
             bw.newLine();
-            for (int i = TIGlobals.MINSPRITE; i <= TIGlobals.MAXSPRITE; i++) {
+            for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                 bw.write(Globals.KEY_SPRITE_COLOR);
                 if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP) {
                     bw.write(Integer.toString(spriteColors[i]));
@@ -1366,7 +1365,7 @@ public class MagellanImportExport {
         int colorDataStart = 0;
         int colorSetStart = (int) (Math.floor(startChar / 8));
         int colorSetEnd = (int) (Math.floor(endChar / 8));
-        int colorSetNum = (int) (Math.floor((startChar - TIGlobals.FIRSTCHAR) / 8)) + 1;
+        int colorSetNum = (int) (Math.floor((startChar - TIGlobals.BASIC_FIRST_CHAR) / 8)) + 1;
         int colorCount = (colorSetEnd - colorSetStart) + 1;
         int charDataStart;
         int charCount = 0;
@@ -1578,7 +1577,7 @@ public class MagellanImportExport {
                     bw.newLine();
                 }
 
-                colorSetNum = (int) (Math.floor((startChar - TIGlobals.FIRSTCHAR) / 8)) + 1;
+                colorSetNum = (int) (Math.floor((startChar - TIGlobals.BASIC_FIRST_CHAR) / 8)) + 1;
 
                 for (int i = colorSetStart; i < (colorSetStart + colorCount); i++) {
 
@@ -3871,7 +3870,7 @@ public class MagellanImportExport {
         // get character glyphs
         int rowOffset = 0;
         int colOffset = 0;
-        for (int charNum = TIGlobals.MINCHAR; charNum <= TIGlobals.MAXCHAR; charNum++) {
+        for (int charNum = TIGlobals.MIN_CHAR; charNum <= TIGlobals.MAX_CHAR; charNum++) {
             int[][] newCharArray = new int[8][8];
             if (hmCharGrids.containsKey(charNum)) {
                 hmCharGrids.remove(charNum);
@@ -3953,7 +3952,7 @@ public class MagellanImportExport {
         int colOffset = 0;
         int cSet = 0;
         int ecmPaletteIndex = 1;
-        for (int charNum = TIGlobals.MINCHAR; charNum <= TIGlobals.MAXCHAR; charNum++) {
+        for (int charNum = TIGlobals.MIN_CHAR; charNum <= TIGlobals.MAX_CHAR; charNum++) {
             int[][] newCharArray = new int[8][8];
             int[][] newColorArray = new int[8][2];
             // ECM palette for character

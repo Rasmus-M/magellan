@@ -97,7 +97,9 @@ public class Globals {
     public static final String CMD_ANALYZECHARUSAGE = "analyzecharusage";
     public static final String CMD_ANALYZECHARTRANS = "analyzechartrans";
 
-    public static final String CMD_MODESET = "changemode";
+    public static final String CMD_BASICCHARSETSIZE = "basiccharsetsize";
+    public static final String CMD_EXPANDEDCHARSETSIZE = "expandedcharsetsize";
+    public static final String CMD_SUPERCHARSETSIZE = "supercharsetsize";
     public static final String CMD_GRAPHICSCOLORMODE = "graphicscolormode";
     public static final String CMD_BITMAPCOLORMODE = "bitmapcolormode";
     public static final String CMD_ECM2COLORMODE = "ecm2colormode";
