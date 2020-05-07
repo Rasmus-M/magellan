@@ -1068,7 +1068,7 @@ public class MagellanImportExport {
             ColorModel colorModel = image.getColorModel();
             if (colorModel instanceof IndexColorModel) {
                 IndexColorModel indexColorModel = (IndexColorModel) colorModel;
-                if (indexColorModel.getMapSize() == 16) {
+                if (indexColorModel.getMapSize() <= 256) {
                     Raster raster = image.getRaster();
                     int xSprites = image.getWidth() / size;
                     int ySprites = image.getHeight() / size;
@@ -1129,11 +1129,11 @@ public class MagellanImportExport {
                     }
                 }
                 else {
-                    throw new Exception("Palette size must be 16 colors.");
+                    throw new Exception("Palette size must be max 256 colors.");
                 }
             }
             else {
-                throw new Exception("Image must be using an indexed color model with 16 colors.");
+                throw new Exception("Image must be using an indexed color model.");
             }
         // }
         // else {
