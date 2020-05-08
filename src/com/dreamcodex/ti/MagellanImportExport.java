@@ -387,7 +387,7 @@ public class MagellanImportExport {
         mapdMain.updateComponents();
     }
 
-    protected void readCharacterData(File mapDataFile) {
+    protected void readCharacterData(File mapDataFile) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(mapDataFile));
         String lineIn = "";
         int charStart = TIGlobals.BASIC_FIRST_CHAR;
@@ -415,7 +415,7 @@ public class MagellanImportExport {
         br.close();
     }
 
-    protected void readVramDumpFile(File vramDumpFile, int charTableOffset, int mapTableOffset, int colorTableOffset, int spriteTableOffset, int spriteAttrOffset, boolean bitmapMode) {
+    protected void readVramDumpFile(File vramDumpFile, int charTableOffset, int mapTableOffset, int colorTableOffset, int spriteTableOffset, int spriteAttrOffset, boolean bitmapMode) throws IOException {
         FileInputStream fib = new FileInputStream(vramDumpFile);
         boolean basicOffset = false;
         if (charTableOffset == mapTableOffset) {
@@ -1124,7 +1124,7 @@ public class MagellanImportExport {
         // }
     }
 
-    protected void writeDataFile(File mapDataFile) {
+    protected void writeDataFile(File mapDataFile) throws IOException {
         // store working map first
         mapdMain.storeCurrentMap();
         // get file output buffer
