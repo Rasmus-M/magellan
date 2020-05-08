@@ -642,7 +642,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             name = name.substring(0, name.length() - 3);
         }
         String imagePath = "images/icon_" + name + ".png";
-        System.out.println(imagePath);
         URL imageURL = getClass().getResource(imagePath);
         return new ImageIcon(Toolkit.getDefaultToolkit().getImage(imageURL));
     }
@@ -918,7 +917,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             }
             notifyMapChangedListeners();
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Program error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace(System.err);
         }
     }
 

@@ -197,7 +197,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         SwingUtilities.invokeLater(new Magellan(args.length > 0 ? args[0] : null));
     }
 
-    public void exitApp(int status) {
+    public void exitApp(int status) throws IOException {
         if (isModified()) {
             int result = confirmationAction(this, "Confirm save on exit", "Do you want to save your changes first?", true);
             if (result == JOptionPane.YES_OPTION) {
@@ -227,7 +227,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         try {
             setIconImage(new ImageIcon(getClass().getResource("images/icon64.png")).getImage());
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
         }
 
         // Read application properties (if exist)
@@ -239,7 +239,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 fis.close();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            errorAction(this, "Error reading preferences", e.getMessage());
+            e.printStackTrace(System.err);
         }
 
         if (appProperties.getProperty("exportComments") != null) {
@@ -405,7 +406,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     editDefault();
                     // Open command line file
                     if (openFilePath != null) {
-                        openDataFile(openFilePath);
+                        try {
+                            openDataFile(openFilePath);
+                        } catch (IOException e) {
+                            e.printStackTrace(System.err);
+                        }
                     }
                 }
             }
@@ -1817,13 +1822,18 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
             mapdMain.redrawCanvas();
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            errorAction(this, "Program error", e.getMessage());
+            e.printStackTrace(System.err);
         }
     }
 
     /* WindowListener methods */
     public void windowClosing(WindowEvent we) {
-        exitApp(0);
+        try {
+            exitApp(0);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
     }
 
     public void windowOpened(WindowEvent we) {
@@ -2046,7 +2056,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // File Handling Methods -------------------------------------------------------------------/
 
-    protected void openDataFile(String filePath) {
+    protected void openDataFile(String filePath) throws IOException {
         File file;
         if (filePath != null) {
             file = new File(filePath);
@@ -2102,7 +2112,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     try {
                         br.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        errorAction(this, "Error opening data file", e.getMessage());
+                        e.printStackTrace(System.err);
                     }
                 }
             }
@@ -2180,7 +2191,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 */
     }
 
-    protected void saveDataFile() {
+    protected void saveDataFile() throws IOException {
         if (mapDataFile != null && mapDataFile.isFile()) {
             MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeDataFile(mapDataFile);
@@ -2192,7 +2203,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    protected void saveDataFileAs() {
+    protected void saveDataFileAs() throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, FILEEXTS, "Map Data Files");
         if (file != null) {
             if (!file.getAbsolutePath().toLowerCase().endsWith("." + FILEEXT)) {
@@ -2206,7 +2217,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    protected void appendDataFile() {
+    protected void appendDataFile() throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, FILEEXTS, "Map Data Files");
         if (file != null) {
             MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
@@ -2253,7 +2264,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         updateComponents();
     }
 
-    protected void importVramDump() {
+    protected void importVramDump() throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, VDPEXTS, "VRAM Dump Files", false);
         int charOffset = 0;
         int mapOffset = 0;
@@ -2291,7 +2302,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     mapdMain.setColorScreen(screenColor);
                     fib.close();
                 } catch (Exception e) {
-                    e.printStackTrace(System.out);
+                    errorAction(this, "Program error", e.getMessage());
+                    e.printStackTrace(System.err);
                 }
                 magIO.readVramDumpFile(file, charOffset, mapOffset, colorOffset, spriteOffset, spriteAttrOffset, bitmapMode);
                 mapdMain.setColorScreen(screenColor);
@@ -2337,7 +2349,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                     magIO.readMapImageFile(file, importer.getStartChar(), importer.getEndChar(), importer.getStartPalette(), importer.getTolerance());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    e.printStackTrace(System.err);
                     errorAction(this, "Error importing file", e.getMessage());
                 }
                 importer.dispose();
@@ -2358,7 +2370,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                     magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    e.printStackTrace(System.err);
                     errorAction(this, "Error importing file", e.getMessage());
                 }
                 importer.dispose();
@@ -2386,7 +2398,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         editDefault();
     }
 
-    protected void exportDataFile(int exportType) {
+    protected void exportDataFile(int exportType) throws IOException {
         MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, bExportComments, defStartChar, defEndChar, bExpandCharacters ? TIGlobals.MINCHAR : TIGlobals.FIRSTCHAR, bExpandCharacters || exportType == Globals.XB256_PROGRAM ? TIGlobals.MAXCHAR : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.LASTCHAR), bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, XBEXTS, "XB Data Files");
@@ -2485,7 +2497,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 try {
                     magIO.writeScrollFile(file, scrollOrientation, bWrap, compression, bExportComments, bCurrentMapOnly, bIncludeCharNumbers, scrollFrames, ANIMATE_SCROLLED_FRAMES);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    e.printStackTrace(System.err);
                     errorAction(this, "Export failed", e.getMessage());
                 }
             }
@@ -2493,7 +2505,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         exporter.dispose();
     }
 
-    protected void exportBinaryFile() {
+    protected void exportBinaryFile() throws IOException {
         MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MINCHAR, TIGlobals.MAXCHAR, bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
@@ -2524,7 +2536,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         exporter.dispose();
     }
 
-    protected void exportBinaryMapFile() {
+    protected void exportBinaryMapFile() throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
         if (file != null) {
             boolean isExtensionAdded = false;
@@ -2604,7 +2616,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                         fos.flush();
                         fos.close();
                     } catch (Exception e) {
-                        e.printStackTrace(System.out);
+                        errorAction(this, "Program error", e.getMessage());
+                        e.printStackTrace(System.err);
                     }
                 }
             }
@@ -2612,7 +2625,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         exporter.dispose();
     }
 
-    protected void exportCharImage(boolean isColor) {
+    protected void exportCharImage(boolean isColor) throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, IMGEXTS, "Image Files");
         if (file != null) {
             boolean isExtensionAdded = false;
@@ -2629,7 +2642,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    protected void exportMapImage() {
+    protected void exportMapImage() throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, IMGEXTS, "Image Files");
         if (file != null) {
             boolean isExtensionAdded = false;
@@ -2708,7 +2721,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             fos.flush();
             fos.close();
         } catch (IOException ioe) {
-            ioe.printStackTrace(System.out);
+            errorAction(this, "Error saving preferences", ioe.getMessage());
+            ioe.printStackTrace(System.err);
         }
     }
 
