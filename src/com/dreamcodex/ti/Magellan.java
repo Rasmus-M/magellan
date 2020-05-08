@@ -2244,7 +2244,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void saveDataFile() throws IOException {
         if (mapDataFile != null && mapDataFile.isFile()) {
             MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-            magIO.writeDataFile(mapDataFile);
+            magIO.writeDataFile(mapDataFile, characterSetSize);
             setModified(false);
             updateComponents();
         }
@@ -2262,7 +2262,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             mapDataFile = file;
             setModified(false);
             MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-            magIO.writeDataFile(mapDataFile);
+            magIO.writeDataFile(mapDataFile, characterSetSize);
             updateComponents();
         }
     }
@@ -3164,6 +3164,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     public int getCharacterSetStart() {
+        return getCharacterSetStart(characterSetSize);
+    }
+
+    public static int getCharacterSetStart(int characterSetSize) {
         switch (characterSetSize) {
             case CHARACTER_SET_BASIC:
                 return TIGlobals.BASIC_FIRST_CHAR;
@@ -3177,6 +3181,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     public int getCharacterSetEnd() {
+        return getCharacterSetEnd(characterSetSize);
+    }
+
+    public static int getCharacterSetEnd(int characterSetSize) {
         switch (characterSetSize) {
             case CHARACTER_SET_BASIC:
                 return TIGlobals.BASIC_LAST_CHAR;
@@ -3190,6 +3198,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     public int getCharacterSetSize() {
-        return getCharacterSetEnd() - getCharacterSetStart() + 1;
+        return getCharacterSetSize(characterSetSize);
+    }
+
+    public static int getCharacterSetSize(int characterSetSize) {
+        return getCharacterSetEnd(characterSetSize) - getCharacterSetStart(characterSetSize) + 1;
     }
 }
