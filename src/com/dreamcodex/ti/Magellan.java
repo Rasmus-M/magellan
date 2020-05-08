@@ -1860,13 +1860,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     this,
                     "About Magellan",
                     "Magellan, version " + VERSION_NUMBER + ".\n\n" +
-                    "\u00a9 2010 Howard Kistler/Dream Codex Retrogames\n" +
-                    "www.dreamcodex.com\n\n" +
-                    "Magellan is free software.\n\n" +
-                    "Modified by retroclouds in 2011\n" +
-                    "Modified by sometimes99er in 2013\n" +
-                    "Modified by Rasmus Moustgaard 2013 - 2019\n" +
-                    "Modified by David Vella 2016\n\n" +
+                    "\u00a9 2010 Howard Kistler/Dream Codex Retrogames (www.dreamcodex.com)\n\n" +
+                    "Magellan is free software maintained by the TI-99/4A community.\n\n" +
+                    "Modified by:\n\u2022 retroclouds (2011)\n\u2022 sometimes99er (2013)\n\u2022 David Vella (2016)\n\u2022 Rasmus Moustgaard (2013 - ongoing)\n\n" +
+                    "Source code available from: https://github.com/Rasmus-M/magellan\n\n" +
                     "Java runtime version: " + System.getProperty("java.version")
                 );
             }
