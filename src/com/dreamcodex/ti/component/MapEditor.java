@@ -90,6 +90,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 
         JButton jbtnFillSpace = getToolButton(Globals.CMD_CLEAR_CHR, "Fill map with spaces");
         JButton jbtnFillActive = getToolButton(Globals.CMD_FILL_CHR, "Fill map with active character");
+        JButton jbtnRotateLeft = getToolButton(Globals.CMD_ROTATEL_MAP, "Rotate map left (will swap dimensions)");
+        JButton jbtnRotateRight = getToolButton(Globals.CMD_ROTATER_MAP, "Rotate map right (will swap dimensions)");
         jbtnToggleGrid = getToolButton(Globals.CMD_GRID_CHR, "Toggle grid on and off");
         JButton jbtnAddMap = getToolButton(Globals.CMD_ADDMAP, "Add new map");
         jbtnAddMap.setBackground(new Color(192, 255, 192));
@@ -125,6 +127,9 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         jpnlTools.add(new JLabel("  "));
         jpnlTools.add(jbtnFillSpace);
         jpnlTools.add(jbtnFillActive);
+        jpnlTools.add(new JLabel("  "));
+        jpnlTools.add(jbtnRotateLeft);
+        jpnlTools.add(jbtnRotateRight);
         jpnlTools.add(new JLabel("  "));
         jpnlTools.add(jbtnTextCursor);
         jpnlTools.add(jbtnClone);
@@ -636,7 +641,9 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         if (name.endsWith("spr") || name.endsWith("chr")) {
             name = name.substring(0, name.length() - 3);
         }
-        URL imageURL = getClass().getResource("images/icon_" + name + ".png");
+        String imagePath = "images/icon_" + name + ".png";
+        System.out.println(imagePath);
+        URL imageURL = getClass().getResource(imagePath);
         return new ImageIcon(Toolkit.getDefaultToolkit().getImage(imageURL));
     }
 
@@ -677,6 +684,14 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 
     public void fillGrid(int v) {
         mpCanvas.fillGrid(v);
+    }
+
+    public void rotateLeft() {
+        mpCanvas.rotateLeft();
+    }
+
+    public void rotateRight() { ;
+        mpCanvas.rotateRight();
     }
 
     public void clearSpriteMap() {
@@ -810,6 +825,20 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                 } else if (command.equals(Globals.CMD_FILL_CHR)) {
                     if (confirmationAction("Confirm Fill", "Are you sure you want to fill the map with the active character?") == JOptionPane.YES_OPTION) {
                         fillGrid(mpCanvas.getActiveChar());
+                        updateComponents();
+                    }
+                } else if (command.equals(Globals.CMD_ROTATEL_MAP)) {
+                    if (confirmationAction("Confirm Clear", "Are you sure you want to rotate the map left?") == JOptionPane.YES_OPTION) {
+                        mpCanvas.rotateLeft();
+                        jsclCanvas.revalidate();
+                        undoManager.discardAllEdits();
+                        updateComponents();
+                    }
+                } else if (command.equals(Globals.CMD_ROTATER_MAP)) {
+                    if (confirmationAction("Confirm Fill", "Are you sure you want to rotate the map right?") == JOptionPane.YES_OPTION) {
+                        mpCanvas.rotateRight();
+                        jsclCanvas.revalidate();
+                        undoManager.discardAllEdits();
                         updateComponents();
                     }
                 } else if (command.equals(Globals.CMD_GRID_CHR)) {

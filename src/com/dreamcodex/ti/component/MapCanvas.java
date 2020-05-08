@@ -329,6 +329,32 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         redrawCanvas();
     }
 
+    public void rotateLeft() {
+        int[][] newGrid = new int[this.getGridWidth()][this.getGridHeight()];
+        for (int y = 0; y < this.getGridHeight(); y++) {
+            for (int x = 0; x < this.getGridWidth(); x++) {
+                newGrid[x][y] = gridData[y][this.getGridWidth() - 1 - x];
+            }
+        }
+        gridData = newGrid;
+        bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
+        highlightLayer = new boolean[getGridHeight()][getGridWidth()];
+        redrawCanvas();
+    }
+
+    public void rotateRight() {
+        int[][] newGrid = new int[this.getGridWidth()][this.getGridHeight()];
+        for (int y = 0; y < this.getGridHeight(); y++) {
+            for (int x = 0; x < this.getGridWidth(); x++) {
+                newGrid[x][this.getGridHeight() - 1 - y] = gridData[y][x];
+            }
+        }
+        gridData = newGrid;
+        bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
+        highlightLayer = new boolean[getGridHeight()][getGridWidth()];
+        redrawCanvas();
+    }
+
     public int getGridAt(int x, int y) {
         if (x >= 0 && y >= 0 && y < gridData.length && x < gridData[y].length) {
             return gridData[y][x];
