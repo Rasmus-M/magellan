@@ -42,7 +42,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     protected boolean showGrid = true;
     protected boolean lookModeOn = false;
     protected boolean cloneModeOn = false;
-    protected boolean stickyCloneMode = false;
+    protected boolean stickyCloneModeOn = false;
+    protected boolean floodFillModeOn = false;
     protected int[][] cloneArray = null;
     protected int lookChar = NOCHAR;
     protected boolean typeCellOn = true;
@@ -171,6 +172,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         return cloneModeOn;
     }
 
+    public boolean isFloodFillModeOn() {
+        return floodFillModeOn;
+    }
+
     public int[][] getCloneArray() {
         return cloneArray;
     }
@@ -256,6 +261,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         setCloneCell(PT_OFFGRID);
         rectClone = null;
         cloneArray = null;
+    }
+
+    public void setFloodFillMode(boolean floodFillMode) {
+        this.floodFillModeOn = floodFillMode;
     }
 
     public void setCloneArray(int[][] ar) {
@@ -355,6 +364,17 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         redrawCanvas();
     }
 
+    public int getGridAtHotCell() {
+        if (!hotCell.equals(PT_OFFGRID)) {
+            return getGridAt(hotCell);
+        }
+        return NOCHAR;
+    }
+
+    public int getGridAt(Point p) {
+        return getGridAt(p.x, p.y);
+    }
+
     public int getGridAt(int x, int y) {
         if (x >= 0 && y >= 0 && y < gridData.length && x < gridData[y].length) {
             return gridData[y][x];
@@ -447,6 +467,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void toggleCloneMode() {
         this.setCloneModeOn(!isCloneModeOn());
+    }
+
+    public void toggleFloodFillMode() {
+        this.setFloodFillMode(!isFloodFillModeOn());
     }
 
     public void advanceTypeCell() {
@@ -629,6 +653,26 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         setAllGrid(v);
     }
 
+    public void floodFillGrid() {
+        int oldChar = getGridAtHotCell();
+        if (oldChar != NOCHAR) {
+            int[][] oldValue = getGridDataCopy();
+            floodFill(getHotCell(), oldChar, getActiveChar());
+            redrawCanvas();
+            undoManager.undoableEditHappened(new UndoableEditEvent(this, new AllMapEdit(oldValue)));
+        }
+    }
+
+    void floodFill(Point p, int oldChar, int newChar) {
+        if (getGridAt(p) == oldChar) {
+            setGridAt(p, newChar);
+            floodFill(new Point(p.x + 1, p.y), oldChar, newChar);
+            floodFill(new Point(p.x - 1, p.y), oldChar, newChar);
+            floodFill(new Point(p.x, p.y + 1), oldChar, newChar);
+            floodFill(new Point(p.x, p.y - 1), oldChar, newChar);
+        }
+    }
+
     protected void typeCharToGrid(int x, int y, char ch) {
         int charNum = -1;
         if (ch == ' ') {
@@ -746,13 +790,17 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     /* MouseListener methods */
 
     public void mousePressed(MouseEvent me) {
-        if (cloneModeOn) {
+        if (isFloodFillModeOn()) {
+            floodFillGrid();
+        }
+        if (isCloneModeOn()) {
             Point clickCell = getMouseCell(me.getPoint());
             if (cloneArray == null && !clickCell.equals(PT_OFFGRID)) {
                 // Set start of clone region
                 setCloneCell(clickCell);
             }
-        } else {
+        }
+        if (!isFloodFillModeOn() && !isCloneModeOn()) {
             strokeEdit = new CompoundEdit();
             processCellAtPoint(me.getPoint(), me.getButton());
             parentMouseListener.mousePressed(me);
@@ -781,11 +829,11 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                     undoManager.undoableEditHappened(new UndoableEditEvent(this, new AreaEdit(clickCell.x, clickCell.y, oldValue)));
                     // Hold down shift or ctrl to continue cloning
                     if (!me.isShiftDown() && !me.isControlDown()) {
-                        stickyCloneMode = false;
+                        stickyCloneModeOn = false;
                         rectClone = null;
                         cloneArray = null;
                     } else {
-                        stickyCloneMode = true;
+                        stickyCloneModeOn = true;
                     }
                     redrawCanvas();
                     parentMouseListener.mouseClicked(me);
@@ -865,8 +913,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             parentMouseMotionListener.mouseMoved(me);
         }
         // Release sticky clone mode
-        if (stickyCloneMode && !me.isShiftDown() && !me.isControlDown()) {
-            stickyCloneMode = false;
+        if (stickyCloneModeOn && !me.isShiftDown() && !me.isControlDown()) {
+            stickyCloneModeOn = false;
             rectClone = null;
             cloneArray = null;
             parentMouseListener.mouseClicked(null); // Update Clone button
@@ -884,7 +932,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void keyPressed(KeyEvent ke) {
         if (cloneModeOn && ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            stickyCloneMode = false;
+            stickyCloneModeOn = false;
             setCloneCell(PT_OFFGRID);
             rectClone = null;
             cloneArray = null;
