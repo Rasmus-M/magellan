@@ -56,6 +56,8 @@ public class Globals {
     public static final String CMD_CLRBACK_CHR = "clrbackchr";
     public static final String CMD_CLRCHOOSE_CHR = "clrchoosechr";
     public static final String CMD_PALSELECT_CHR = "palselectchr";
+    public static final String CMD_ROTATEL_MAP = "rotatelmap";
+    public static final String CMD_ROTATER_MAP = "rotatermap";
 
     public static final String CMD_GRID_SPR = "togglegridspr";
     public static final String CMD_UNDO_SPR = "undospr";
