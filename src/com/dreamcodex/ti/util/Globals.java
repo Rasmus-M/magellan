@@ -59,6 +59,8 @@ public class Globals {
     public static final String CMD_PALSELECT_CHR = "palselectchr";
     public static final String CMD_ROTATEL_MAP = "rotatelmap";
     public static final String CMD_ROTATER_MAP = "rotatermap";
+    public static final String CMD_FLIPH_MAP = "fliphmap";
+    public static final String CMD_FLIPV_MAP = "flipvmap";
 
     public static final String CMD_GRID_SPR = "togglegridspr";
     public static final String CMD_UNDO_SPR = "undospr";

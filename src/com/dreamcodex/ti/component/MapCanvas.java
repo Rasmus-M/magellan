@@ -364,6 +364,32 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         redrawCanvas();
     }
 
+    public void flipHorizontal() {
+        int[][] oldValue = gridData;
+        int[][] newGrid = new int[this.getGridHeight()][this.getGridWidth()];
+        for (int y = 0; y < this.getGridHeight(); y++) {
+            for (int x = 0; x < this.getGridWidth(); x++) {
+                newGrid[y][x] = gridData[y][this.getGridWidth() - 1 - x];
+            }
+        }
+        gridData = newGrid;
+        redrawCanvas();
+        undoManager.undoableEditHappened(new UndoableEditEvent(this, new AllMapEdit(oldValue)));
+    }
+
+    public void flipVertical() {
+        int[][] oldValue = gridData;
+        int[][] newGrid = new int[this.getGridHeight()][this.getGridWidth()];
+        for (int y = 0; y < this.getGridHeight(); y++) {
+            for (int x = 0; x < this.getGridWidth(); x++) {
+                newGrid[y][x] = gridData[this.getGridHeight() - 1 - y][x];
+            }
+        }
+        gridData = newGrid;
+        redrawCanvas();
+        undoManager.undoableEditHappened(new UndoableEditEvent(this, new AllMapEdit(oldValue)));
+    }
+
     public int getGridAtHotCell() {
         if (!hotCell.equals(PT_OFFGRID)) {
             return getGridAt(hotCell);

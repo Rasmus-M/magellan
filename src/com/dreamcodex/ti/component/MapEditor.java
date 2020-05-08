@@ -94,6 +94,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         jbtnFloodFillMode = getToolButton(Globals.CMD_FLOOD_FILL, "Flood fill map with active character");
         JButton jbtnRotateLeft = getToolButton(Globals.CMD_ROTATEL_MAP, "Rotate map left (will swap dimensions)");
         JButton jbtnRotateRight = getToolButton(Globals.CMD_ROTATER_MAP, "Rotate map right (will swap dimensions)");
+        JButton jbtnFlipH = getToolButton(Globals.CMD_FLIPH_MAP, "Flip horizontal");
+        JButton jbtnFlipV = getToolButton(Globals.CMD_FLIPV_MAP, "Flip vertical");
         jbtnToggleGrid = getToolButton(Globals.CMD_GRID_CHR, "Toggle grid on and off");
         JButton jbtnAddMap = getToolButton(Globals.CMD_ADDMAP, "Add new map");
         jbtnAddMap.setBackground(new Color(192, 255, 192));
@@ -133,6 +135,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         jpnlTools.add(new JLabel("  "));
         jpnlTools.add(jbtnRotateLeft);
         jpnlTools.add(jbtnRotateRight);
+        jpnlTools.add(jbtnFlipH);
+        jpnlTools.add(jbtnFlipV);
         jpnlTools.add(new JLabel("  "));
         jpnlTools.add(jbtnTextCursor);
         jpnlTools.add(jbtnClone);
@@ -692,14 +696,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         mpCanvas.fillGrid(v);
     }
 
-    public void rotateLeft() {
-        mpCanvas.rotateLeft();
-    }
-
-    public void rotateRight() { ;
-        mpCanvas.rotateRight();
-    }
-
     public void clearSpriteMap() {
         mpCanvas.clearSpriteMap();
     }
@@ -838,19 +834,27 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     mpCanvas.toggleFloodFillMode();
                     updateComponents();
                 } else if (command.equals(Globals.CMD_ROTATEL_MAP)) {
-                    if (confirmationAction("Confirm Clear", "Are you sure you want to rotate the map left?") == JOptionPane.YES_OPTION) {
+                    if (confirmationAction("Confirm Clear", "Are you sure you want to rotate the map left (this cannot be undone)?") == JOptionPane.YES_OPTION) {
                         mpCanvas.rotateLeft();
                         jsclCanvas.revalidate();
                         undoManager.discardAllEdits();
                         updateComponents();
                     }
                 } else if (command.equals(Globals.CMD_ROTATER_MAP)) {
-                    if (confirmationAction("Confirm Fill", "Are you sure you want to rotate the map right?") == JOptionPane.YES_OPTION) {
+                    if (confirmationAction("Confirm Fill", "Are you sure you want to rotate the map right (this cannot be undone)?") == JOptionPane.YES_OPTION) {
                         mpCanvas.rotateRight();
                         jsclCanvas.revalidate();
                         undoManager.discardAllEdits();
                         updateComponents();
                     }
+                } else if (command.equals(Globals.CMD_FLIPH_MAP)) {
+                    mpCanvas.flipHorizontal();
+                    updateComponents();
+                    return;
+                } else if (command.equals(Globals.CMD_FLIPV_MAP)) {
+                    mpCanvas.flipVertical();
+                    updateComponents();
+                    return;
                 } else if (command.equals(Globals.CMD_GRID_CHR)) {
                     mpCanvas.toggleGrid();
                     updateComponents();
