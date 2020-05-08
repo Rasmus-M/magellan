@@ -2091,7 +2091,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             charUsageDialog.transferFocus();
         }
         else {
-            charUsageDialog = new AnalyzeCharUsageDialog(this, mapdMain, hmCharImages);
+            charUsageDialog = new AnalyzeCharUsageDialog(this, mapdMain, hmCharImages, getCharacterSetEnd());
         }
     }
 
@@ -2449,7 +2449,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportDataFile(int exportType) throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, bExportComments, defStartChar, defEndChar, getCharacterSetStart(), characterSetSize != CHARACTER_SET_BASIC || exportType == Globals.XB256_PROGRAM ? TIGlobals.MAX_CHAR : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.BASIC_LAST_CHAR), bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, bExportComments, defStartChar, defEndChar, getCharacterSetStart(), characterSetSize != CHARACTER_SET_BASIC || exportType == Globals.XB256_PROGRAM ? getCharacterSetEnd() : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.BASIC_LAST_CHAR), bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, XBEXTS, "XB Data Files");
             if (file != null) {
@@ -2481,7 +2481,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportAssemblerFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, TIGlobals.MAX_CHAR, defStartSprite, defEndSprite, bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -2519,7 +2519,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportScrollFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, TIGlobals.MAX_CHAR, defStartSprite, defEndSprite, bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -2556,7 +2556,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportBinaryFile() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, TIGlobals.MAX_CHAR, bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
             if (file != null) {
@@ -2604,7 +2604,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportXBDisplayMerge() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, TIGlobals.MAX_CHAR, bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ANYS, "Screen Merge Files");
             if (file != null) {

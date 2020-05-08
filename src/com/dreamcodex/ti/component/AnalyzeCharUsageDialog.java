@@ -33,6 +33,7 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
 
     private final MapEditor mapEditor;
     private final HashMap<Integer, Image> charImages;
+    private final int maxChar;
     private int[] charCounts;
     private static boolean currentMapOnly = true;
     private JCheckBox currentMapCheckBox;
@@ -55,7 +56,7 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
         }
 
         public void buildMap() {
-            charCounts = new int[256];
+            charCounts = new int[maxChar];
             for (int i = 0; i < mapEditor.getMapCount(); i++) {
                 if (!currentMapCheckBox.isSelected() || i == mapEditor.getCurrentMapId()) {
                     int[][] mapData = mapEditor.getMapData(i);
@@ -129,11 +130,13 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
     public AnalyzeCharUsageDialog(
         JFrame parent,
         MapEditor mapEditor,
-        HashMap<Integer, Image> charImages
+        HashMap<Integer, Image> charImages,
+        int maxChar
     ) {
         super(parent, "Analyze Character Usage");
         this.mapEditor = mapEditor;
         this.charImages = charImages;
+        this.maxChar = maxChar;
         setLayout(new BorderLayout());
         currentMapCheckBox = new JCheckBox("Current Map Only", currentMapOnly);
         JPanel optionsPanel = new JPanel();
