@@ -2390,7 +2390,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void importMapImage() {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, ecmPalettes);
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
                     MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
@@ -2411,7 +2411,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void importSpriteImage() {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, ecmPalettes);
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
                     MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);

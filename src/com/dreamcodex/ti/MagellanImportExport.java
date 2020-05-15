@@ -1059,7 +1059,7 @@ public class MagellanImportExport {
                         int y0 = sy * size;
                         for (int sx = 0; sx < xSprites; sx++) {
                             int x0 = sx * size;
-                            if (spriteIndex <= TIGlobals.MAX_SPRITE) {
+                            if (spriteIndex < TIGlobals.MAX_SPRITE) {
                                 if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP) {
                                     Map<Integer, int[][]> colorLayers = new TreeMap<Integer, int[][]>();
                                     int[] pixel = new int[1];
