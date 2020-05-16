@@ -2101,14 +2101,17 @@ public class MagellanImportExport {
                         if (includeComments) {
                             printPaddedLine(bw, "* -- Map Row " + y + " -- ", false);
                         }
-                        for (int cl = 0; cl < Math.ceil((double) mapToSave[y].length / 8); cl++) {
+                        int rowLength = mapToSave[y].length;
+                        boolean useBytes = rowLength % 2 == 1;
+                        String directive = useBytes ? "BYTE" : "DATA";
+                        for (int cl = 0; cl < Math.ceil((double) rowLength / 8); cl++) {
                             if (y == 0 && cl == 0) {
-                                sbLine.append("MD").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" DATA ");
+                                sbLine.append("MD").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" " + directive + " ");
                             }
                             else {
-                                sbLine.append("       DATA ");
+                                sbLine.append("       " + directive + " ");
                             }
-                            for (int colpos = (cl * 8); colpos < Math.min((cl + 1) * 8, mapToSave[y].length); colpos++) {
+                            for (int colpos = (cl * 8); colpos < Math.min((cl + 1) * 8, rowLength); colpos++) {
                                 if (isFirstByte) {
                                     if (colpos > (cl * 8)) {
                                         sbLine.append(",");
@@ -2120,11 +2123,9 @@ public class MagellanImportExport {
                                     hexChunk = "00";
                                 }
                                 sbLine.append(hexChunk.length() < 1 ? "00" : (hexChunk.length() < 2 ? "0" : "")).append(hexChunk);
-                                isFirstByte = !isFirstByte;
-                            }
-                            if (!isFirstByte) {
-                                sbLine.append("XX"); // If odd, pad with an illegal value
-                                isFirstByte = !isFirstByte;
+                                if (!useBytes) {
+                                    isFirstByte = !isFirstByte;
+                                }
                             }
                             printPaddedLine(bw, sbLine.toString(), includeComments);
                             sbLine.delete(0, sbLine.length());
