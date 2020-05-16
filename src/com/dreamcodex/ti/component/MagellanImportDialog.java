@@ -36,7 +36,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
     private JSlider jsldTolerance;
     private boolean clickedOkay = false;
 
-    public MagellanImportDialog(int type, JFrame parent, IconProvider ip, int colorMode, int minc, int maxc, ECMPalette[] palettes) {
+    public MagellanImportDialog(int type, JFrame parent, IconProvider ip, int colorMode, int minc, int maxc, int maxSprite, ECMPalette[] palettes) {
         super(parent, "Import Settings", true);
 
         jcmbStartChar = new JComboBox();
@@ -62,7 +62,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
         jcmbStartSprite = new JComboBox();
         jcmbStartSprite.setRenderer(new CharListCellRenderer());
-        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= maxSprite; i++) {
             Icon icon = ip.getIconForSprite(i);
             NamedIcon namedIcon = new NamedIcon(icon, Integer.toString(i));
             jcmbStartSprite.addItem(namedIcon);

@@ -221,15 +221,18 @@ public class TIGlobals
     };
 
     public static final int MIN_CHAR = 0;
-	public static final int MAX_CHAR = 1023;
+	public static final int MAX_CHAR = 2047;
     public static final int MIN_SPRITE = 0;
-    public static final int MAX_SPRITE = 63;
+    public static final int MAX_SPRITE = 511;
 	public static final int BASIC_FIRST_CHAR = 32;
 	public static final int BASIC_LAST_CHAR = BASIC_FIRST_CHAR + (8 * 16) - 1;
 	public static final int EXP_FIRST_CHAR = 0;
 	public static final int EXP_LAST_CHAR = 255;
 	public static final int SUPER_FIRST_CHAR = 0;
-	public static final int SUPER_LAST_CHAR = 1023;
+	public static final int SUPER_LAST_CHAR = 2047;
+	public static final int BASIC_LAST_SPRITE = 63;
+	public static final int EXP_LAST_SPRITE = 63;
+	public static final int SUPER_LAST_SPRITE = 511;
 	public static final int CHARMAPSTART = 32;
 	public static final int CHARMAPEND = 127;
 	public static final int SPACECHAR = 32;

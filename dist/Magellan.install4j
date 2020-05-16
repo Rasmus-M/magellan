@@ -527,8 +527,10 @@
   </mediaSets>
   <buildIds buildAll="false">
     <mediaSet refId="60" />
+    <mediaSet refId="117" />
     <mediaSet refId="173" />
     <mediaSet refId="176" />
+    <mediaSet refId="181" />
   </buildIds>
   <buildOptions verbose="false" faster="false" disableSigning="false" debug="false" />
 </install4j>

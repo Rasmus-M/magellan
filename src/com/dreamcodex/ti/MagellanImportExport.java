@@ -15,6 +15,8 @@ import java.awt.image.Raster;
 import java.io.*;
 import java.util.*;
 
+import static com.dreamcodex.ti.Magellan.*;
+
 /**
  * Created with IntelliJ IDEA.
  * User: RasmusM
@@ -119,19 +121,19 @@ public class MagellanImportExport {
                     hmCharGrids.put(charRead, Globals.getIntGrid(lineIn, 8));
                     charRead++;
                 }
-                else if (lineIn.startsWith(Globals.KEY_CHARDATA1) && (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3)) {
+                else if (lineIn.startsWith(Globals.KEY_CHARDATA1) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_CHARDATA1.length()), 16);
                     int[][] charGrid = hmCharGrids.get(charRead1++);
                     int[][] charGrid1 = Globals.getIntGrid(lineIn, 8);
                     Globals.orGrid(charGrid1, charGrid, 1);
                 }
-                else if (lineIn.startsWith(Globals.KEY_CHARDATA2) && (colorMode == Magellan.COLOR_MODE_ECM_3)) {
+                else if (lineIn.startsWith(Globals.KEY_CHARDATA2) && (colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_CHARDATA2.length()), 16);
                     int[][] charGrid = hmCharGrids.get(charRead2++);
                     int[][] charGrid2 = Globals.getIntGrid(lineIn, 8);
                     Globals.orGrid(charGrid2, charGrid, 2);
                 }
-                else if (lineIn.startsWith(Globals.KEY_CHARCOLOR) && colorMode == Magellan.COLOR_MODE_BITMAP) {
+                else if (lineIn.startsWith(Globals.KEY_CHARCOLOR) && colorMode == COLOR_MODE_BITMAP) {
                     lineIn = lineIn.substring(Globals.KEY_CHARCOLOR.length());
                     if (lineIn.length() > 16) {
                         lineIn = lineIn.substring(0, 16);
@@ -148,7 +150,7 @@ public class MagellanImportExport {
                     hmCharColors.put(charColorRead, charColors);
                     charColorRead++;
                 }
-                else if (lineIn.startsWith(Globals.KEY_PALETTE) && (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3)) {
+                else if (lineIn.startsWith(Globals.KEY_PALETTE) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = lineIn.substring(Globals.KEY_PALETTE.length());
                     ECMPalette ecmPalette = ecmPalettes[palNo++];
                     String[] hexCols = lineIn.split("\\|");
@@ -162,7 +164,7 @@ public class MagellanImportExport {
                         ecmPalette.setColor(i, color);
                     }
                 }
-                else if (lineIn.startsWith(Globals.KEY_CHARPALS) && (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3)) {
+                else if (lineIn.startsWith(Globals.KEY_CHARPALS) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     ECMPalette ecmPalette;
                     try {
                         ecmPalette = ecmPalettes[Integer.parseInt(lineIn.substring(Globals.KEY_CHARPALS.length()))];
@@ -171,7 +173,7 @@ public class MagellanImportExport {
                     }
                     ecmCharPalettes[charPalNo++] = ecmPalette;
                 }
-                else if (lineIn.startsWith(Globals.KEY_CHARTRANS) && (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3)) {
+                else if (lineIn.startsWith(Globals.KEY_CHARTRANS) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     ecmCharTransparency[charTransNo++] = "1".equals(lineIn.substring(Globals.KEY_CHARTRANS.length()));
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARRANG)) {
@@ -257,13 +259,13 @@ public class MagellanImportExport {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_SPRITE_PATTERN.length()), 64);
                     hmSpriteGrids.put(spriteRead++, Globals.getIntGrid(lineIn, 16));
                 }
-                else if (lineIn.startsWith(Globals.KEY_SPRITE_PATTERN1) && (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3)) {
+                else if (lineIn.startsWith(Globals.KEY_SPRITE_PATTERN1) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_SPRITE_PATTERN1.length()), 64);
                     int[][] spriteGrid = hmSpriteGrids.get(spriteRead1++);
                     int[][] spriteGrid1 = Globals.getIntGrid(lineIn, 16);
                     Globals.orGrid(spriteGrid1, spriteGrid, 1);
                 }
-                else if (lineIn.startsWith(Globals.KEY_SPRITE_PATTERN2) && (colorMode == Magellan.COLOR_MODE_ECM_3)) {
+                else if (lineIn.startsWith(Globals.KEY_SPRITE_PATTERN2) && (colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_SPRITE_PATTERN2.length()), 64);
                     int[][] spriteGrid = hmSpriteGrids.get(spriteRead2++);
                     int[][] spriteGrid2 = Globals.getIntGrid(lineIn, 16);
@@ -276,7 +278,7 @@ public class MagellanImportExport {
                     } catch (NumberFormatException e) {
                         colorIndex = 0;
                     }
-                    if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+                    if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
                         ecmSpritePalettes[spritePalNo++] = ecmPalettes[colorIndex];
                     }
                     else {
@@ -286,7 +288,7 @@ public class MagellanImportExport {
             }
         } while (lineIn != null);
         br.close();
-        if (colorMode == Magellan.COLOR_MODE_BITMAP && charColorRead == charStart) {
+        if (colorMode == COLOR_MODE_BITMAP && charColorRead == charStart) {
             // Bitmap color mode but no bitmap colors found - use color sets
             for (int i = charStart; i <= charEnd; i++) {
                 if (hmCharGrids.get(i) != null) {
@@ -463,7 +465,7 @@ public class MagellanImportExport {
             }
             if (readPos >= colorTableOffset && readPos < (colorTableOffset + colorTableLength)) {
                 if (bitmapMode) {
-                    if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+                    if (colorMode == COLOR_MODE_BITMAP) {
                         int colorByte = readPos - colorTableOffset;
                         int colorChar = colorByte / 8;
                         int[][] colorGrid = hmCharColors.get(colorChar);
@@ -484,7 +486,7 @@ public class MagellanImportExport {
                         setNum = (setNum + 20) & 0x1F;
                     clrSets[setNum][Globals.INDEX_CLR_FORE] = colorFore;
                     clrSets[setNum][Globals.INDEX_CLR_BACK] = colorBack;
-                    if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+                    if (colorMode == COLOR_MODE_BITMAP) {
                         for (int colorChar = setNum * 8; colorChar < setNum * 8 + 8; colorChar++) {
                             int[][] colorGrid = hmCharColors.get(colorChar);
                             if (colorGrid == null) {
@@ -593,7 +595,7 @@ public class MagellanImportExport {
         }
         System.out.println("Number of unique patterns: " + patterns.size());
         switch (colorMode) {
-            case Magellan.COLOR_MODE_GRAPHICS_1:
+            case COLOR_MODE_GRAPHICS_1:
                 // Divide into char/color sets
                 // Each charSet is stored as a pair
                 // The first element is an integer key composed of the background and foreground colors
@@ -798,7 +800,7 @@ public class MagellanImportExport {
                     }
                 }
                 break;
-            case Magellan.COLOR_MODE_BITMAP:
+            case COLOR_MODE_BITMAP:
                 for (int i = 0; i < patterns.size() && i <= maxIndex; i++) {
                     int[][] rgbGrid = patterns.get(i).getFirst();
                     int[][] charGrid = hmCharGrids.get(i + startIndex);
@@ -851,10 +853,10 @@ public class MagellanImportExport {
                     }
                 }
                 break;
-            case Magellan.COLOR_MODE_ECM_2:
-            case Magellan.COLOR_MODE_ECM_3:
-                int maxPaletteSize = colorMode == Magellan.COLOR_MODE_ECM_2 ? 4 : 8;
-                int maxPalettes = (colorMode == Magellan.COLOR_MODE_ECM_2 ? 16 : 8) - startPalette;
+            case COLOR_MODE_ECM_2:
+            case COLOR_MODE_ECM_3:
+                int maxPaletteSize = colorMode == COLOR_MODE_ECM_2 ? 4 : 8;
+                int maxPalettes = (colorMode == COLOR_MODE_ECM_2 ? 16 : 8) - startPalette;
                 // Build palettes
                 // Each palette consist of a set of RGB values and a count of how many characters use the palette
                 ArrayList<Pair<Set<Integer>, Integer>> palettes = new ArrayList<Pair<Set<Integer>, Integer>>();
@@ -1044,7 +1046,7 @@ public class MagellanImportExport {
 
     }
 
-    protected void readSpriteFile(File file, int spriteIndex, int startPalette, int gap) throws Exception {
+    protected void readSpriteFile(File file, int spriteIndex, int startPalette, int gap, int characterSetSize) throws Exception {
         int size = 16 + gap;
         BufferedImage image = ImageIO.read(file);
         // if (image.getWidth() % 16 == 0 && image.getHeight() % 16 == 0) {
@@ -1059,14 +1061,14 @@ public class MagellanImportExport {
                         int y0 = sy * size;
                         for (int sx = 0; sx < xSprites; sx++) {
                             int x0 = sx * size;
-                            if (spriteIndex < TIGlobals.MAX_SPRITE) {
-                                if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP) {
+                            if (spriteIndex < getSpriteSetEnd(characterSetSize)) {
+                                if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
                                     Map<Integer, int[][]> colorLayers = new TreeMap<Integer, int[][]>();
                                     int[] pixel = new int[1];
                                     for (int y = 0; y < 16; y++) {
                                         for (int x = 0; x < 16; x++) {
                                             raster.getPixel(x + x0, y + y0, pixel);
-                                            int colorIndex = pixel[0];
+                                            int colorIndex = Math.min(pixel[0], 15);
                                             if (colorIndex != 0) { // 0 is transparent
                                                 int[][] colorLayer = colorLayers.get(colorIndex);
                                                 if (colorLayer == null) {
@@ -1085,7 +1087,7 @@ public class MagellanImportExport {
                                 }
                                 // F18A ECM sprites
                                 else {
-                                    int colors = colorMode == Magellan.COLOR_MODE_ECM_2 ? 4 : 8;
+                                    int colors = colorMode == COLOR_MODE_ECM_2 ? 4 : 8;
                                     int[][] grid = hmSpriteGrids.get(spriteIndex);
                                     if (grid == null) {
                                         grid = new int[16][16];
@@ -1125,7 +1127,7 @@ public class MagellanImportExport {
     }
 
     protected void writeDataFile(File mapDataFile, int characterSetSize) throws IOException {
-        int characterSetEnd = Magellan.getCharacterSetEnd(characterSetSize);
+        int characterSetEnd = getCharacterSetEnd(characterSetSize);
         // store working map first
         mapdMain.storeCurrentMap();
         // get file output buffer
@@ -1154,7 +1156,7 @@ public class MagellanImportExport {
             bw.newLine();
         }
         // save palettes
-        if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             bw.write("* PALETTES");
             bw.newLine();
             for (ECMPalette ecmPalette : ecmPalettes) {
@@ -1199,7 +1201,7 @@ public class MagellanImportExport {
             }
             bw.newLine();
         }
-        if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             bw.write("* CHAR DEFS PLANE 1");
             bw.newLine();
             for (int i = TIGlobals.MIN_CHAR; i <= characterSetEnd; i++) {
@@ -1214,7 +1216,7 @@ public class MagellanImportExport {
                 bw.newLine();
             }
         }
-        if (colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_3) {
             bw.write("* CHAR DEFS PLANE 2");
             bw.newLine();
             for (int i = TIGlobals.MIN_CHAR; i <= characterSetEnd; i++) {
@@ -1230,7 +1232,7 @@ public class MagellanImportExport {
             }
         }
         // Save char colors (bitmap mode)
-        if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+        if (colorMode == COLOR_MODE_BITMAP) {
             bw.write("* CHAR COLORS");
             bw.newLine();
             for (int i = TIGlobals.MIN_CHAR; i <= characterSetEnd; i++) {
@@ -1285,7 +1287,7 @@ public class MagellanImportExport {
         // Save sprites
         bw.write("* SPRITES PATTERNS");
         bw.newLine();
-        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
             bw.write(Globals.KEY_SPRITE_PATTERN);
             if (hmSpriteGrids.get(i) != null) {
                 bw.write(Globals.getHexString(hmSpriteGrids.get(i)));
@@ -1295,10 +1297,10 @@ public class MagellanImportExport {
             }
             bw.newLine();
         }
-        if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             bw.write("* SPRITES PATTERNS PLANE 1");
             bw.newLine();
-            for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
+            for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
                 bw.write(Globals.KEY_SPRITE_PATTERN1);
                 if (hmSpriteGrids.get(i) != null) {
                     bw.write(Globals.getHexString(hmSpriteGrids.get(i), 2));
@@ -1309,10 +1311,10 @@ public class MagellanImportExport {
                 bw.newLine();
             }
         }
-        if (colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_3) {
             bw.write("* SPRITES PATTERNS PLANE 2");
             bw.newLine();
-            for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
+            for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
                 bw.write(Globals.KEY_SPRITE_PATTERN2);
                 if (hmSpriteGrids.get(i) != null) {
                     bw.write(Globals.getHexString(hmSpriteGrids.get(i), 4));
@@ -1325,9 +1327,9 @@ public class MagellanImportExport {
         }
         bw.write("* SPRITE COLORS/PALETTES");
         bw.newLine();
-        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
             bw.write(Globals.KEY_SPRITE_COLOR);
-            if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP) {
+            if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
                 bw.write(Integer.toString(spriteColors[i]));
             }
             else {
@@ -1843,7 +1845,7 @@ public class MagellanImportExport {
             printPaddedLine(bw, "* Colorset Definitions", false);
             printPaddedLine(bw, "****************************************", false);
         }
-        if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1) {
+        if (colorMode == COLOR_MODE_GRAPHICS_1) {
             int itemCount = 0;
             printPaddedLine(bw, "CLRNUM DATA " + (clrSets.length), includeComments);
             for (int i = 0; i < clrSets.length; i++) {
@@ -1869,7 +1871,7 @@ public class MagellanImportExport {
                 }
             }
         }
-        else if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+        else if (colorMode == COLOR_MODE_BITMAP) {
             sbLine.delete(0, sbLine.length());
             for (int i = startChar; i <= endChar; i++) {
                 int[][] charColors = hmCharColors.get(i);
@@ -1895,7 +1897,7 @@ public class MagellanImportExport {
                 }
             }
         }
-        else if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+        else if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             sbLine.delete(0, sbLine.length());
             for (int i = 0; i < ecmPalettes.length; i++) {
                 ECMPalette ecmPalette = ecmPalettes[i];
@@ -1928,7 +1930,7 @@ public class MagellanImportExport {
             sbLine.delete(0, sbLine.length());
             for (int i = startChar; i <= endChar; i++) {
                 sbLine.append("TAT").append(i).append(i < 10 ? "   " : (i < 100 ? "  " : " "));
-                sbLine.append("BYTE >").append(Globals.toHexString((paletteMap.get(ecmCharPalettes[i]) << (colorMode == Magellan.COLOR_MODE_ECM_3 ? 1 : 0)) | (ecmCharTransparency[i] ? 0x10 : 0), 2));
+                sbLine.append("BYTE >").append(Globals.toHexString((paletteMap.get(ecmCharPalettes[i]) << (colorMode == COLOR_MODE_ECM_3 ? 1 : 0)) | (ecmCharTransparency[i] ? 0x10 : 0), 2));
                 printPaddedLine(bw, sbLine.toString(), includeComments);
                 sbLine.delete(0, sbLine.length());
             }
@@ -1939,7 +1941,7 @@ public class MagellanImportExport {
         }
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
-            printPaddedLine(bw, "* Character Patterns" + (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3 ? " Plane 0" : ""), false);
+            printPaddedLine(bw, "* Character Patterns" + (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? " Plane 0" : ""), false);
             printPaddedLine(bw, "****************************************", false);
         }
         sbLine.delete(0, sbLine.length());
@@ -1951,7 +1953,7 @@ public class MagellanImportExport {
             if (includeCharNumbers) {
                 printPaddedLine(bw, "PCH" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA " + i, includeComments);
             }
-            sbLine.append((colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP ? "PAT" : "P0_") + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
+            sbLine.append((colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? "PAT" : "P0_") + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
             sbLine.append(">" + hexstr.substring(0, 4) + ",");
             sbLine.append(">" + hexstr.substring(4, 8) + ",");
             sbLine.append(">" + hexstr.substring(8, 12) + ",");
@@ -1959,7 +1961,7 @@ public class MagellanImportExport {
             printPaddedLine(bw, sbLine.toString(), includeComments);
             sbLine.delete(0, sbLine.length());
         }
-        if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
                 printPaddedLine(bw, "* Character Patterns Plane 1", false);
@@ -1979,7 +1981,7 @@ public class MagellanImportExport {
                 sbLine.delete(0, sbLine.length());
             }
         }
-        if (colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_3) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
                 printPaddedLine(bw, "* Character Patterns Plane 2", false);
@@ -2002,14 +2004,14 @@ public class MagellanImportExport {
         if (includeSpriteData) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
-                printPaddedLine(bw, "* Sprite Patterns" + (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3 ? " Plane 0" : ""), false);
+                printPaddedLine(bw, "* Sprite Patterns" + (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? " Plane 0" : ""), false);
                 printPaddedLine(bw, "****************************************", false);
             }
             sbLine.delete(0, sbLine.length());
             for (int i = startSprite; i <= endSprite; i++) {
                 if (hmSpriteGrids.get(i) != null) {
                     String hexstr = Globals.getSpriteHexString(hmSpriteGrids.get(i)).toUpperCase();
-                    sbLine.append((colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP ? "SPR" : "S0_") + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
+                    sbLine.append((colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? "SPR" : "S0_") + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
                     for (int pos = 0; pos < 64; pos += 4) {
                         if (pos > 0 && pos % 16 == 0) {
                             sbLine.append("       DATA ");
@@ -2022,7 +2024,7 @@ public class MagellanImportExport {
                     }
                 }
             }
-            if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+            if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
                 if (includeComments) {
                     printPaddedLine(bw, "****************************************", false);
                     printPaddedLine(bw, "* Sprite Patterns Plane 1", false);
@@ -2046,7 +2048,7 @@ public class MagellanImportExport {
                     }
                 }
             }
-            if (colorMode == Magellan.COLOR_MODE_ECM_3) {
+            if (colorMode == COLOR_MODE_ECM_3) {
                 if (includeComments) {
                     printPaddedLine(bw, "****************************************", false);
                     printPaddedLine(bw, "* Sprite Patterns Plane 2", false);
@@ -2352,7 +2354,7 @@ public class MagellanImportExport {
                         for (Point p : spriteMap.keySet()) {
                             ArrayList<Integer> spriteList = spriteMap.get(p);
                             for (Integer spriteNum : spriteList) {
-                                int color = (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP) ? spriteColors[spriteNum] : paletteMap.get(ecmSpritePalettes[spriteNum]) * (colorMode == Magellan.COLOR_MODE_ECM_3 ? 2 : 1);
+                                int color = (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) ? spriteColors[spriteNum] : paletteMap.get(ecmSpritePalettes[spriteNum]) * (colorMode == COLOR_MODE_ECM_3 ? 2 : 1);
                                 printPaddedLine(bw, (first ? "SL" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) : "      ") +
                                     (smallMap ? " BYTE " + ((p.y * 8 - 1) & 0xFF) : " DATA " + (p.y * 8)) + "," + (p.x * 8) + "," + spriteNum * 4 + "," + color, includeComments ? (first ? "y, x, pattern#, color#" : "") : null);
                                 first = false;
@@ -2367,11 +2369,11 @@ public class MagellanImportExport {
     }
 
     protected void writeScrollFile(File mapDataFile, int orientation, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
-        if (Magellan.ISOMETRIC && orientation == Magellan.SCROLL_ORIENTATION_ISOMETRIC) {
+        if (ISOMETRIC && orientation == SCROLL_ORIENTATION_ISOMETRIC) {
             writeIsometricFile(mapDataFile);
             return;
         }
-        boolean vertical = orientation == Magellan.SCROLL_ORIENTATION_VERTICAL;
+        boolean vertical = orientation == SCROLL_ORIENTATION_VERTICAL;
         // store working map first
         mapdMain.storeCurrentMap();
         BufferedWriter bw = null;
@@ -2415,7 +2417,7 @@ public class MagellanImportExport {
                             else {
                                 boolean colorsOK = true;
                                 boolean invert = false;
-                                if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+                                if (colorMode == COLOR_MODE_BITMAP) {
                                     int[][] charColors = new int[8][8];
                                     if (!vertical) {
                                         int[][] fromColorGrid = hmCharColors.get(fromChar);
@@ -2506,7 +2508,7 @@ public class MagellanImportExport {
                                         // allColorsOK = false;
                                         System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromBackColor=" + fromBackColor + " toBackColor=" + toBackColor);
                                     }
-                                    if (!colorsOK && Magellan.INVERT_SUPPORTED) {
+                                    if (!colorsOK && INVERT_SUPPORTED) {
                                         // Invert color set and pattern of to character
                                         colorsOK = true;
                                         toForeColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
@@ -2555,7 +2557,7 @@ public class MagellanImportExport {
                             }
                         }
                     }
-                    if (colorMode != Magellan.COLOR_MODE_BITMAP) {
+                    if (colorMode != COLOR_MODE_BITMAP) {
                         // Organize into color sets
                         i = 0;
                         for (int ckey : colorSets.keySet()) {
@@ -2604,7 +2606,7 @@ public class MagellanImportExport {
             remappedTransCharSet[i] = transChar != null ? new TransChar(transChar) : null;
         }
         int mapTo = 0;
-        for (int mapFrom = startChar; mapFrom <= (Magellan.ANIMATE_SCROLLED_FRAMES ? hmCharGrids.size() - 1 : endChar); mapFrom++) {
+        for (int mapFrom = startChar; mapFrom <= (ANIMATE_SCROLLED_FRAMES ? hmCharGrids.size() - 1 : endChar); mapFrom++) {
             if (usedChars[mapFrom]) {
                 remappedChars.add(mapFrom);
                 for (int i = 0; i < remappedTransCharSet.length; i++) {
@@ -2650,8 +2652,8 @@ public class MagellanImportExport {
             printPaddedLine(bw, "* Colorset Definitions", false);
             printPaddedLine(bw, "****************************************", false);
         }
-        if (colorMode == Magellan.COLOR_MODE_BITMAP) {
-            for (int i = startChar; i <= (Magellan.ANIMATE_SCROLLED_FRAMES ? hmCharColors.size() - 1 : endChar); i++) {
+        if (colorMode == COLOR_MODE_BITMAP) {
+            for (int i = startChar; i <= (ANIMATE_SCROLLED_FRAMES ? hmCharColors.size() - 1 : endChar); i++) {
                 int[][] charColors = hmCharColors.get(i);
                 if (charColors != null && !Globals.isColorGridEmpty(charColors)) {
                     if (includeCharNumbers) {
@@ -2727,7 +2729,7 @@ public class MagellanImportExport {
                     (i == 0 ? "TCHARS" : "      ") + " BYTE >" + Globals.toHexString(transChar.getFromChar(), 2) + ",>" + Globals.toHexString(transChar.getToChar(), 2),
                     !includeComments ? null :
                         "#" + Globals.toHexString(transChar.getIndex(), 2) +
-                        (colorMode != Magellan.COLOR_MODE_BITMAP ? " color " + Globals.toHexString(transChar.getForeColor(), 1) + "/" + Globals.toHexString(transChar.getBackColor(), 1) : "") +
+                        (colorMode != COLOR_MODE_BITMAP ? " color " + Globals.toHexString(transChar.getForeColor(), 1) + "/" + Globals.toHexString(transChar.getBackColor(), 1) : "") +
                         (transChar.isInvert() ? " invert" : "") +
                         (transChar.isColorsOK() ? "" : " ERROR")
                 );
@@ -2736,7 +2738,7 @@ public class MagellanImportExport {
                 printPaddedLine(bw, (i == 0 ? "TCHARS" : "      ") + " BYTE >FF,>FF", !includeComments ? null : "#" + Globals.toHexString(i, 2) + " unused");
             }
         }
-        if (Magellan.INVERT_SUPPORTED && colorMode == Magellan.COLOR_MODE_GRAPHICS_1) {
+        if (INVERT_SUPPORTED && colorMode == COLOR_MODE_GRAPHICS_1) {
             boolean found = false;
             for (int i = 0; i <= imax && !found; i++) {
                 TransChar transChar = transCharSet[i];
@@ -3038,7 +3040,7 @@ public class MagellanImportExport {
                 }
             }
         }
-        if ((frames > 0 || vertical && frames == -1) && colorMode == Magellan.COLOR_MODE_BITMAP) {
+        if ((frames > 0 || vertical && frames == -1) && colorMode == COLOR_MODE_BITMAP) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
                 printPaddedLine(bw, "* Scrolled Character Colors", false);
@@ -3658,7 +3660,7 @@ public class MagellanImportExport {
 
         // write Colorset Chunk (if present)
         if ((chunkFlags & BIN_CHUNK_COLORS) == BIN_CHUNK_COLORS) {
-            if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+            if (colorMode == COLOR_MODE_BITMAP) {
                 byte charCount = (byte) ((endChar - startChar) + 1);
                 fos.write(charCount);
                 for (int bc = startChar; bc <= endChar; bc++) {
@@ -3854,7 +3856,7 @@ public class MagellanImportExport {
         }
         // Global ECM palette
         ECMPalette ecmGlobalPalette = null;
-        if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             ECMPalette basePalette = ecmPalettes[0];
             int ecmColorIndex = 0;
             for (int y = 0; y < buffImg.getHeight(); y++) {
@@ -3888,9 +3890,9 @@ public class MagellanImportExport {
             int[][] newCharArray = new int[8][8];
             int[][] newColorArray = new int[8][2];
             // ECM palette for character
-            int[] ecmColors = colorMode == Magellan.COLOR_MODE_ECM_2 ? new int[4] : (colorMode == Magellan.COLOR_MODE_ECM_3 ? new int[8] : null);
+            int[] ecmColors = colorMode == COLOR_MODE_ECM_2 ? new int[4] : (colorMode == COLOR_MODE_ECM_3 ? new int[8] : null);
             int ecmColorIndex = 0;
-            if (ecmGlobalPalette == null && (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3)) {
+            if (ecmGlobalPalette == null && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                 for (int y = 0; y < 8; y++) {
                     for (int x = 0; x < 8; x++) {
                         int color = buffImg.getRGB((colOffset * 8) + x, (rowOffset * 8) + y);
@@ -3922,10 +3924,10 @@ public class MagellanImportExport {
                 newColors[1] = -1;
                 for (int x = 0; x < 8; x++) {
                     int color = buffImg.getRGB((colOffset * 8) + x, (rowOffset * 8) + y) | 0xff000000;
-                    if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1) {
+                    if (colorMode == COLOR_MODE_GRAPHICS_1) {
                         newCharArray[y][x] = (color == TIGlobals.TI_PALETTE_OPAQUE[clrSets[cSet][Globals.INDEX_CLR_FORE]].getRGB() ? 1 : 0);
                     }
-                    else if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+                    else if (colorMode == COLOR_MODE_BITMAP) {
                         int tiColor = getTIColorForPixel(color);
                         if (newColors[0] == -1) {
                             newColors[0] = tiColor;
@@ -3957,10 +3959,10 @@ public class MagellanImportExport {
                 }
             }
             hmCharGrids.put(charNum, newCharArray);
-            if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+            if (colorMode == COLOR_MODE_BITMAP) {
                 hmCharColors.put(charNum, newColorArray);
             }
-            if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
+            if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
                 if (ecmGlobalPalette == null) {
                     // Match char palette to existing palettes
                     boolean found = false;
@@ -4031,11 +4033,11 @@ public class MagellanImportExport {
                 gf.setComposite(AlphaComposite.SrcOver);
                 if (hmCharGrids.containsKey(ch)) {
                     charGrid = hmCharGrids.get(ch);
-                    charColors = colorMode == Magellan.COLOR_MODE_BITMAP ? hmCharColors.get(ch) : null;
+                    charColors = colorMode == COLOR_MODE_BITMAP ? hmCharColors.get(ch) : null;
                     for (int y = 0; y < charGrid.length; y++) {
                         for (int x = 0; x < charGrid[y].length; x++) {
                             shouldDraw = true;
-                            if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP) {
+                            if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
                                 if (charGrid[y][x] == 1) {
                                     if (isColor) {
                                         if (charColors == null) {

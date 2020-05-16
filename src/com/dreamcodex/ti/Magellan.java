@@ -90,6 +90,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     private final int FONT_ROWS = 32;
     private final int FONT_COLS = 8;
 
+    private final int SPRITE_COLS = 4;
+
     private final int MAP_ROWS = 24;
     private final int MAP_COLS = 32;
     private final int MAP_CELL = 8;
@@ -747,11 +749,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         // Create character editor grid and surrounding buttons
         jpnlCharTools.add(getToolButton(Globals.CMD_ROTATEL_CHR, "Rotate Left", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jlblCharInt = getLabel("", JLabel.CENTER);
-        jlblCharInt.setPreferredSize(Globals.DM_TOOL);
+        jlblCharInt.setPreferredSize(Globals.DM_TEXT);
         jpnlCharTools.add(jlblCharInt, new GridBagConstraints(3, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTU_CHR, "Shift Up", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(4, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jlblCharHex = getLabel("", JLabel.CENTER);
-        jlblCharHex.setPreferredSize(Globals.DM_TOOL);
+        jlblCharHex.setPreferredSize(Globals.DM_TEXT);
         jpnlCharTools.add(jlblCharHex, new GridBagConstraints(5, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jpnlCharTools.add(getToolButton(Globals.CMD_ROTATER_CHR, "Rotate Right", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(6, 1, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
         jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTL_CHR, "Shift Left", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(2, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
@@ -841,11 +843,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         // Create sprite editor grid and surrounding buttons
         jpnlSpriteTools.add(getToolButton(Globals.CMD_ROTATEL_SPR, "Rotate Left", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jlblSpriteInt = getLabel("", JLabel.CENTER);
-        jlblSpriteInt.setPreferredSize(Globals.DM_TOOL);
+        jlblSpriteInt.setPreferredSize(Globals.DM_TEXT);
         jpnlSpriteTools.add(jlblSpriteInt, new GridBagConstraints(3, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTU_SPR, "Shift Up", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(4, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jlblSpriteHex = getLabel("", JLabel.CENTER);
-        jlblSpriteHex.setPreferredSize(Globals.DM_TOOL);
+        jlblSpriteHex.setPreferredSize(Globals.DM_TEXT);
         jpnlSpriteTools.add(jlblSpriteHex, new GridBagConstraints(5, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         jpnlSpriteTools.add(getToolButton(Globals.CMD_ROTATER_SPR, "Rotate Right", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(6, 1, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
         jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTL_SPR, "Shift Left", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(2, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
@@ -1085,13 +1087,14 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected JPanel buildSpriteDock(JPanel jPanel) {
+        int dockSpriteRows = getSpriteSetSize() / SPRITE_COLS;
         if (jPanel != null) {
             jPanel.removeAll();
-            jPanel.setLayout(new GridLayout(16, 4));
+            jPanel.setLayout(new GridLayout(dockSpriteRows , 4));
         } else {
-            jPanel = getPanel(new GridLayout(16, 4));
+            jPanel = getPanel(new GridLayout(dockSpriteRows, 4));
         }
-        for (int i = 0; i < jbtnSprite.length; i++) {
+        for (int i = 0; i < getSpriteSetSize(); i++) {
             jPanel.add(jbtnSprite[i]);
         }
         return jPanel;
@@ -1728,12 +1731,15 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             } else if (command.equals(Globals.CMD_BASICCHARSETSIZE)) {
                 characterSetSize = CHARACTER_SET_BASIC;
                 jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
+                jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
             } else if (command.equals(Globals.CMD_EXPANDEDCHARSETSIZE)) {
                 characterSetSize = CHARACTER_SET_EXPANDED;
                 jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
+                jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
             } else if (command.equals(Globals.CMD_SUPERCHARSETSIZE)) {
                 characterSetSize = CHARACTER_SET_SUPER;
                 jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
+                jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
             } else if (command.equals(Globals.CMD_GRAPHICSCOLORMODE)) {
                 int oldColorMode = colorMode;
                 colorMode = COLOR_MODE_GRAPHICS_1;
@@ -2390,7 +2396,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void importMapImage() {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), ecmPalettes);
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
                     MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
@@ -2411,11 +2417,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void importSpriteImage() {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), ecmPalettes);
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
                     MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                    magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap());
+                    magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap(), characterSetSize);
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
                     errorAction(this, "Error importing file", e.getMessage());
@@ -2446,7 +2452,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportDataFile(int exportType) throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, bExportComments, defStartChar, defEndChar, getCharacterSetStart(), characterSetSize != CHARACTER_SET_BASIC || exportType == Globals.XB256_PROGRAM ? getCharacterSetEnd() : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.BASIC_LAST_CHAR), bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, bExportComments, defStartChar, defEndChar, getCharacterSetStart(), characterSetSize != CHARACTER_SET_BASIC || exportType == Globals.XB256_PROGRAM ? getCharacterSetEnd() : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.BASIC_LAST_CHAR), getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, XBEXTS, "XB Data Files");
             if (file != null) {
@@ -2478,7 +2484,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportAssemblerFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -2516,7 +2522,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportScrollFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -2553,7 +2559,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportBinaryFile() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
             if (file != null) {
@@ -2601,7 +2607,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportXBDisplayMerge() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ANYS, "Screen Merge Files");
             if (file != null) {
@@ -3200,5 +3206,30 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     public static int getCharacterSetSize(int characterSetSize) {
         return getCharacterSetEnd(characterSetSize) - getCharacterSetStart(characterSetSize) + 1;
+    }
+
+    public int getSpriteSetEnd() {
+        return getSpriteSetEnd(characterSetSize);
+    }
+
+    public static int getSpriteSetEnd(int characterSetSize) {
+        switch (characterSetSize) {
+            case CHARACTER_SET_BASIC:
+                return BASIC_LAST_SPRITE;
+            case CHARACTER_SET_EXPANDED:
+                return EXP_LAST_SPRITE;
+            case CHARACTER_SET_SUPER:
+                return SUPER_LAST_SPRITE;
+            default:
+                return BASIC_LAST_SPRITE;
+        }
+    }
+
+    public int getSpriteSetSize() {
+        return getSpriteSetSize(characterSetSize);
+    }
+
+    public static int getSpriteSetSize(int characterSetSize) {
+        return getSpriteSetEnd(characterSetSize) + 1;
     }
 }

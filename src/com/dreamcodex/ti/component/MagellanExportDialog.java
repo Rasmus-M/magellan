@@ -53,11 +53,11 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     private int minChar = 0;
     private int maxChar = 0;
 
-    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, boolean currentMapOnly, boolean excludeBlank) {
-        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, TIGlobals.MAX_SPRITE, currentMapOnly, excludeBlank, false, false, false, 0, 0, -1);
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int maxSprite, boolean currentMapOnly, boolean excludeBlank) {
+        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, false, 0, 0, -1);
     }
 
-    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeSpriteData, int compression, int scrollOrientation, int scrollFrames) {
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeSpriteData, int compression, int scrollOrientation, int scrollFrames) {
         super(parent, "Export Settings", true);
         minChar = minc;
         maxChar = maxc;
@@ -135,7 +135,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         jcmbStartSprite.setRenderer(new CharListCellRenderer());
         jcmbEndSprite = new JComboBox();
         jcmbEndSprite.setRenderer(new CharListCellRenderer());
-        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= maxSprite; i++) {
             Icon icon = ip.getIconForSprite(i);
             NamedIcon namedIcon = new NamedIcon(icon, Integer.toString(i));
             jcmbStartSprite.addItem(namedIcon);
