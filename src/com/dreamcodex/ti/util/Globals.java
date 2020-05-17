@@ -13,6 +13,7 @@ import java.util.Comparator;
 public class Globals {
     public static final String CMD_NEW = "new";
     public static final String CMD_OPEN = "open";
+    public static final String CMD_OPEN_RECENT = "openrecent";
     public static final String CMD_SAVE = "save";
     public static final String CMD_SAVEAS = "saveas";
     public static final String CMD_APPEND = "append";
@@ -124,7 +125,7 @@ public class Globals {
     public static final String KEY_CHARDATA1 = "C1:"; // Char data plane 1 (ECM)
     public static final String KEY_CHARDATA2 = "C2:"; // Char data plane 2 (ECM)
     public static final String KEY_CHARCOLOR = "CO:";
-    public static final String KEY_CHARRANG = "CR:"; // needed temporarily until all mag files are new format
+    public static final String KEY_CHARRANG = "CR:";
     public static final String KEY_MAPCOUNT = "MC:";
     public static final String KEY_MAPSTART = "M+";
     public static final String KEY_MAPSIZE = "MS:";

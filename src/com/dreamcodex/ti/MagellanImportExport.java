@@ -1046,7 +1046,7 @@ public class MagellanImportExport {
 
     }
 
-    protected void readSpriteFile(File file, int spriteIndex, int startPalette, int gap, int characterSetSize) throws Exception {
+    protected void readSpriteFile(File file, int spriteIndex, int startPalette, int gap) throws Exception {
         int size = 16 + gap;
         BufferedImage image = ImageIO.read(file);
         // if (image.getWidth() % 16 == 0 && image.getHeight() % 16 == 0) {
@@ -1061,7 +1061,7 @@ public class MagellanImportExport {
                         int y0 = sy * size;
                         for (int sx = 0; sx < xSprites; sx++) {
                             int x0 = sx * size;
-                            if (spriteIndex < getSpriteSetEnd(characterSetSize)) {
+                            if (spriteIndex <= TIGlobals.MAX_SPRITE) {
                                 if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
                                     Map<Integer, int[][]> colorLayers = new TreeMap<Integer, int[][]>();
                                     int[] pixel = new int[1];
@@ -1127,7 +1127,6 @@ public class MagellanImportExport {
     }
 
     protected void writeDataFile(File mapDataFile, int characterSetSize) throws IOException {
-        int characterSetEnd = getCharacterSetEnd(characterSetSize);
         // store working map first
         mapdMain.storeCurrentMap();
         // get file output buffer
@@ -1146,12 +1145,12 @@ public class MagellanImportExport {
         // output overall character range (this is for backwards compatibility with earlier Magellan releases, will be phased out)
         bw.write("* CHARACTER RANGE");
         bw.newLine();
-        bw.write(Globals.KEY_CHARRANG + TIGlobals.MIN_CHAR + "|" + characterSetEnd);
+        bw.write(Globals.KEY_CHARRANG + TIGlobals.MIN_CHAR + "|" + getCharacterSetEnd(characterSetSize));
         bw.newLine();
         // save colorsets
         bw.write("* COLORSET");
         bw.newLine();
-        for (int i = 0; i < characterSetEnd / 8; i++) {
+        for (int i = 0; i <= TIGlobals.MAX_CHAR / 8; i++) {
             bw.write(Globals.KEY_COLORSET + clrSets[i][Globals.INDEX_CLR_FORE] + "|" + clrSets[i][Globals.INDEX_CLR_BACK]);
             bw.newLine();
         }
@@ -1190,7 +1189,7 @@ public class MagellanImportExport {
         // save chardefs
         bw.write("* CHAR DEFS");
         bw.newLine();
-        for (int i = TIGlobals.MIN_CHAR; i <= characterSetEnd; i++) {
+        for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
             bw.write(Globals.KEY_CHARDATA);
             if (hmCharGrids.get(i) != null) {
                 String hexstr = Globals.getHexString(hmCharGrids.get(i));
@@ -1204,7 +1203,7 @@ public class MagellanImportExport {
         if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             bw.write("* CHAR DEFS PLANE 1");
             bw.newLine();
-            for (int i = TIGlobals.MIN_CHAR; i <= characterSetEnd; i++) {
+            for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                 bw.write(Globals.KEY_CHARDATA1);
                 if (hmCharGrids.get(i) != null) {
                     String hexstr = Globals.getHexString(hmCharGrids.get(i), 2);
@@ -1219,7 +1218,7 @@ public class MagellanImportExport {
         if (colorMode == COLOR_MODE_ECM_3) {
             bw.write("* CHAR DEFS PLANE 2");
             bw.newLine();
-            for (int i = TIGlobals.MIN_CHAR; i <= characterSetEnd; i++) {
+            for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                 bw.write(Globals.KEY_CHARDATA2);
                 if (hmCharGrids.get(i) != null) {
                     String hexstr = Globals.getHexString(hmCharGrids.get(i), 4);
@@ -1235,7 +1234,7 @@ public class MagellanImportExport {
         if (colorMode == COLOR_MODE_BITMAP) {
             bw.write("* CHAR COLORS");
             bw.newLine();
-            for (int i = TIGlobals.MIN_CHAR; i <= characterSetEnd; i++) {
+            for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                 bw.write(Globals.KEY_CHARCOLOR);
                 int[][] charColors = hmCharColors.get(i);
                 if (charColors != null) {
@@ -1287,7 +1286,7 @@ public class MagellanImportExport {
         // Save sprites
         bw.write("* SPRITES PATTERNS");
         bw.newLine();
-        for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
             bw.write(Globals.KEY_SPRITE_PATTERN);
             if (hmSpriteGrids.get(i) != null) {
                 bw.write(Globals.getHexString(hmSpriteGrids.get(i)));
@@ -1300,7 +1299,7 @@ public class MagellanImportExport {
         if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             bw.write("* SPRITES PATTERNS PLANE 1");
             bw.newLine();
-            for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
+            for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                 bw.write(Globals.KEY_SPRITE_PATTERN1);
                 if (hmSpriteGrids.get(i) != null) {
                     bw.write(Globals.getHexString(hmSpriteGrids.get(i), 2));
@@ -1314,7 +1313,7 @@ public class MagellanImportExport {
         if (colorMode == COLOR_MODE_ECM_3) {
             bw.write("* SPRITES PATTERNS PLANE 2");
             bw.newLine();
-            for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
+            for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                 bw.write(Globals.KEY_SPRITE_PATTERN2);
                 if (hmSpriteGrids.get(i) != null) {
                     bw.write(Globals.getHexString(hmSpriteGrids.get(i), 4));
@@ -1327,7 +1326,7 @@ public class MagellanImportExport {
         }
         bw.write("* SPRITE COLORS/PALETTES");
         bw.newLine();
-        for (int i = TIGlobals.MIN_SPRITE; i <= getSpriteSetEnd(characterSetSize); i++) {
+        for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
             bw.write(Globals.KEY_SPRITE_COLOR);
             if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
                 bw.write(Integer.toString(spriteColors[i]));

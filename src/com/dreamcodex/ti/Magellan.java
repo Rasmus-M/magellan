@@ -147,6 +147,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected int scrollOrientation = SCROLL_ORIENTATION_VERTICAL;
     protected int scrollFrames = 0;
 
+    protected ArrayList<String> recentFiles = new ArrayList<String>();
+
     // Fields
 
     private Properties appProperties = new Properties();
@@ -195,6 +197,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     private JMenuItem jmitBitmapColorMode;
     private JMenuItem jmitECM2ColorMode;
     private JMenuItem jmitECM3ColorMode;
+    private JRadioButtonMenuItem jmitCharacterSetSuper;
 
     // Map editor
     private MapEditor mapdMain;
@@ -305,6 +308,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         currentDirectory = appProperties.getProperty("filePath");
         if (currentDirectory == null || currentDirectory.length() == 0) {
             currentDirectory = ".";
+        }
+        String recentFileList = appProperties.getProperty("recentFiles");
+        if (recentFileList != null) {
+            String[] recentFilesArray = recentFileList.split("\\|");
+            for (int i = recentFilesArray.length - 1; i >= 0; i--) {
+                addRecentFile(recentFilesArray[i]);
+            }
         }
 
         // Create map editor panel (needs to initialise early for the listeners)
@@ -445,6 +455,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmitOpen.setActionCommand(Globals.CMD_OPEN);
         jmitOpen.addActionListener(this);
         jmenFile.add(jmitOpen);
+        JMenu jmenuOpenRecent = new RecentMenu(recentFiles, this);
+        jmenFile.add(jmenuOpenRecent);
         JMenuItem jmitSave = new JMenuItem("Save Map Project");
         jmitSave.setActionCommand(Globals.CMD_SAVE);
         jmitSave.addActionListener(this);
@@ -661,7 +673,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmitCharacterSetExpanded.addActionListener(this);
         jmenOptions.add(jmitCharacterSetExpanded);
 
-        JRadioButtonMenuItem jmitCharacterSetSuper = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_SUPER], characterSetSize == CHARACTER_SET_SUPER);
+        jmitCharacterSetSuper = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_SUPER], characterSetSize == CHARACTER_SET_SUPER);
         characterSetSizeButtonGroup.add(jmitCharacterSetSuper);
         jmitCharacterSetSuper.setActionCommand(Globals.CMD_SUPERCHARSETSIZE);
         jmitCharacterSetSuper.addActionListener(this);
@@ -1337,6 +1349,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 }
             } else if (command.equals(Globals.CMD_OPEN)) {
                 openDataFile(null);
+            } else if (command.startsWith(Globals.CMD_OPEN_RECENT)) {
+                openDataFile(command.substring(Globals.CMD_OPEN_RECENT.length()));
             } else if (command.equals(Globals.CMD_SAVE)) {
                 saveDataFile();
             } else if (command.equals(Globals.CMD_SAVEAS)) {
@@ -2118,11 +2132,12 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, FILEEXTS, "Map Data Files");
         }
         if (file != null && file.exists()) {
-            // Check color mode
+            // Check color mode and character range
             BufferedReader br = null;
             try {
                 br = new BufferedReader(new FileReader(file));
                 String line;
+                int linesToProcess = 2;
                 do {
                     line = br.readLine();
                     if (line != null) {
@@ -2150,15 +2165,18 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                                     return;
                                 }
                             }
-                            line = null;
+                            linesToProcess--;
+                        } else if (line.startsWith(Globals.KEY_CHARRANG)) {
+                            int endChar = Integer.parseInt(line.substring(Globals.KEY_CHARRANG.length()).split("\\|")[1]);
+                            if (endChar == SUPER_LAST_CHAR && getCharacterSetEnd() != endChar) {
+                                jmitCharacterSetSuper.doClick();
+                            }
+                            linesToProcess--;
                         }
                     }
-                } while (line != null);
-            } catch (IOException e) {
-                errorAction(this, "Error determining color mode", e.getMessage());
-                return;
-            } catch (NumberFormatException e) {
-                errorAction(this, "Error determining color mode", e.getMessage());
+                } while (line != null && linesToProcess > 0);
+            } catch (Exception e) {
+                errorAction(this, "Error determining color mode or character range", e.getMessage());
                 return;
             } finally {
                 if (br != null) {
@@ -2174,6 +2192,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             mapDataFile = file;
             MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.readDataFile(mapDataFile);
+            addRecentFile(file.getAbsolutePath());
         }
         for (int cn = 0; cn < jbtnChar.length; cn++) {
             jbtnChar[cn].setIcon((ImageIcon) null);
@@ -2186,62 +2205,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         editDefault();
         mapdMain.setScreenColorPalette(getScreenColorPalette());
         setModified(false);
-/*
-        // Move specific ECM color to palette entry 0, to allow for transparency
-        for (int p = 0; p < ecmPalettes.length; p++) {
-            ECMPalette pal = ecmPalettes[p];
-            Color[] palColors = pal.getColors();
-            for (int i = 1; i < palColors.length; i++) {
-                Color col = palColors[i];
-                if (col.getRed() == 0 && col.getGreen() == 170 && col.getBlue() == 255) {
-                    System.out.println("Found color in palette " + p + " position " + i);
-                    Color tmp = pal.getColor(0);
-                    pal.setColor(0, pal.getColor(i));
-                    pal.setColor(i, tmp);
-                    for (int j = 0; j < ecmCharPalettes.length; j++) {
-                        if (ecmCharPalettes[j] == pal) {
-                            System.out.println("Char " + j + " is using the palette");
-                            int[][] grid = hmCharGrids.get(j);
-                            for (int n = 0; n < grid.length; n++) {
-                                for (int m = 0; m < grid[n].length; m++) {
-                                    if (grid[n][m] == 0) {
-                                        System.out.println("Ex " + 0 + " with " + i);
-                                        grid[n][m] = i;
-                                    }
-                                    else if (grid[n][m] == i) {
-                                        System.out.println("Ex " + i + " with " + 0);
-                                        grid[n][m] = 0;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        updateFontButtons();
-*/
-/*
-        // Set ECM3 palette
-        int r = 0;
-        int g = 0;
-        int b = 0;
-        for (ECMPalette ecmPalette : ecmPalettes) {
-            for (int j = 0; j < ecmPalettes.length; j++) {
-                ecmPalette.setColor(j, new Color(r * 85, g * 85, b * 85));
-                r++;
-                if (r == 4) {
-                    r = 0;
-                    g++;
-                    if (g == 4) {
-                        g = 0;
-                        b++;
-                    }
-                }
-            }
-        }
-        updateFontButtons();
-*/
     }
 
     protected void saveDataFile() throws IOException {
@@ -2267,6 +2230,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeDataFile(mapDataFile, characterSetSize);
             updateComponents();
+            addRecentFile(file.getAbsolutePath());
         }
     }
 
@@ -2421,7 +2385,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             if (importer.isOkay()) {
                 try {
                     MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                    magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap(), characterSetSize);
+                    magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap());
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
                     errorAction(this, "Error importing file", e.getMessage());
@@ -2770,6 +2734,16 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             appProperties.setProperty("scrollOrientation", "" + scrollOrientation);
             appProperties.setProperty("scrollFrames", "" + scrollFrames);
             appProperties.setProperty("filePath", currentDirectory != null ? currentDirectory : ".");
+            StringBuilder recentFileList = new StringBuilder();
+            for (String filePath : recentFiles) {
+                if (filePath != null && new File(filePath).exists()) {
+                    if (recentFileList.length() > 0) {
+                        recentFileList.append("|");
+                    }
+                    recentFileList.append(filePath);
+                }
+            }
+            appProperties.setProperty("recentFiles", recentFileList.toString());
             appProperties.store(fos, null);
             fos.flush();
             fos.close();
@@ -3231,5 +3205,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     public static int getSpriteSetSize(int characterSetSize) {
         return getSpriteSetEnd(characterSetSize) + 1;
+    }
+
+    private void addRecentFile(String filePath) {
+        recentFiles.remove(filePath);
+        recentFiles.add(0, filePath);
+        while (recentFiles.size() > 10) {
+            recentFiles.remove(recentFiles.size() - 1);
+        }
     }
 }
