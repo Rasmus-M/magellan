@@ -35,7 +35,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Constants -------------------------------------------------------------------------------/
 
-    public static final String VERSION_NUMBER = "4.0.0 beta";
+    public static final String VERSION_NUMBER = "4.0.0";
 
     // Rasmus' special settings
     public static final boolean ISOMETRIC = false;

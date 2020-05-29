@@ -338,7 +338,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         redrawCanvas();
     }
 
-    public void rotateLeft() {
+    public void rotateLeft(boolean withUndo) {
         int[][] newGrid = new int[this.getGridWidth()][this.getGridHeight()];
         for (int y = 0; y < this.getGridHeight(); y++) {
             for (int x = 0; x < this.getGridWidth(); x++) {
@@ -349,9 +349,12 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
         highlightLayer = new boolean[getGridHeight()][getGridWidth()];
         redrawCanvas();
+        if (withUndo) {
+            undoManager.undoableEditHappened(new UndoableEditEvent(this, new RotationEdit(true)));
+        }
     }
 
-    public void rotateRight() {
+    public void rotateRight(boolean withUndo) {
         int[][] newGrid = new int[this.getGridWidth()][this.getGridHeight()];
         for (int y = 0; y < this.getGridHeight(); y++) {
             for (int x = 0; x < this.getGridWidth(); x++) {
@@ -362,6 +365,9 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
         highlightLayer = new boolean[getGridHeight()][getGridWidth()];
         redrawCanvas();
+        if (withUndo) {
+            undoManager.undoableEditHappened(new UndoableEditEvent(this, new RotationEdit(false)));
+        }
     }
 
     public void flipHorizontal() {
@@ -453,6 +459,9 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setSpriteMode(boolean enabled) {
         this.spriteMode = enabled;
+        if (enabled) {
+            this.floodFillModeOn = false;
+        }
     }
 
     public boolean isSpriteMode() {
@@ -683,20 +692,25 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         int oldChar = getGridAtHotCell();
         if (oldChar != NOCHAR) {
             int[][] oldValue = getGridDataCopy();
-            floodFill(getHotCell(), oldChar, getActiveChar());
-            redrawCanvas();
-            undoManager.undoableEditHappened(new UndoableEditEvent(this, new AllMapEdit(oldValue)));
+            int charsFilled = floodFill(getHotCell(), oldChar, getActiveChar());
+            if (charsFilled > 0) {
+                redrawCanvas();
+                undoManager.undoableEditHappened(new UndoableEditEvent(this, new AllMapEdit(oldValue)));
+            }
         }
     }
 
-    void floodFill(Point p, int oldChar, int newChar) {
+    int floodFill(Point p, int oldChar, int newChar) {
+        int charsFilled = 0;
         if (getGridAt(p) == oldChar) {
             setGridAt(p, newChar);
-            floodFill(new Point(p.x + 1, p.y), oldChar, newChar);
-            floodFill(new Point(p.x - 1, p.y), oldChar, newChar);
-            floodFill(new Point(p.x, p.y + 1), oldChar, newChar);
-            floodFill(new Point(p.x, p.y - 1), oldChar, newChar);
+            charsFilled++;
+            charsFilled += floodFill(new Point(p.x + 1, p.y), oldChar, newChar);
+            charsFilled += floodFill(new Point(p.x - 1, p.y), oldChar, newChar);
+            charsFilled += floodFill(new Point(p.x, p.y + 1), oldChar, newChar);
+            charsFilled += floodFill(new Point(p.x, p.y - 1), oldChar, newChar);
         }
+        return charsFilled;
     }
 
     protected void typeCharToGrid(int x, int y, char ch) {
@@ -775,22 +789,30 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 int oldValue = gridData[y][x];
                 int addedSpriteNum = -1;
                 int removedSpriteNum = -1;
+                boolean change = false;
                 if (!spriteMode) {
-                    gridData[y][x] = paintOn ? activeChar : TIGlobals.SPACECHAR;
+                    int newChar = paintOn ? activeChar : TIGlobals.SPACECHAR;
+                    if (gridData[y][x] != newChar) {
+                        gridData[y][x] = newChar;
+                        change = true;
+                    }
                 }
                 else if (paintOn) {
                     addedSpriteNum = setSprite(hotCell, activeSprite);
+                    change = addedSpriteNum != -1;
                 }
                 else {
                     removedSpriteNum = removeSprite(hotCell);
+                    change = removedSpriteNum != -1;
                 }
                 redrawCanvas();
-                UndoableEdit undoableEdit = spriteMode ? new SpriteEdit(x, y, addedSpriteNum, removedSpriteNum) : new CellEdit(x, y, oldValue);
-                if (strokeEdit == null) {
-                    undoManager.undoableEditHappened(new UndoableEditEvent(this, undoableEdit));
-                }
-                else {
-                    strokeEdit.addEdit(undoableEdit);
+                if (change) {
+                    UndoableEdit undoableEdit = spriteMode ? new SpriteEdit(x, y, addedSpriteNum, removedSpriteNum) : new CellEdit(x, y, oldValue);
+                    if (strokeEdit == null) {
+                        undoManager.undoableEditHappened(new UndoableEditEvent(this, undoableEdit));
+                    } else {
+                        strokeEdit.addEdit(undoableEdit);
+                    }
                 }
             }
             notifyMapChangedListeners();
@@ -816,7 +838,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     /* MouseListener methods */
 
     public void mousePressed(MouseEvent me) {
-        if (isFloodFillModeOn()) {
+        if (isFloodFillModeOn() && !spriteMode) {
             floodFillGrid();
         }
         if (isCloneModeOn()) {
@@ -1102,6 +1124,33 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                     gridData[plotY][plotX] = oldValue[plotY][plotX];
                     oldValue[plotY][plotX] = temp;
                 }
+            }
+        }
+    }
+
+    private class RotationEdit extends AbstractUndoableEdit {
+
+        private boolean left;
+
+        public RotationEdit(boolean left) {
+            this.left = left;
+        }
+
+        public void undo() throws CannotUndoException {
+            super.undo();
+            if (left) {
+                rotateRight(false);
+            } else {
+                rotateLeft(false);
+            }
+        }
+
+        public void redo() throws CannotRedoException {
+            super.redo();
+            if (left) {
+                rotateLeft(false);
+            } else {
+                rotateRight(false);
             }
         }
     }

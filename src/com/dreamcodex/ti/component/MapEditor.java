@@ -834,19 +834,13 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     mpCanvas.toggleFloodFillMode();
                     updateComponents();
                 } else if (command.equals(Globals.CMD_ROTATEL_MAP)) {
-                    if (confirmationAction("Confirm Clear", "Are you sure you want to rotate the map left (this cannot be undone)?") == JOptionPane.YES_OPTION) {
-                        mpCanvas.rotateLeft();
-                        jsclCanvas.revalidate();
-                        undoManager.discardAllEdits();
-                        updateComponents();
-                    }
+                    mpCanvas.rotateLeft(true);
+                    jsclCanvas.revalidate();
+                    updateComponents();
                 } else if (command.equals(Globals.CMD_ROTATER_MAP)) {
-                    if (confirmationAction("Confirm Fill", "Are you sure you want to rotate the map right (this cannot be undone)?") == JOptionPane.YES_OPTION) {
-                        mpCanvas.rotateRight();
-                        jsclCanvas.revalidate();
-                        undoManager.discardAllEdits();
-                        updateComponents();
-                    }
+                    mpCanvas.rotateRight(true);
+                    jsclCanvas.revalidate();
+                    updateComponents();
                 } else if (command.equals(Globals.CMD_FLIPH_MAP)) {
                     mpCanvas.flipHorizontal();
                     updateComponents();
