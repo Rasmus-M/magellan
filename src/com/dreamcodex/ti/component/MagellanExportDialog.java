@@ -96,15 +96,6 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         if (scrollOrientation == Magellan.SCROLL_ORIENTATION_HORIZONTAL) {
             horizontalButton.setSelected(true);
         }
-        if (Magellan.ISOMETRIC) {
-            JRadioButton isometricButton = new JRadioButton("Isometric", true);
-            isometricButton.addActionListener(this);
-            radioButtonGroup.add(isometricButton);
-            orientationRadioButtonPanel.add(isometricButton);
-            if (scrollOrientation == Magellan.SCROLL_ORIENTATION_VERTICAL) {
-                isometricButton.setSelected(true);
-            }
-        }
 
         jchkWrap = new JCheckBox("Wrap Edges", wrap);
         compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Meta tiles", "4x4 Meta tiles", "Pack in nybbles (16 characters max)"});

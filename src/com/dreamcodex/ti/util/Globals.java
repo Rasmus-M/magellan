@@ -557,7 +557,6 @@ public class Globals {
             !arrayContains(charGrid1, INDEX_CLR_BACK) || !arrayContains(charGrid2, INDEX_CLR_BACK)))
             ||
             // Invert color set and pattern of character 2
-            Magellan.INVERT_SUPPORTED &&
             (((foreColor1 != 0 ? foreColor1 : screenColor) == (backColor2 != 0 ? backColor2 : screenColor) ||
             !arrayContains(charGrid1, INDEX_CLR_FORE) || !arrayContains(charGrid2, INDEX_CLR_BACK)) &&
             ((backColor1 != 0 ? backColor1 : screenColor) == (foreColor2 != 0 ? foreColor2 : screenColor) ||

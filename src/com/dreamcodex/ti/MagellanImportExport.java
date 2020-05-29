@@ -2369,10 +2369,6 @@ public class MagellanImportExport {
     }
 
     protected void writeScrollFile(File mapDataFile, int orientation, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
-        if (ISOMETRIC && orientation == SCROLL_ORIENTATION_ISOMETRIC) {
-            writeIsometricFile(mapDataFile);
-            return;
-        }
         boolean vertical = orientation == SCROLL_ORIENTATION_VERTICAL;
         // store working map first
         mapdMain.storeCurrentMap();
@@ -2508,7 +2504,7 @@ public class MagellanImportExport {
                                         // allColorsOK = false;
                                         System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromBackColor=" + fromBackColor + " toBackColor=" + toBackColor);
                                     }
-                                    if (!colorsOK && INVERT_SUPPORTED) {
+                                    if (!colorsOK) {
                                         // Invert color set and pattern of to character
                                         colorsOK = true;
                                         toForeColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
@@ -2606,7 +2602,7 @@ public class MagellanImportExport {
             remappedTransCharSet[i] = transChar != null ? new TransChar(transChar) : null;
         }
         int mapTo = 0;
-        for (int mapFrom = startChar; mapFrom <= (ANIMATE_SCROLLED_FRAMES ? hmCharGrids.size() - 1 : endChar); mapFrom++) {
+        for (int mapFrom = startChar; mapFrom <= (animate ? hmCharGrids.size() - 1 : endChar); mapFrom++) {
             if (usedChars[mapFrom]) {
                 remappedChars.add(mapFrom);
                 for (int i = 0; i < remappedTransCharSet.length; i++) {
@@ -2653,7 +2649,7 @@ public class MagellanImportExport {
             printPaddedLine(bw, "****************************************", false);
         }
         if (colorMode == COLOR_MODE_BITMAP) {
-            for (int i = startChar; i <= (ANIMATE_SCROLLED_FRAMES ? hmCharColors.size() - 1 : endChar); i++) {
+            for (int i = startChar; i <= (animate ? hmCharColors.size() - 1 : endChar); i++) {
                 int[][] charColors = hmCharColors.get(i);
                 if (charColors != null && !Globals.isColorGridEmpty(charColors)) {
                     if (includeCharNumbers) {
@@ -2738,7 +2734,7 @@ public class MagellanImportExport {
                 printPaddedLine(bw, (i == 0 ? "TCHARS" : "      ") + " BYTE >FF,>FF", !includeComments ? null : "#" + Globals.toHexString(i, 2) + " unused");
             }
         }
-        if (INVERT_SUPPORTED && colorMode == COLOR_MODE_GRAPHICS_1) {
+        if (colorMode == COLOR_MODE_GRAPHICS_1) {
             boolean found = false;
             for (int i = 0; i <= imax && !found; i++) {
                 TransChar transChar = transCharSet[i];

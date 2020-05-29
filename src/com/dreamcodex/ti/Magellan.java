@@ -37,13 +37,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     public static final String VERSION_NUMBER = "4.0.0";
 
-    // Rasmus' special settings
-    public static final boolean ISOMETRIC = false;
-    public static final boolean ROAD_HUNTER = false;
-    public static final boolean ARTRAG = false;
-    public static final boolean ANIMATE_SCROLLED_FRAMES = false;
-    public static final boolean INVERT_SUPPORTED = true;
-
     public static final int CHARACTER_SET_BASIC = 0;
     public static final int CHARACTER_SET_EXPANDED = 1;
     public static final int CHARACTER_SET_SUPER = 2;
@@ -557,48 +550,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmitExportMapImg.setActionCommand(Globals.CMD_XPMAPIMG);
         jmitExportMapImg.addActionListener(this);
         jmenExport.add(jmitExportMapImg);
-        if (ROAD_HUNTER) {
-            JMenuItem levelItem = new JMenuItem();
-            levelItem.setAction(new AbstractAction() {
-                {
-                    putValue(Action.NAME, "Road Hunter Level");
-                }
-                public void actionPerformed(ActionEvent e) {
-                    int[][] mapData = mapdMain.getMapData(mapdMain.getCurrentMapId());
-                    for (int y = 0; y < mapData.length; y++) {
-                        int scr = mapData[mapData.length - 1 - y][0] - 64;
-                        if (y % 4 == 0) {
-                            System.out.print("       DATA ");
-                        }
-                        System.out.print("SCR0" + (scr < 10 ? "0" : "") + scr + (y % 4 != 3 ? "," : ""));
-                        if (y % 4 == 3) {
-                            System.out.println();
-                        }
-                    }
-                }
-            });
-            jmenExport.add(levelItem);
-        }
-        if (ARTRAG) {
-            JMenuItem artragItem = new JMenuItem();
-            artragItem.setAction(new AbstractAction() {
-                {
-                    putValue(Action.NAME, "Artrag Scroll File");
-                }
-                public void actionPerformed(ActionEvent e) {
-                    MagellanImportExport mio = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                    File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
-                    if (file != null) {
-                        try {
-                            mio.writeArtragFile(file, false, true, false, 8);
-                        } catch (Exception e1) {
-                            errorAction(null, "Error exporting file", e1.getMessage());
-                        }
-                    }
-                }
-            });
-            jmenExport.add(artragItem);
-        }
         // Add menu
         jMenuBar.add(jmenExport);
 
@@ -616,34 +567,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmitAnalyzeCharTrans.addActionListener(this);
         jmenTools.add(jmitAnalyzeCharTrans);
 
-        if (ISOMETRIC) {
-            JMenuItem jmitAnalyzeIsoCharTrans = new JMenuItem();
-            jmitAnalyzeIsoCharTrans.setAction(
-                    new AbstractAction() {
-                        {
-                            putValue(Action.NAME, "Analyze Isometric Character Transitions");
-                        }
-                        public void actionPerformed(ActionEvent e) {
-                            Map<String, Integer> transMap = new HashMap<String, Integer>();
-                            int[][] mapData = mapdMain.getMapData(mapdMain.getCurrentMapId());
-                            for (int y = 0; y < mapData.length - 1; y++) {
-                                for (int x = 0; x < mapData[y].length - 2; x++) {
-                                    String key =
-                                        mapData[y][x] + "-" + mapData[y][x + 1] + "-" + mapData[y][x + 2] + "-" +
-                                        mapData[y + 1][x] + "-" + mapData[y + 1][x + 1] + "-" + mapData[y + 1][x + 2];
-                                    Integer count = transMap.get(key);
-                                    transMap.put(key, count == null ? 1 : count + 1);
-                                }
-                            }
-                            for (String key : transMap.keySet()) {
-                                System.out.println(key + ": " + transMap.get(key));
-                            }
-                            informationAction(Magellan.this, "Analyze Isometric Character Transitions", "Total transitions: " + Integer.toString(transMap.size()));
-                        }
-                    }
-            );
-            jmenTools.add(jmitAnalyzeIsoCharTrans);
-        }
         // Add menu
         jMenuBar.add(jmenTools);
 
@@ -2512,7 +2435,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 scrollFrames = exporter.getFrames();
                 MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 try {
-                    magIO.writeScrollFile(file, scrollOrientation, bWrap, compression, bExportComments, bCurrentMapOnly, bIncludeCharNumbers, scrollFrames, ANIMATE_SCROLLED_FRAMES);
+                    magIO.writeScrollFile(file, scrollOrientation, bWrap, compression, bExportComments, bCurrentMapOnly, bIncludeCharNumbers, scrollFrames, false);
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
                     errorAction(this, "Export failed", e.getMessage());
