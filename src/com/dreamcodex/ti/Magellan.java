@@ -2696,7 +2696,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
         // Characters
         int charNum = TIGlobals.MIN_CHAR;
-        for (int r = 0; r < FONT_ROWS; r++) {
+        for (int r = 0; r < getCharacterSetSize() / FONT_COLS; r++) {
             clrSets[r][Globals.INDEX_CLR_BACK] = 0;
             clrSets[r][Globals.INDEX_CLR_FORE] = 1;
             for (int c = 0; c < FONT_COLS; c++) {
