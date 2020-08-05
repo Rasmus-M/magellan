@@ -23,7 +23,7 @@ Added features include:
 
 ## Binary distributions
 
-Binary distributions can be found [here] (http://magellan.js99er.net/).
+Binary distributions can be found [here](http://magellan.js99er.net/).
 Browse to the last post and search backwards for the latest release. 
 
 ## Licence
