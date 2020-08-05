@@ -19,9 +19,11 @@ Added features include:
 * Copy, paste and exchange characters
 * Undo/redo support
 
+[Magellan thread](http://atariage.com/forums/topic/161356-magellan) at AtariAge. 
+
 ## Binary distributions
 
-Binary distributions can be found in the [Magellan thread](http://atariage.com/forums/topic/161356-magellan) at AtariAge. 
+Binary distributions can be found [here] (http://magellan.js99er.net/).
 Browse to the last post and search backwards for the latest release. 
 
 ## Licence
