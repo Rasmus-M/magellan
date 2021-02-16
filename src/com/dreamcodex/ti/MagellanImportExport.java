@@ -3755,9 +3755,22 @@ public class MagellanImportExport {
         FileOutputStream fos = new FileOutputStream(mapDataFile);
         // write map
         int[][] mapToSave = mapdMain.getMapData(mapdMain.getCurrentMapId());
+        boolean has16BitValues = false;
         for (int[] mapRow : mapToSave) {
             for (int mapChar : mapRow) {
-                fos.write(mapChar);
+                if (mapChar > 255) {
+                    has16BitValues = true;
+                }
+            }
+        }
+        for (int[] mapRow : mapToSave) {
+            for (int mapChar : mapRow) {
+                if (has16BitValues) {
+                    fos.write((mapChar & 0xff00) >>> 8);
+                    fos.write(mapChar & 0xff);
+                } else {
+                    fos.write(mapChar);
+                }
             }
         }
         fos.flush();

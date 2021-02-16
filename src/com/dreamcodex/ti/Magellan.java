@@ -35,7 +35,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Constants -------------------------------------------------------------------------------/
 
-    public static final String VERSION_NUMBER = "4.0.0";
+    public static final String VERSION_NUMBER = "4.0.1";
 
     public static final int CHARACTER_SET_BASIC = 0;
     public static final int CHARACTER_SET_EXPANDED = 1;
@@ -74,7 +74,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     private final String IMGEXT = "png";
     private final String[] IMGEXTS = {IMGEXT, "gif"};
     private final String BINEXT = "mgb";
-    private final String[] BINEXTS = {BINEXT};
+    private final String[] BINEXTS = {BINEXT, "bin"};
     private final String VDPEXT = "vdp";
     private final String[] VDPEXTS = {VDPEXT, "vram", "bin"};
     private final String ANY = "";
