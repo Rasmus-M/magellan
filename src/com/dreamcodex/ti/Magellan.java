@@ -1,10 +1,12 @@
 package com.dreamcodex.ti;
 
 import com.dreamcodex.ti.component.*;
+import com.dreamcodex.ti.exporters.*;
 import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.iface.MapChangeListener;
 import com.dreamcodex.ti.iface.ScreenColorListener;
 import com.dreamcodex.ti.iface.UndoRedoListener;
+import com.dreamcodex.ti.importers.*;
 import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.MutableFilter;
@@ -2113,7 +2115,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
             newProject();
             mapDataFile = file;
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            DataFileImporter magIO = new DataFileImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.readDataFile(mapDataFile);
             addRecentFile(file.getAbsolutePath());
         }
@@ -2132,7 +2134,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     protected void saveDataFile() throws IOException {
         if (mapDataFile != null && mapDataFile.isFile()) {
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeDataFile(mapDataFile, characterSetSize);
             setModified(false);
             updateComponents();
@@ -2150,7 +2152,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
             mapDataFile = file;
             setModified(false);
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeDataFile(mapDataFile, characterSetSize);
             updateComponents();
             addRecentFile(file.getAbsolutePath());
@@ -2160,7 +2162,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void appendDataFile() throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, FILEEXTS, "Map Data Files");
         if (file != null) {
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            AppendDataFileImporter magIO = new AppendDataFileImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.readAppendDataFile(file);
         }
         updateComponents();
@@ -2187,10 +2189,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             } else {
                 buffImg.getGraphics().drawImage(charImg, 0, 0, this);
             }
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             if (isColor) {
+                CharacterImageColorImporter magIO = new CharacterImageColorImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.readCharImageColor(buffImg);
             } else {
+                CharacterImageMonoImporter magIO = new CharacterImageMonoImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.readCharImageMono(buffImg);
             }
             if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
@@ -2212,7 +2215,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         int spriteOffset = 0;
         int spriteAttrOffset = 0;
         if (file != null) {
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            VRAMDumpImporter magIO = new VRAMDumpImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             if (file.length() == 0x4008) {
                 boolean bitmapMode = false;
                 boolean textMode = false;
@@ -2286,7 +2289,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
-                    MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                    MapImageFileImporter magIO = new MapImageFileImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                     magIO.readMapImageFile(file, importer.getStartChar(), importer.getEndChar(), importer.getStartPalette(), importer.getTolerance());
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
@@ -2307,7 +2310,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
-                    MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                    SpriteImageImporter magIO = new SpriteImageImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                     magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap());
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
@@ -2363,7 +2366,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 bExcludeBlank = exporter.excludeBlank();
                 defStartChar = Math.min(sChar, eChar);
                 defEndChar = Math.max(sChar, eChar);
-                MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                XBDataFileExporter magIO = new XBDataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.writeXBDataFile(file, defStartChar, defEndChar, aLine, cLine, mLine, iLine, exportType, bExportComments, bCurrentMapOnly, bExcludeBlank);
             }
         }
@@ -2397,7 +2400,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 defStartSprite = Math.min(sSprite, eSprite);
                 defEndSprite = Math.max(sSprite, eSprite);
                 compression = exporter.getCompression();
-                MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                AsmDataFileExporter magIO = new AsmDataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 try {
                     magIO.writeASMDataFile(file, defStartChar, defEndChar, defStartSprite, defEndSprite, compression, bExportComments, bCurrentMapOnly, bIncludeCharNumbers, bIncludeSpriteData);
                 } catch (Exception e) {
@@ -2433,7 +2436,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 compression = exporter.getCompression();
                 scrollOrientation = exporter.getScrollOrientation();
                 scrollFrames = exporter.getFrames();
-                MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                ScrollFileExporter magIO = new ScrollFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 try {
                     magIO.writeScrollFile(file, scrollOrientation, bWrap, compression, bExportComments, bCurrentMapOnly, bIncludeCharNumbers, scrollFrames, false);
                 } catch (Exception e) {
@@ -2464,11 +2467,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 boolean bIncludeColorsets = exporter.includeColorsets();
                 boolean bIncludeChardata = exporter.includeChardata();
                 boolean bIncludeSpritedata = exporter.includeSpritedata();
-                byte chunkByte = (byte) (0 | (bIncludeColorsets ? MagellanImportExport.BIN_CHUNK_COLORS : 0) | (bIncludeChardata ? MagellanImportExport.BIN_CHUNK_CHARS : 0) | (bIncludeSpritedata ? MagellanImportExport.BIN_CHUNK_SPRITES : 0));
+                byte chunkByte = (byte) (0 | (bIncludeColorsets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeChardata ? Exporter.BIN_CHUNK_CHARS : 0) | (bIncludeSpritedata ? Exporter.BIN_CHUNK_SPRITES : 0));
                 bCurrentMapOnly = exporter.currentMapOnly();
                 defStartChar = Math.min(sChar, eChar);
                 defEndChar = Math.max(sChar, eChar);
-                MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                BinaryFileExporter magIO = new BinaryFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.writeBinaryFile(file, chunkByte, defStartChar, defEndChar, bCurrentMapOnly);
                 updateComponents();
             }
@@ -2488,7 +2491,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             if (!isExtensionAdded) {
                 file = new File(file.getAbsolutePath() + "." + BINEXT);
             }
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            BinaryMapExporter magIO = new BinaryMapExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeBinaryMap(file);
         }
     }
@@ -2577,7 +2580,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             if (!isExtensionAdded) {
                 file = new File(file.getAbsolutePath() + "." + IMGEXT);
             }
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            CharacterImageExporter magIO = new CharacterImageExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeCharImage(file, 8, isColor);
         }
     }
@@ -2595,7 +2598,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 file = new File(file.getAbsolutePath() + "." + IMGEXT);
             }
             updateComponents();
-            MagellanImportExport magIO = new MagellanImportExport(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            MapImageExporter magIO = new MapImageExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeMapImage(file);
         }
     }
