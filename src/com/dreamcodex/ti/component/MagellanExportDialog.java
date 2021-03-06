@@ -3,6 +3,7 @@ package com.dreamcodex.ti.component;
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.NamedIcon;
+import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
 
 import javax.swing.*;
@@ -52,6 +53,30 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     private boolean clickedOkay = false;
     private int minChar = 0;
     private int maxChar = 0;
+
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, Preferences preferences) {
+        this(
+            type,
+                parent,
+                ip,
+                preferences.isExportComments(),
+                preferences.getDefStartChar(),
+                preferences.getDefEndChar(),
+                preferences.getCharacterSetStart(),
+                preferences.getCharacterSetEnd(),
+                preferences.getDefStartSprite(),
+                preferences.getDefEndSprite(),
+                preferences.getSpriteSetEnd(),
+                preferences.isCurrentMapOnly(),
+                preferences.isExcludeBlank(),
+                preferences.isIncludeCharNumbers(),
+                preferences.isWrap(),
+                preferences.isIncludeSpriteData(),
+                preferences.getCompression(),
+                preferences.getScrollOrientation(),
+                preferences.getScrollFrames()
+        );
+    }
 
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int maxSprite, boolean currentMapOnly, boolean excludeBlank) {
         this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, false, 0, 0, -1);

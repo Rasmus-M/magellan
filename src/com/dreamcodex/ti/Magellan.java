@@ -7,10 +7,7 @@ import com.dreamcodex.ti.iface.MapChangeListener;
 import com.dreamcodex.ti.iface.ScreenColorListener;
 import com.dreamcodex.ti.iface.UndoRedoListener;
 import com.dreamcodex.ti.importers.*;
-import com.dreamcodex.ti.util.ECMPalette;
-import com.dreamcodex.ti.util.Globals;
-import com.dreamcodex.ti.util.MutableFilter;
-import com.dreamcodex.ti.util.TIGlobals;
+import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -100,8 +97,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Variables -------------------------------------------------------------------------------/
 
-    protected int colorMode = COLOR_MODE_GRAPHICS_1;
-
     protected int activeChar = TIGlobals.CUSTOMCHAR;
     protected int lastActiveChar = MapCanvas.NOCHAR;
     protected HashMap<Integer, int[][]> hmCharGrids;
@@ -123,30 +118,12 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     // Import / export settings
 
-    protected boolean bExportComments = true;
-    protected boolean bIncludeCharNumbers = true;
-    protected boolean bCurrentMapOnly = false;
-    protected boolean bSwapBoth = true;
-    protected boolean bSwapImgs = true;
-    protected boolean bAllMaps = true;
-    protected boolean bWrap = false;
-    protected boolean bIncludeSpriteData = false;
-    protected boolean bExcludeBlank = false;
+    protected Preferences preferences = new Preferences();
 
-    protected int characterSetSize = CHARACTER_SET_BASIC;
-    protected int defStartChar = TIGlobals.BASIC_FIRST_CHAR;
-    protected int defEndChar = TIGlobals.BASIC_LAST_CHAR;
-    protected int defStartSprite = TIGlobals.MIN_SPRITE;
-    protected int defEndSprite = TIGlobals.MAX_SPRITE;
-    protected int compression = MagellanExportDialog.COMPRESSION_NONE;
-    protected int scrollOrientation = SCROLL_ORIENTATION_VERTICAL;
-    protected int scrollFrames = 0;
-
-    protected ArrayList<String> recentFiles = new ArrayList<String>();
+    protected int colorMode = COLOR_MODE_GRAPHICS_1;
 
     // Fields
 
-    private Properties appProperties = new Properties();
     private String openFilePath;              // File to open upon startup
     private String currentDirectory;          // Last used directory
     private File mapDataFile;                 // Current map file
@@ -242,98 +219,23 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
         // Read application properties (if exist)
         try {
-            File prefsFile = new File(System.getProperty("user.home") + "/Magellan.prefs");
-            if (prefsFile.exists()) {
-                FileInputStream fis = new FileInputStream(prefsFile);
-                appProperties.load(fis);
-                fis.close();
-            }
+            preferences.readPreferences();
+            colorMode = preferences.getColorMode();
         } catch (Exception e) {
             errorAction(this, "Error reading preferences", e.getMessage());
             e.printStackTrace(System.err);
-        }
-
-        if (appProperties.getProperty("exportComments") != null) {
-            bExportComments = appProperties.getProperty("exportComments").toLowerCase().equals("true");
-        }
-        if (appProperties.getProperty("includeCharNumbers") != null) {
-            bIncludeCharNumbers = appProperties.getProperty("includeCharNumbers").toLowerCase().equals("true");
-        }
-        if (appProperties.getProperty("currentMapOnly") != null) {
-            bCurrentMapOnly = appProperties.getProperty("currentMapOnly").toLowerCase().equals("true");
-        }
-        if (appProperties.getProperty("wrap") != null) {
-            bWrap = appProperties.getProperty("wrap").toLowerCase().equals("true");
-        }
-        if (appProperties.getProperty("includeSpriteData") != null) {
-            bIncludeSpriteData = appProperties.getProperty("includeSpriteData").toLowerCase().equals("true");
-        }
-        if (appProperties.getProperty("excludeBlank") != null) {
-            bExcludeBlank = appProperties.getProperty("excludeBlank").toLowerCase().equals("true");
-        }
-        if (appProperties.getProperty("characterSetSize") != null) {
-            characterSetSize = Integer.parseInt(appProperties.getProperty("characterSetSize"));
-        } else if (appProperties.getProperty("expandCharacters") != null) {
-            characterSetSize = appProperties.getProperty("expandCharacters").toLowerCase().equals("true") ? CHARACTER_SET_EXPANDED : CHARACTER_SET_BASIC;
-        }
-        if (appProperties.getProperty("colorMode") != null) {
-            colorMode = Integer.parseInt(appProperties.getProperty("colorMode"));
-        }
-        if (appProperties.getProperty("defStartChar") != null) {
-            defStartChar = Integer.parseInt(appProperties.getProperty("defStartChar"));
-        }
-        if (appProperties.getProperty("defEndChar") != null) {
-            defEndChar = Integer.parseInt(appProperties.getProperty("defEndChar"));
-        }
-        if (appProperties.getProperty("defStartSprite") != null) {
-            defStartSprite = Integer.parseInt(appProperties.getProperty("defStartSprite"));
-        }
-        if (appProperties.getProperty("defEndSprite") != null) {
-            defEndSprite = Integer.parseInt(appProperties.getProperty("defEndSprite"));
-        }
-        if (appProperties.getProperty("compression") != null) {
-            compression = Integer.parseInt(appProperties.getProperty("compression"));
-        }
-        if (appProperties.getProperty("scrollOrientation") != null) {
-            scrollOrientation = Integer.parseInt(appProperties.getProperty("scrollOrientation"));
-        }
-        if (appProperties.getProperty("scrollFrames") != null) {
-            scrollFrames = Integer.parseInt(appProperties.getProperty("scrollFrames"));
-        }
-        currentDirectory = appProperties.getProperty("filePath");
-        if (currentDirectory == null || currentDirectory.length() == 0) {
-            currentDirectory = ".";
-        }
-        String recentFileList = appProperties.getProperty("recentFiles");
-        if (recentFileList != null) {
-            String[] recentFilesArray = recentFileList.split("\\|");
-            for (int i = recentFilesArray.length - 1; i >= 0; i--) {
-                addRecentFile(recentFilesArray[i]);
-            }
         }
 
         // Create map editor panel (needs to initialise early for the listeners)
         mapdMain = new MapEditor(MAP_COLS, MAP_ROWS, MAP_CELL, this, this);
         mapdMain.fillGrid(TIGlobals.SPACECHAR);
         mapdMain.setBkgrndColor(Globals.CLR_COMPONENTBACK);
-        if (appProperties.getProperty("magnif") != null) {
-            mapdMain.setViewScale(Integer.parseInt(appProperties.getProperty("magnif")));
-        }
-        if (appProperties.getProperty("textCursor") != null) {
-            mapdMain.setTypeCellOn(appProperties.getProperty("textCursor").toLowerCase().equals("true"));
-        }
-        if (appProperties.getProperty("showGrid") != null) {
-            mapdMain.setShowGrid(appProperties.getProperty("showGrid").toLowerCase().equals("true"));
-        }
-        if (appProperties.getProperty("gridScale") != null) {
-            mapdMain.setGridScale(Integer.parseInt(appProperties.getProperty("gridScale")));
-        }
-        if (appProperties.getProperty("showPosition") != null) {
-            mapdMain.setShowPosIndic(appProperties.getProperty("showPosition").toLowerCase().equals("true"));
-        }
-        if (appProperties.getProperty("base0Position") != null) {
-            mapdMain.setBase0Position(appProperties.getProperty("base0Position").toLowerCase().equals("true"));
-        }
+        mapdMain.setViewScale(preferences.getViewScale());
+        mapdMain.setTypeCellOn(preferences.isTextCursor());
+        mapdMain.setShowGrid(preferences.isShowGrid());
+        mapdMain.setGridScale(preferences.getGridScale());
+        mapdMain.setShowPosIndic(preferences.isShowPosition());
+        mapdMain.setBase0Position(preferences.isBase0Position());
         mapdMain.resetUndoManager();
 
         // Initialize data structures
@@ -450,7 +352,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmitOpen.setActionCommand(Globals.CMD_OPEN);
         jmitOpen.addActionListener(this);
         jmenFile.add(jmitOpen);
-        JMenu jmenuOpenRecent = new RecentMenu(recentFiles, this);
+        JMenu jmenuOpenRecent = new RecentMenu(preferences.getRecentFiles(), this);
         jmenFile.add(jmenuOpenRecent);
         JMenuItem jmitSave = new JMenuItem("Save Map Project");
         jmitSave.setActionCommand(Globals.CMD_SAVE);
@@ -586,19 +488,19 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
         ButtonGroup characterSetSizeButtonGroup = new ButtonGroup();
 
-        JRadioButtonMenuItem jmitCharacterSetBasic = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_BASIC], characterSetSize == CHARACTER_SET_BASIC);
+        JRadioButtonMenuItem jmitCharacterSetBasic = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_BASIC], preferences.getCharacterSetCapacity() == CHARACTER_SET_BASIC);
         characterSetSizeButtonGroup.add(jmitCharacterSetBasic);
         jmitCharacterSetBasic.setActionCommand(Globals.CMD_BASICCHARSETSIZE);
         jmitCharacterSetBasic.addActionListener(this);
         jmenOptions.add(jmitCharacterSetBasic);
 
-        JRadioButtonMenuItem jmitCharacterSetExpanded = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_EXPANDED], characterSetSize == CHARACTER_SET_EXPANDED);
+        JRadioButtonMenuItem jmitCharacterSetExpanded = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_EXPANDED], preferences.getCharacterSetCapacity() == CHARACTER_SET_EXPANDED);
         characterSetSizeButtonGroup.add(jmitCharacterSetExpanded);
         jmitCharacterSetExpanded.setActionCommand(Globals.CMD_EXPANDEDCHARSETSIZE);
         jmitCharacterSetExpanded.addActionListener(this);
         jmenOptions.add(jmitCharacterSetExpanded);
 
-        jmitCharacterSetSuper = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_SUPER], characterSetSize == CHARACTER_SET_SUPER);
+        jmitCharacterSetSuper = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_SUPER], preferences.getCharacterSetCapacity() == CHARACTER_SET_SUPER);
         characterSetSizeButtonGroup.add(jmitCharacterSetSuper);
         jmitCharacterSetSuper.setActionCommand(Globals.CMD_SUPERCHARSETSIZE);
         jmitCharacterSetSuper.addActionListener(this);
@@ -963,7 +865,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected JPanel buildCharacterDock(JPanel jPanel) {
-        int dockFontRows = getCharacterSetSize() / FONT_COLS;
+        int dockFontRows = preferences.getCharacterSetSize() / FONT_COLS;
         if (jPanel != null) {
             jPanel.removeAll();
             jPanel.setLayout(new GridLayout(dockFontRows, FONT_COLS + 1));
@@ -976,7 +878,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         int ucount = 1;
         for (int c = TIGlobals.MIN_CHAR; c <= MAX_CHAR; c++) {
             if (c < TIGlobals.BASIC_FIRST_CHAR) {
-                if (characterSetSize >= CHARACTER_SET_EXPANDED) {
+                if (preferences.getCharacterSetCapacity() >= CHARACTER_SET_EXPANDED) {
                     if (col >= FONT_COLS) {
                         jPanel.add(getLabel("L" + lcount + " ", JLabel.RIGHT, CLR_CHARS_LOWER));
                         lcount++;
@@ -998,7 +900,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 jPanel.add(jbtnChar[c]);
                 col++;
             } else if (c <= EXP_LAST_CHAR) {
-                if (characterSetSize >= CHARACTER_SET_EXPANDED) {
+                if (preferences.getCharacterSetCapacity() >= CHARACTER_SET_EXPANDED) {
                     if (col >= FONT_COLS) {
                         jPanel.add(getLabel("U" + ucount + " ", JLabel.RIGHT, CLR_CHARS_UPPER));
                         ucount++;
@@ -1008,7 +910,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     col++;
                 }
             } else {
-                if (characterSetSize >= CHARACTER_SET_SUPER) {
+                if (preferences.getCharacterSetCapacity() >= CHARACTER_SET_SUPER) {
                     if (col >= FONT_COLS) {
                         jPanel.add(getLabel((ucount < 100 ? "U" : "") + ucount + " ", JLabel.RIGHT, CLR_CHARS_UPPER));
                         ucount++;
@@ -1024,14 +926,14 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected JPanel buildSpriteDock(JPanel jPanel) {
-        int dockSpriteRows = getSpriteSetSize() / SPRITE_COLS;
+        int dockSpriteRows = preferences.getSpriteSetSize() / SPRITE_COLS;
         if (jPanel != null) {
             jPanel.removeAll();
             jPanel.setLayout(new GridLayout(dockSpriteRows , 4));
         } else {
             jPanel = getPanel(new GridLayout(dockSpriteRows, 4));
         }
-        for (int i = 0; i < getSpriteSetSize(); i++) {
+        for (int i = 0; i < preferences.getSpriteSetSize(); i++) {
             jPanel.add(jbtnSprite[i]);
         }
         return jPanel;
@@ -1668,15 +1570,15 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             } else if (command.equals(Globals.CMD_BASE0POS)) {
                 mapdMain.toggleBase0Position();
             } else if (command.equals(Globals.CMD_BASICCHARSETSIZE)) {
-                characterSetSize = CHARACTER_SET_BASIC;
+                preferences.setCharacterSetCapacity(CHARACTER_SET_BASIC);
                 jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
                 jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
             } else if (command.equals(Globals.CMD_EXPANDEDCHARSETSIZE)) {
-                characterSetSize = CHARACTER_SET_EXPANDED;
+                preferences.setCharacterSetCapacity(CHARACTER_SET_EXPANDED);
                 jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
                 jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
             } else if (command.equals(Globals.CMD_SUPERCHARSETSIZE)) {
-                characterSetSize = CHARACTER_SET_SUPER;
+                preferences.setCharacterSetCapacity(CHARACTER_SET_SUPER);
                 jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
                 jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
             } else if (command.equals(Globals.CMD_GRAPHICSCOLORMODE)) {
@@ -1971,12 +1873,12 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 // Tool Methods -------------------------------------------------------------/
 
     protected void showSwapCharactersDialog() {
-        CharacterSwapDialog swapper = new CharacterSwapDialog(this, this, bSwapBoth, bSwapImgs, bAllMaps, getCharacterSetStart(), getCharacterSetEnd(), activeChar);
+        CharacterSwapDialog swapper = new CharacterSwapDialog(this, this, preferences.isSwapBoth(), preferences.isSwapImages(), preferences.isAllMaps(), preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), activeChar);
         if (swapper.isOkay()) {
             swapCharacters(swapper.getBaseChar(), swapper.getSwapChar(), swapper.getRepeatCount(), swapper.doSwapChars(), swapper.doSwapImages(), swapper.doAllMaps());
-            bSwapBoth = swapper.doSwapChars();
-            bSwapImgs = swapper.doSwapImages();
-            bAllMaps = swapper.doAllMaps();
+            preferences.setSwapBoth(swapper.doSwapChars());
+            preferences.setSwapImages(swapper.doSwapImages());
+            preferences.setAllMaps(swapper.doAllMaps());
         }
     }
 
@@ -2033,7 +1935,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             charUsageDialog.transferFocus();
         }
         else {
-            charUsageDialog = new AnalyzeCharUsageDialog(this, mapdMain, hmCharImages, getCharacterSetEnd());
+            charUsageDialog = new AnalyzeCharUsageDialog(this, mapdMain, hmCharImages, preferences.getCharacterSetEnd());
         }
     }
 
@@ -2093,7 +1995,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                             linesToProcess--;
                         } else if (line.startsWith(Globals.KEY_CHARRANG)) {
                             int endChar = Integer.parseInt(line.substring(Globals.KEY_CHARRANG.length()).split("\\|")[1]);
-                            if (endChar == SUPER_LAST_CHAR && getCharacterSetEnd() != endChar) {
+                            if (endChar == SUPER_LAST_CHAR && preferences.getCharacterSetEnd() != endChar) {
                                 jmitCharacterSetSuper.doClick();
                             }
                             linesToProcess--;
@@ -2135,7 +2037,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void saveDataFile() throws IOException {
         if (mapDataFile != null && mapDataFile.isFile()) {
             DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-            magIO.writeDataFile(mapDataFile, characterSetSize);
+            magIO.writeDataFile(mapDataFile, preferences.getCharacterSetCapacity());
             setModified(false);
             updateComponents();
         }
@@ -2153,7 +2055,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             mapDataFile = file;
             setModified(false);
             DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-            magIO.writeDataFile(mapDataFile, characterSetSize);
+            magIO.writeDataFile(mapDataFile, preferences.getCharacterSetCapacity());
             updateComponents();
             addRecentFile(file.getAbsolutePath());
         }
@@ -2286,7 +2188,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void importMapImage() {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), getSpriteSetEnd(), ecmPalettes);
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
                     MapImageFileImporter magIO = new MapImageFileImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
@@ -2307,7 +2209,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void importSpriteImage() {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, getCharacterSetStart(), getCharacterSetEnd(), getSpriteSetEnd(), ecmPalettes);
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
                     SpriteImageImporter magIO = new SpriteImageImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
@@ -2342,7 +2244,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportDataFile(int exportType) throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, bExportComments, defStartChar, defEndChar, getCharacterSetStart(), characterSetSize != CHARACTER_SET_BASIC || exportType == Globals.XB256_PROGRAM ? getCharacterSetEnd() : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.BASIC_LAST_CHAR), getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getCharacterSetStart(), preferences.getCharacterSetCapacity() != CHARACTER_SET_BASIC || exportType == Globals.XB256_PROGRAM ? preferences.getCharacterSetEnd() : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.BASIC_LAST_CHAR), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, XBEXTS, "XB Data Files");
             if (file != null) {
@@ -2361,20 +2263,20 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 int cLine = exporter.getCharLineStart();
                 int mLine = exporter.getMapLineStart();
                 int iLine = exporter.getLineInterval();
-                bExportComments = exporter.includeComments();
-                bCurrentMapOnly = exporter.currentMapOnly();
-                bExcludeBlank = exporter.excludeBlank();
-                defStartChar = Math.min(sChar, eChar);
-                defEndChar = Math.max(sChar, eChar);
+                preferences.setExportComments(exporter.includeComments());
+                preferences.setCurrentMapOnly(exporter.currentMapOnly());
+                preferences.setExcludeBlank(exporter.excludeBlank());
+                preferences.setDefStartChar(Math.min(sChar, eChar));
+                preferences.setDefEndChar(Math.max(sChar, eChar));
                 XBDataFileExporter magIO = new XBDataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                magIO.writeXBDataFile(file, defStartChar, defEndChar, aLine, cLine, mLine, iLine, exportType, bExportComments, bCurrentMapOnly, bExcludeBlank);
+                magIO.writeXBDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), aLine, cLine, mLine, iLine, exportType, preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
             }
         }
         exporter.dispose();
     }
 
     protected void exportAssemblerFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getScrollOrientation(), preferences.getScrollFrames());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -2391,18 +2293,18 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 int eChar = exporter.getEndChar();
                 int sSprite = exporter.getStartSprite();
                 int eSprite = exporter.getEndSprite();
-                bExportComments = exporter.includeComments();
-                bIncludeCharNumbers = exporter.includeCharNumbers();
-                bCurrentMapOnly = exporter.currentMapOnly();
-                defStartChar = Math.min(sChar, eChar);
-                defEndChar = Math.max(sChar, eChar);
-                bIncludeSpriteData = exporter.includeSpritedata();
-                defStartSprite = Math.min(sSprite, eSprite);
-                defEndSprite = Math.max(sSprite, eSprite);
-                compression = exporter.getCompression();
+                preferences.setExportComments(exporter.includeComments());
+                preferences.setIncludeCharNumbers(exporter.includeCharNumbers());
+                preferences.setCurrentMapOnly(exporter.currentMapOnly());
+                preferences.setDefStartChar(Math.min(sChar, eChar));
+                preferences.setDefEndChar(Math.max(sChar, eChar));
+                preferences.setIncludeSpriteData(exporter.includeSpritedata());
+                preferences.setDefStartSprite(Math.min(sSprite, eSprite));
+                preferences.setDefEndSprite(Math.max(sSprite, eSprite));
+                preferences.setCompression(exporter.getCompression());
                 AsmDataFileExporter magIO = new AsmDataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 try {
-                    magIO.writeASMDataFile(file, defStartChar, defEndChar, defStartSprite, defEndSprite, compression, bExportComments, bCurrentMapOnly, bIncludeCharNumbers, bIncludeSpriteData);
+                    magIO.writeASMDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.isIncludeSpriteData());
                 } catch (Exception e) {
                     errorAction(this, "Export failed", e.getMessage());
                 }
@@ -2412,7 +2314,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportScrollFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), defStartSprite, defEndSprite, getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank, bIncludeCharNumbers, bWrap, bIncludeSpriteData, compression, scrollOrientation, scrollFrames);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getScrollOrientation(), preferences.getScrollFrames());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -2427,18 +2329,18 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 }
                 int sChar = exporter.getStartChar();
                 int eChar = exporter.getEndChar();
-                bExportComments = exporter.includeComments();
-                bIncludeCharNumbers = exporter.includeCharNumbers();
-                bCurrentMapOnly = exporter.currentMapOnly();
-                bWrap = exporter.isWrap();
-                defStartChar = Math.min(sChar, eChar);
-                defEndChar = Math.max(sChar, eChar);
-                compression = exporter.getCompression();
-                scrollOrientation = exporter.getScrollOrientation();
-                scrollFrames = exporter.getFrames();
+                preferences.setExportComments(exporter.includeComments());
+                preferences.setIncludeCharNumbers(exporter.includeCharNumbers());
+                preferences.setCurrentMapOnly(exporter.currentMapOnly());
+                preferences.setWrap(exporter.isWrap());
+                preferences.setDefStartChar(Math.min(sChar, eChar));
+                preferences.setDefEndChar(Math.max(sChar, eChar));
+                preferences.setCompression(exporter.getCompression());
+                preferences.setScrollOrientation(exporter.getScrollOrientation());
+                preferences.setScrollFrames(exporter.getFrames());
                 ScrollFileExporter magIO = new ScrollFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 try {
-                    magIO.writeScrollFile(file, scrollOrientation, bWrap, compression, bExportComments, bCurrentMapOnly, bIncludeCharNumbers, scrollFrames, false);
+                    magIO.writeScrollFile(file, preferences.getScrollOrientation(), preferences.isWrap(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.getScrollFrames(), false);
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
                     errorAction(this, "Export failed", e.getMessage());
@@ -2449,7 +2351,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportBinaryFile() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
             if (file != null) {
@@ -2468,11 +2370,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 boolean bIncludeChardata = exporter.includeChardata();
                 boolean bIncludeSpritedata = exporter.includeSpritedata();
                 byte chunkByte = (byte) (0 | (bIncludeColorsets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeChardata ? Exporter.BIN_CHUNK_CHARS : 0) | (bIncludeSpritedata ? Exporter.BIN_CHUNK_SPRITES : 0));
-                bCurrentMapOnly = exporter.currentMapOnly();
-                defStartChar = Math.min(sChar, eChar);
-                defEndChar = Math.max(sChar, eChar);
+                preferences.setCurrentMapOnly(exporter.currentMapOnly());
+                preferences.setDefStartChar(Math.min(sChar, eChar));
+                preferences.setDefEndChar(Math.max(sChar, eChar));
                 BinaryFileExporter magIO = new BinaryFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                magIO.writeBinaryFile(file, chunkByte, defStartChar, defEndChar, bCurrentMapOnly);
+                magIO.writeBinaryFile(file, chunkByte, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.isCurrentMapOnly());
                 updateComponents();
             }
         }
@@ -2497,7 +2399,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void exportXBDisplayMerge() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, this, this, bExportComments, defStartChar, defEndChar, TIGlobals.MIN_CHAR, getCharacterSetEnd(), getSpriteSetEnd(), bCurrentMapOnly, bExcludeBlank);
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ANYS, "Screen Merge Files");
             if (file != null) {
@@ -2637,42 +2539,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     private void savePreferences() {
         try {
-            FileOutputStream fos = new FileOutputStream(new File(System.getProperty("user.home") + "/Magellan.prefs"));
-            appProperties.setProperty("magnif", "" + mapdMain.getViewScale());
-            appProperties.setProperty("textCursor", (mapdMain.showTypeCell() ? "true" : "false"));
-            appProperties.setProperty("exportComments", (bExportComments ? "true" : "false"));
-            appProperties.setProperty("includeCharNumbers", (bIncludeCharNumbers ? "true" : "false"));
-            appProperties.setProperty("currentMapOnly", (bCurrentMapOnly ? "true" : "false"));
-            appProperties.setProperty("includeSpriteData", (bIncludeSpriteData ? "true" : "false"));
-            appProperties.setProperty("excludeBlank", (bExcludeBlank ? "true" : "false"));
-            appProperties.setProperty("wrap", (bWrap ? "true" : "false"));
-            appProperties.setProperty("characterSetSize", Integer.toString(characterSetSize));
-            appProperties.setProperty("colorMode", Integer.toString(colorMode));
-            appProperties.setProperty("showGrid", (mapdMain.isShowGrid() ? "true" : "false"));
-            appProperties.setProperty("gridScale", Integer.toString(mapdMain.getGridScale()));
-            appProperties.setProperty("showPosition", (mapdMain.showPosIndic() ? "true" : "false"));
-            appProperties.setProperty("base0Position", (mapdMain.base0Position() ? "true" : "false"));
-            appProperties.setProperty("defStartChar", "" + defStartChar);
-            appProperties.setProperty("defEndChar", "" + defEndChar);
-            appProperties.setProperty("defStartSprite", "" + defStartSprite);
-            appProperties.setProperty("defEndSprite", "" + defEndSprite);
-            appProperties.setProperty("compression", "" + compression);
-            appProperties.setProperty("scrollOrientation", "" + scrollOrientation);
-            appProperties.setProperty("scrollFrames", "" + scrollFrames);
-            appProperties.setProperty("filePath", currentDirectory != null ? currentDirectory : ".");
-            StringBuilder recentFileList = new StringBuilder();
-            for (String filePath : recentFiles) {
-                if (filePath != null && new File(filePath).exists()) {
-                    if (recentFileList.length() > 0) {
-                        recentFileList.append("|");
-                    }
-                    recentFileList.append(filePath);
-                }
-            }
-            appProperties.setProperty("recentFiles", recentFileList.toString());
-            appProperties.store(fos, null);
-            fos.flush();
-            fos.close();
+            preferences.setViewScale(mapdMain.getViewScale());
+            preferences.setTextCursor(mapdMain.showTypeCell());
+            preferences.setShowGrid(mapdMain.isShowGrid());
+            preferences.setGridScale(mapdMain.getGridScale());
+            preferences.setShowPosition(mapdMain.showPosIndic());
+            preferences.setBase0Position(mapdMain.base0Position());
+            preferences.savePreferences();
         } catch (IOException ioe) {
             errorAction(this, "Error saving preferences", ioe.getMessage());
             ioe.printStackTrace(System.err);
@@ -2699,7 +2572,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
         // Characters
         int charNum = TIGlobals.MIN_CHAR;
-        for (int r = 0; r < getCharacterSetSize() / FONT_COLS; r++) {
+        for (int r = 0; r < preferences.getCharacterSetSize() / FONT_COLS; r++) {
             clrSets[r][Globals.INDEX_CLR_BACK] = 0;
             clrSets[r][Globals.INDEX_CLR_FORE] = 1;
             for (int c = 0; c < FONT_COLS; c++) {
@@ -2783,7 +2656,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.INFORMATION_MESSAGE, new ImageIcon(getClass().getResource("images/logo.png")));
     }
 
-    protected void errorAction(Frame parent, String title, String message) {
+    public void errorAction(Frame parent, String title, String message) {
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
@@ -3066,8 +2939,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         setModified(true);
     }
 
-    public int getCharacterSetStart() {
-        return getCharacterSetStart(characterSetSize);
+    private void addRecentFile(String filePath) {
+        preferences.addRecentFile(filePath);
     }
 
     public static int getCharacterSetStart(int characterSetSize) {
@@ -3083,10 +2956,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    public int getCharacterSetEnd() {
-        return getCharacterSetEnd(characterSetSize);
-    }
-
     public static int getCharacterSetEnd(int characterSetSize) {
         switch (characterSetSize) {
             case CHARACTER_SET_BASIC:
@@ -3100,16 +2969,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    public int getCharacterSetSize() {
-        return getCharacterSetSize(characterSetSize);
-    }
-
     public static int getCharacterSetSize(int characterSetSize) {
         return getCharacterSetEnd(characterSetSize) - getCharacterSetStart(characterSetSize) + 1;
-    }
-
-    public int getSpriteSetEnd() {
-        return getSpriteSetEnd(characterSetSize);
     }
 
     public static int getSpriteSetEnd(int characterSetSize) {
@@ -3125,19 +2986,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    public int getSpriteSetSize() {
-        return getSpriteSetSize(characterSetSize);
-    }
-
     public static int getSpriteSetSize(int characterSetSize) {
         return getSpriteSetEnd(characterSetSize) + 1;
-    }
-
-    private void addRecentFile(String filePath) {
-        recentFiles.remove(filePath);
-        recentFiles.add(0, filePath);
-        while (recentFiles.size() > 10) {
-            recentFiles.remove(recentFiles.size() - 1);
-        }
     }
 }
