@@ -1,5 +1,6 @@
 package com.dreamcodex.ti;
 
+import com.dreamcodex.ti.actions.ExportAssemblyFileAction;
 import com.dreamcodex.ti.component.*;
 import com.dreamcodex.ti.exporters.*;
 import com.dreamcodex.ti.iface.IconProvider;
@@ -97,34 +98,30 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Variables -------------------------------------------------------------------------------/
 
-    protected int activeChar = TIGlobals.CUSTOMCHAR;
-    protected int lastActiveChar = MapCanvas.NOCHAR;
-    protected HashMap<Integer, int[][]> hmCharGrids;
-    protected HashMap<Integer, int[][]> hmCharColors;
-    protected HashMap<Integer, int[][]> hmDefaultChars;
-    protected HashMap<Integer, Image> hmCharImages;
-    protected ECMPalette[] ecmCharPalettes = null;
-    boolean[] ecmCharTransparency = new boolean[N_CHARS];
     protected int[][] clrSets = new int[COLOR_SETS][2];
 
-    protected int activeSprite = 0;
-    protected int lastActiveSprite = MapCanvas.NOCHAR;
-    protected HashMap<Integer, int[][]> hmSpriteGrids;
-    protected HashMap<Integer, Image> hmSpriteImages;
+    protected HashMap<Integer, int[][]> charGrids;
+    protected HashMap<Integer, int[][]> charColors;
+    protected HashMap<Integer, Image> charImages;
+
+    protected HashMap<Integer, int[][]> spriteGrids;
+    protected HashMap<Integer, Image> spriteImages;
     protected int[] spriteColors = new int[TIGlobals.MAX_SPRITE + 1];
-    protected ECMPalette[] ecmSpritePalettes = null;
 
     protected ECMPalette[] ecmPalettes = null;
+    protected ECMPalette[] ecmCharPalettes = null;
+    protected ECMPalette[] ecmSpritePalettes = null;
+    boolean[] ecmCharTransparency = new boolean[N_CHARS];
 
-    // Import / export settings
+    protected int activeChar = TIGlobals.CUSTOMCHAR;
+    protected int lastActiveChar = MapCanvas.NOCHAR;
+    protected int activeSprite = 0;
+    protected int lastActiveSprite = MapCanvas.NOCHAR;
+    protected HashMap<Integer, int[][]> defaultChars;
 
     protected Preferences preferences = new Preferences();
-
     protected int colorMode = COLOR_MODE_GRAPHICS_1;
-
-    // Fields
-
-    private String openFilePath;              // File to open upon startup
+    private final String openFilePath;        // File to open upon startup
     private String currentDirectory;          // Last used directory
     private File mapDataFile;                 // Current map file
     private boolean projectModified = false;  // Current project modified?
@@ -241,17 +238,17 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         // Initialize data structures
 
         // Default characters
-        hmDefaultChars = new HashMap<Integer, int[][]>();
+        defaultChars = new HashMap<Integer, int[][]>();
         for (int ch = TIGlobals.CHARMAPSTART; ch <= TIGlobals.CHARMAPEND; ch++) {
-            hmDefaultChars.put(ch, Globals.getIntGrid(TIGlobals.DEFAULT_TI_CHARS[ch - TIGlobals.CHARMAPSTART], 8));
+            defaultChars.put(ch, Globals.getIntGrid(TIGlobals.DEFAULT_TI_CHARS[ch - TIGlobals.CHARMAPSTART], 8));
         }
 
         // Character structures
-        hmCharGrids = new HashMap<Integer, int[][]>();
+        charGrids = new HashMap<Integer, int[][]>();
         if (colorMode == COLOR_MODE_BITMAP) {
-            hmCharColors = new HashMap<Integer, int[][]>();
+            charColors = new HashMap<Integer, int[][]>();
         }
-        hmCharImages = new HashMap<Integer, Image>();
+        charImages = new HashMap<Integer, Image>();
         for (int ch = TIGlobals.MIN_CHAR; ch <= TIGlobals.MAX_CHAR; ch++) {
             int colorSet = (int) (Math.floor(ch / COLOR_SET_SIZE));
             clrSets[colorSet][Globals.INDEX_CLR_BACK] = 0;
@@ -260,28 +257,28 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             for (int y = 0; y < emptyGrid.length; y++) {
                 for (int x = 0; x < emptyGrid[y].length; x++) {
                     if (ch >= TIGlobals.CHARMAPSTART && ch <= TIGlobals.CHARMAPEND) {
-                        emptyGrid[y][x] = hmDefaultChars.get(ch)[y][x];
+                        emptyGrid[y][x] = defaultChars.get(ch)[y][x];
                     } else {
                         emptyGrid[y][x] = 0;
                     }
                 }
             }
-            hmCharGrids.put(ch, emptyGrid);
+            charGrids.put(ch, emptyGrid);
             if (colorMode == COLOR_MODE_BITMAP) {
                 int[][] emptyColors = new int[8][2];
                 for (int y = 0; y < emptyColors.length; y++) {
                     emptyColors[y][0] = 0;
                     emptyColors[y][1] = 1;
                 }
-                hmCharColors.put(ch, emptyColors);
+                charColors.put(ch, emptyColors);
             }
         }
 
         // Sprite structures
-        hmSpriteGrids = new HashMap<Integer, int[][]>();
-        hmSpriteImages = new HashMap<Integer, Image>();
+        spriteGrids = new HashMap<Integer, int[][]>();
+        spriteImages = new HashMap<Integer, Image>();
         for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
-            hmSpriteGrids.put(i, new int[16][16]);
+            spriteGrids.put(i, new int[16][16]);
             spriteColors[i] = 1;
         }
 
@@ -422,8 +419,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmenExport.add(jmitExportXB256);
 
         JMenuItem jmitExportAsm = new JMenuItem("Assembler Data");
-        jmitExportAsm.setActionCommand(Globals.CMD_XPASM);
-        jmitExportAsm.addActionListener(this);
+//        jmitExportAsm.setActionCommand(Globals.CMD_XPASM);
+//        jmitExportAsm.addActionListener(this);
+        jmitExportAsm.setAction(new ExportAssemblyFileAction(this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportAsm);
         JMenuItem jmitExportScrollMap = new JMenuItem("Assembler Character Transition Data");
         jmitExportScrollMap.setActionCommand(Globals.CMD_XPSCROLL);
@@ -1020,28 +1018,28 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 exitApp(0);
             } else if (command.equals(Globals.CMD_CLEAR_CHR)) {
                 gcChar.clearGrid();
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 if (colorMode == COLOR_MODE_BITMAP) {
-                    hmCharColors.put(activeChar, gcChar.getGridColors());
+                    charColors.put(activeChar, gcChar.getGridColors());
                 }
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_CLEAR_SPR)) {
                 gcSprite.clearGrid();
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_FILL_CHR)) {
                 gcChar.fillGrid();
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 if (colorMode == COLOR_MODE_BITMAP) {
-                    hmCharColors.put(activeChar, gcChar.getGridColors());
+                    charColors.put(activeChar, gcChar.getGridColors());
                 }
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_FILL_SPR)) {
                 gcSprite.fillGrid();
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_GRID_CHR)) {
@@ -1059,45 +1057,45 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 gcSprite.redo();
             } else if (command.equals(Globals.CMD_FLIPH_CHR)) {
                 gcChar.setGrid(Globals.flipGrid(gcChar.getGridData(), false));
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_FLIPH_SPR)) {
                 gcSprite.setGrid(Globals.flipGrid(gcSprite.getGridData(), false));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_FLIPV_CHR)) {
                 gcChar.setGridAndColors(Globals.flipGrid(gcChar.getGridData(), true), colorMode == COLOR_MODE_BITMAP ? Globals.flipGrid(gcChar.getGridColors(), true) : null);
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 if (colorMode == COLOR_MODE_BITMAP) {
-                    hmCharColors.put(activeChar, gcChar.getGridColors());
+                    charColors.put(activeChar, gcChar.getGridColors());
                 }
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_FLIPV_SPR)) {
                 gcSprite.setGrid(Globals.flipGrid(gcSprite.getGridData(), true));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_ROTATEL_CHR)) {
                 gcChar.setGrid(Globals.rotateGrid(gcChar.getGridData(), true));
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_ROTATEL_SPR)) {
                 gcSprite.setGrid(Globals.rotateGrid(gcSprite.getGridData(), true));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_ROTATER_CHR)) {
                 gcChar.setGrid(Globals.rotateGrid(gcChar.getGridData(), false));
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_ROTATER_SPR)) {
                 gcSprite.setGrid(Globals.rotateGrid(gcSprite.getGridData(), false));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_INVERT_CHR)) {
@@ -1106,62 +1104,62 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 }
                 else {
                     gcChar.setGridAndColors(Globals.invertGrid(gcChar.getGridData(), 1), Globals.flipGrid(gcChar.getGridColors(), false));
-                    hmCharColors.put(activeChar, gcChar.getGridColors());
+                    charColors.put(activeChar, gcChar.getGridColors());
                 }
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_INVERT_SPR)) {
                 gcSprite.setGrid(Globals.invertGrid(gcSprite.getGridData(), colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? 1 : (colorMode == COLOR_MODE_ECM_2 ? 3 : 7)));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTU_CHR)) {
                 gcChar.setGrid(Globals.cycleGridUp(gcChar.getGridData()));
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 if (colorMode == COLOR_MODE_BITMAP) {
                     gcChar.setColors(Globals.cycleGridUp(gcChar.getGridColors()));
-                    hmCharColors.put(activeChar, gcChar.getGridColors());
+                    charColors.put(activeChar, gcChar.getGridColors());
                 }
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTU_SPR)) {
                 gcSprite.setGrid(Globals.cycleGridUp(gcSprite.getGridData()));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateCharButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTD_CHR)) {
                 gcChar.setGrid(Globals.cycleGridDown(gcChar.getGridData()));
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 if (colorMode == COLOR_MODE_BITMAP) {
                     gcChar.setColors(Globals.cycleGridDown(gcChar.getGridColors()));
-                    hmCharColors.put(activeChar, gcChar.getGridColors());
+                    charColors.put(activeChar, gcChar.getGridColors());
                 }
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTD_SPR)) {
                 gcSprite.setGrid(Globals.cycleGridDown(gcSprite.getGridData()));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTL_CHR)) {
                 gcChar.setGrid(Globals.cycleGridLeft(gcChar.getGridData()));
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTL_SPR)) {
                 gcSprite.setGrid(Globals.cycleGridLeft(gcSprite.getGridData()));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTR_CHR)) {
                 gcChar.setGrid(Globals.cycleGridRight(gcChar.getGridData()));
-                hmCharGrids.put(activeChar, gcChar.getGridData());
+                charGrids.put(activeChar, gcChar.getGridData());
                 updateCharButton(activeChar);
                 updateComponents();
             } else if (command.equals(Globals.CMD_SHIFTR_SPR)) {
                 gcSprite.setGrid(Globals.cycleGridRight(gcSprite.getGridData()));
-                hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                spriteGrids.put(activeSprite, gcSprite.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(Globals.CMD_LOOK)) {
@@ -1226,15 +1224,15 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 if ((ae.getModifiers() & (ActionEvent.SHIFT_MASK | KeyEvent.CTRL_MASK)) != 0) {
                     swapCharacters(activeChar, oldActiveChar, 0, true, true, true);
                 }
-                if (hmCharGrids.get(activeChar) == null) {
+                if (charGrids.get(activeChar) == null) {
                     gcChar.clearGrid();
-                    hmCharGrids.put(activeChar, gcChar.getGridData());
+                    charGrids.put(activeChar, gcChar.getGridData());
                     if (colorMode == COLOR_MODE_BITMAP) {
-                        hmCharColors.put(activeChar, gcChar.getGridColors());
+                        charColors.put(activeChar, gcChar.getGridColors());
                     }
                 }
                 gcChar.resetUndoRedo();
-                gcChar.setGridAndColors(hmCharGrids.get(activeChar), colorMode == COLOR_MODE_BITMAP ? hmCharColors.get(activeChar) : null);
+                gcChar.setGridAndColors(charGrids.get(activeChar), colorMode == COLOR_MODE_BITMAP ? charColors.get(activeChar) : null);
                 if (colorMode == COLOR_MODE_GRAPHICS_1) {
                     int cset = (int) (Math.floor(activeChar / 8));
                     gcChar.setColorBack(clrSets[cset][Globals.INDEX_CLR_BACK]);
@@ -1257,9 +1255,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 activeSprite = Integer.parseInt(command.substring(Globals.CMD_EDIT_SPR.length()));
                 if ((ae.getModifiers() & (ActionEvent.SHIFT_MASK | KeyEvent.CTRL_MASK)) != 0) {
                     // Swap first TODO
-                    int[][] tempGrid = Globals.cloneGrid(hmSpriteGrids.get(activeSprite));
-                    Globals.copyGrid(hmSpriteGrids.get(oldActiveSprite), hmSpriteGrids.get(activeSprite));
-                    Globals.copyGrid(tempGrid, hmSpriteGrids.get(oldActiveSprite));
+                    int[][] tempGrid = Globals.cloneGrid(spriteGrids.get(activeSprite));
+                    Globals.copyGrid(spriteGrids.get(oldActiveSprite), spriteGrids.get(activeSprite));
+                    Globals.copyGrid(tempGrid, spriteGrids.get(oldActiveSprite));
                     int tempCol = spriteColors[activeSprite];
                     spriteColors[activeSprite] = spriteColors[oldActiveSprite];
                     spriteColors[oldActiveSprite] = tempCol;
@@ -1271,12 +1269,12 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     updateSpriteButton(oldActiveSprite);
                     setModified(true);
                 }
-                if (hmSpriteGrids.get(activeSprite) == null) {
+                if (spriteGrids.get(activeSprite) == null) {
                     gcSprite.clearGrid();
-                    hmSpriteGrids.put(activeSprite, gcSprite.getGridData());
+                    spriteGrids.put(activeSprite, gcSprite.getGridData());
                 }
                 gcSprite.resetUndoRedo();
-                gcSprite.setGrid(hmSpriteGrids.get(activeSprite));
+                gcSprite.setGrid(spriteGrids.get(activeSprite));
                 if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
                     gcSprite.setColorDraw(spriteColors[activeSprite]);
                     for (int i = 0; i < spriteColorDockButtons.length; i++) {
@@ -1311,10 +1309,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 // Plane 0
                 int[][] charGrid = Globals.getIntGrid(hexString.substring(0, 16), 8);
                 // Bitmap colors
-                int[][] charColors = hmCharColors != null ? hmCharColors.get(activeChar) : null;
+                int[][] charColors = this.charColors != null ? this.charColors.get(activeChar) : null;
                 if (colorMode == COLOR_MODE_BITMAP && hexString.length() == 32) {
                     charColors = Globals.parseColorHexString(hexString.substring(16));
-                    hmCharColors.put(activeChar, charColors);
+                    this.charColors.put(activeChar, charColors);
                 }
                 // Plane 1
                 if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
@@ -1330,8 +1328,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     ecmCharPalettes[activeChar] = ecmPalettes[palette];
                     charECMPaletteComboBox.setSelectedItem(ecmCharPalettes[activeChar]);
                 }
-                hmCharGrids.put(activeChar, charGrid);
-                gcChar.setGridAndColors(hmCharGrids.get(activeChar), colorMode == COLOR_MODE_BITMAP ? charColors : null);
+                charGrids.put(activeChar, charGrid);
+                gcChar.setGridAndColors(charGrids.get(activeChar), colorMode == COLOR_MODE_BITMAP ? charColors : null);
                 updateCharButton(activeChar);
             } else if (command.equals(Globals.CMD_UPDATE_SPR)) {
                 String hexString = "";
@@ -1365,8 +1363,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     ecmSpritePalettes[activeSprite] = ecmPalettes[palette];
                     spriteECMPaletteComboBox.setSelectedItem(ecmSpritePalettes[activeSprite]);
                 }
-                hmSpriteGrids.put(activeSprite, spriteGrid);
-                gcSprite.setGrid(hmSpriteGrids.get(activeSprite));
+                spriteGrids.put(activeSprite, spriteGrid);
+                gcSprite.setGrid(spriteGrids.get(activeSprite));
                 updateCharButton(activeSprite);
             } else if (command.equals(Globals.CMD_COPY_CHR)) {
                 jtxtChar.selectAll();
@@ -1413,7 +1411,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                         int index2 = charECMPaletteComboBox.getIndexBack();
                         for (int i = 0; i < ecmCharPalettes.length; i++) {
                             if (ecmCharPalettes[i] == ecmPalette) {
-                                Globals.swapGridValues(hmCharGrids.get(i), index, index2);
+                                Globals.swapGridValues(charGrids.get(i), index, index2);
                             }
                         }
                         Color color = ecmPalette.getColor(index);
@@ -1447,7 +1445,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                         int index2 = spriteECMPaletteComboBox.getIndexBack();
                         for (int i = 0; i < ecmSpritePalettes.length; i++) {
                             if (ecmSpritePalettes[i] == ecmPalette) {
-                                Globals.swapGridValues(hmSpriteGrids.get(i), index, index2);
+                                Globals.swapGridValues(spriteGrids.get(i), index, index2);
                             }
                         }
                         Color color = ecmPalette.getColor(index);
@@ -1487,7 +1485,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                         int index2 = charECMPaletteComboBox.getIndexFore();
                         for (int i = 0; i < ecmCharPalettes.length; i++) {
                             if (ecmCharPalettes[i] == ecmPalette) {
-                                Globals.swapGridValues(hmCharGrids.get(i), index, index2);
+                                Globals.swapGridValues(charGrids.get(i), index, index2);
                             }
                         }
                         Color color = ecmPalette.getColor(index);
@@ -1522,7 +1520,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                         int index2 = spriteECMPaletteComboBox.getIndexFore();
                         for (int i = 0; i < ecmSpritePalettes.length; i++) {
                             if (ecmSpritePalettes[i] == ecmPalette) {
-                                Globals.swapGridValues(hmSpriteGrids.get(i), index, index2);
+                                Globals.swapGridValues(spriteGrids.get(i), index, index2);
                             }
                         }
                         Color color = ecmPalette.getColor(index);
@@ -1613,7 +1611,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 colorMode = COLOR_MODE_BITMAP;
                 buildColorDocks();
                 // Characters
-                hmCharColors = new HashMap<Integer, int[][]>();
+                charColors = new HashMap<Integer, int[][]>();
                 for (int ch = TIGlobals.MIN_CHAR; ch <= TIGlobals.MAX_CHAR; ch++) {
                     int[][] emptyColors = new int[8][2];
                     for (int y = 0; y < emptyColors.length; y++) {
@@ -1623,7 +1621,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                             emptyColors[y][Globals.INDEX_CLR_FORE] = clrSet[Globals.INDEX_CLR_FORE];
                         }
                         else {
-                            int[][] charGrid = hmCharGrids.get(ch);
+                            int[][] charGrid = charGrids.get(ch);
                             if (charGrid != null) {
                                 int[] row = charGrid[y];
                                 ECMPalette ecmPalette = ecmCharPalettes[ch];
@@ -1652,7 +1650,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                             }
                         }
                     }
-                    hmCharColors.put(ch, emptyColors);
+                    charColors.put(ch, emptyColors);
                 }
                 gcChar.setColorMode(colorMode, TIGlobals.TI_PALETTE_OPAQUE);
                 for (int i = 0; i < charColorDockButtons.length; i++) {
@@ -1903,13 +1901,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     }
                 }
                 if (doSwapImages) {
-                    int[][] charGrid = hmCharGrids.get(swapChar);
-                    hmCharGrids.put(swapChar, hmCharGrids.get(baseChar));
-                    hmCharGrids.put(baseChar, charGrid);
+                    int[][] charGrid = charGrids.get(swapChar);
+                    charGrids.put(swapChar, charGrids.get(baseChar));
+                    charGrids.put(baseChar, charGrid);
                     if (colorMode == COLOR_MODE_BITMAP) {
-                        int[][] charColors = hmCharColors.get(swapChar);
-                        hmCharColors.put(swapChar, hmCharColors.get(baseChar));
-                        hmCharColors.put(baseChar, charColors);
+                        int[][] charColors = this.charColors.get(swapChar);
+                        this.charColors.put(swapChar, this.charColors.get(baseChar));
+                        this.charColors.put(baseChar, charColors);
                     }
                     else if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
                         ECMPalette tmpPalette = ecmCharPalettes[swapChar];
@@ -1935,7 +1933,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             charUsageDialog.transferFocus();
         }
         else {
-            charUsageDialog = new AnalyzeCharUsageDialog(this, mapdMain, hmCharImages, preferences.getCharacterSetEnd());
+            charUsageDialog = new AnalyzeCharUsageDialog(this, mapdMain, charImages, preferences.getCharacterSetEnd());
         }
     }
 
@@ -1944,7 +1942,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             charTransDialog.transferFocus();
         }
         else {
-            charTransDialog = new AnalyzeCharTransDialog(this, mapdMain, hmCharImages, hmCharGrids, hmCharColors, clrSets, colorMode);
+            charTransDialog = new AnalyzeCharTransDialog(this, mapdMain, charImages, charGrids, charColors, clrSets, colorMode);
         }
     }
 
@@ -2017,7 +2015,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
             newProject();
             mapDataFile = file;
-            DataFileImporter magIO = new DataFileImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            DataFileImporter magIO = new DataFileImporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.readDataFile(mapDataFile);
             addRecentFile(file.getAbsolutePath());
         }
@@ -2036,7 +2034,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     protected void saveDataFile() throws IOException {
         if (mapDataFile != null && mapDataFile.isFile()) {
-            DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeDataFile(mapDataFile, preferences.getCharacterSetCapacity());
             setModified(false);
             updateComponents();
@@ -2054,7 +2052,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
             mapDataFile = file;
             setModified(false);
-            DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            DataFileExporter magIO = new DataFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeDataFile(mapDataFile, preferences.getCharacterSetCapacity());
             updateComponents();
             addRecentFile(file.getAbsolutePath());
@@ -2064,7 +2062,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void appendDataFile() throws IOException {
         File file = getFileFromChooser(currentDirectory, JFileChooser.OPEN_DIALOG, FILEEXTS, "Map Data Files");
         if (file != null) {
-            AppendDataFileImporter magIO = new AppendDataFileImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            AppendDataFileImporter magIO = new AppendDataFileImporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.readAppendDataFile(file);
         }
         updateComponents();
@@ -2092,10 +2090,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 buffImg.getGraphics().drawImage(charImg, 0, 0, this);
             }
             if (isColor) {
-                CharacterImageColorImporter magIO = new CharacterImageColorImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                CharacterImageColorImporter magIO = new CharacterImageColorImporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.readCharImageColor(buffImg);
             } else {
-                CharacterImageMonoImporter magIO = new CharacterImageMonoImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                CharacterImageMonoImporter magIO = new CharacterImageMonoImporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.readCharImageMono(buffImg);
             }
             if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
@@ -2117,7 +2115,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         int spriteOffset = 0;
         int spriteAttrOffset = 0;
         if (file != null) {
-            VRAMDumpImporter magIO = new VRAMDumpImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            VRAMDumpImporter magIO = new VRAMDumpImporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             if (file.length() == 0x4008) {
                 boolean bitmapMode = false;
                 boolean textMode = false;
@@ -2191,7 +2189,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, this, this, colorMode, preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
-                    MapImageFileImporter magIO = new MapImageFileImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                    MapImageFileImporter magIO = new MapImageFileImporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                     magIO.readMapImageFile(file, importer.getStartChar(), importer.getEndChar(), importer.getStartPalette(), importer.getTolerance());
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
@@ -2212,7 +2210,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, this, this, colorMode, preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), ecmPalettes);
             if (importer.isOkay()) {
                 try {
-                    SpriteImageImporter magIO = new SpriteImageImporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                    SpriteImageImporter magIO = new SpriteImageImporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                     magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap());
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
@@ -2268,7 +2266,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 preferences.setExcludeBlank(exporter.excludeBlank());
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
-                XBDataFileExporter magIO = new XBDataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                XBDataFileExporter magIO = new XBDataFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.writeXBDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), aLine, cLine, mLine, iLine, exportType, preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
             }
         }
@@ -2302,9 +2300,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 preferences.setDefStartSprite(Math.min(sSprite, eSprite));
                 preferences.setDefEndSprite(Math.max(sSprite, eSprite));
                 preferences.setCompression(exporter.getCompression());
-                AsmDataFileExporter magIO = new AsmDataFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                AssemblyDataFileExporter magIO = new AssemblyDataFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 try {
-                    magIO.writeASMDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.isIncludeSpriteData());
+                    magIO.writeAssemblyDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.isIncludeSpriteData());
                 } catch (Exception e) {
                     errorAction(this, "Export failed", e.getMessage());
                 }
@@ -2338,7 +2336,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 preferences.setCompression(exporter.getCompression());
                 preferences.setScrollOrientation(exporter.getScrollOrientation());
                 preferences.setScrollFrames(exporter.getFrames());
-                ScrollFileExporter magIO = new ScrollFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                ScrollFileExporter magIO = new ScrollFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 try {
                     magIO.writeScrollFile(file, preferences.getScrollOrientation(), preferences.isWrap(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.getScrollFrames(), false);
                 } catch (Exception e) {
@@ -2373,7 +2371,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 preferences.setCurrentMapOnly(exporter.currentMapOnly());
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
-                BinaryFileExporter magIO = new BinaryFileExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+                BinaryFileExporter magIO = new BinaryFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.writeBinaryFile(file, chunkByte, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.isCurrentMapOnly());
                 updateComponents();
             }
@@ -2393,7 +2391,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             if (!isExtensionAdded) {
                 file = new File(file.getAbsolutePath() + "." + BINEXT);
             }
-            BinaryMapExporter magIO = new BinaryMapExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            BinaryMapExporter magIO = new BinaryMapExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeBinaryMap(file);
         }
     }
@@ -2482,7 +2480,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             if (!isExtensionAdded) {
                 file = new File(file.getAbsolutePath() + "." + IMGEXT);
             }
-            CharacterImageExporter magIO = new CharacterImageExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            CharacterImageExporter magIO = new CharacterImageExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeCharImage(file, 8, isColor);
         }
     }
@@ -2500,7 +2498,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 file = new File(file.getAbsolutePath() + "." + IMGEXT);
             }
             updateComponents();
-            MapImageExporter magIO = new MapImageExporter(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+            MapImageExporter magIO = new MapImageExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
             magIO.writeMapImage(file);
         }
     }
@@ -2580,13 +2578,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 for (int y = 0; y < emptyGrid.length; y++) {
                     for (int x = 0; x < emptyGrid[y].length; x++) {
                         if (charNum >= TIGlobals.CHARMAPSTART && charNum <= TIGlobals.CHARMAPEND) {
-                            emptyGrid[y][x] = hmDefaultChars.get(charNum)[y][x];
+                            emptyGrid[y][x] = defaultChars.get(charNum)[y][x];
                         } else {
                             emptyGrid[y][x] = 0;
                         }
                     }
                 }
-                hmCharGrids.put(charNum, emptyGrid);
+                charGrids.put(charNum, emptyGrid);
                 if (colorMode == COLOR_MODE_GRAPHICS_1) {
                     int cellNum = (r * FONT_COLS) + c;
                     jbtnChar[cellNum].setBackground(TIGlobals.TI_PALETTE_OPAQUE[clrSets[r][Globals.INDEX_CLR_BACK]]);
@@ -2598,7 +2596,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                         emptyColors[y][0] = 0;
                         emptyColors[y][1] = 1;
                     }
-                    hmCharColors.put(charNum, emptyColors);
+                    charColors.put(charNum, emptyColors);
                 }
                 updateCharButton(charNum, false);
                 charNum++;
@@ -2609,7 +2607,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         activeChar = TIGlobals.CUSTOMCHAR;
         // Sprites
         for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
-            hmSpriteGrids.put(i, new int[16][16]);
+            spriteGrids.put(i, new int[16][16]);
             spriteColors[i] = 1;
             updateSpriteButton(i, false);
         }
@@ -2663,7 +2661,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void limitCharGrids(int newColors, int oldColors) {
         int factor = oldColors / newColors;
         for (int ch = TIGlobals.MIN_CHAR; ch <= TIGlobals.MAX_CHAR; ch++) {
-            int[][] charGrid = hmCharGrids.get(ch);
+            int[][] charGrid = charGrids.get(ch);
             if (charGrid != null) {
                 for (int[] row : charGrid) {
                     for (int x = 0; x < row.length; x++) {
@@ -2679,7 +2677,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     protected void limitSpriteGrids(int newColors, int oldColors) {
         int factor = oldColors / newColors;
         for (int ch = TIGlobals.MIN_SPRITE; ch <= TIGlobals.MAX_SPRITE; ch++) {
-            int[][] charGrid = hmSpriteGrids.get(ch);
+            int[][] charGrid = spriteGrids.get(ch);
             if (charGrid != null) {
                 for (int[] row : charGrid) {
                     for (int x = 0; x < row.length; x++) {
@@ -2757,7 +2755,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         Color screenColor = getScreenColorPalette()[mapdMain.getColorScreen()];
         jbtnChar[charNum].setBackground(screenColor);
         // Handle missing char grid
-        if (hmCharGrids.get(charNum) == null) {
+        if (charGrids.get(charNum) == null) {
             if (jbtnChar[charNum].getIcon() != null) {
                 jbtnChar[charNum].setIcon(null);
                 int charmapIndex = charNum - TIGlobals.CHARMAPSTART;
@@ -2770,10 +2768,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         Image image = this.createImage(gcChar.getGridData().length * imageScale, gcChar.getGridData()[0].length * imageScale);
         Graphics g = image.getGraphics();
         Color[] palette = colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? TIGlobals.TI_PALETTE_OPAQUE : ecmCharPalettes[charNum].getColors();
-        int[][] charGrid = hmCharGrids.get(charNum);
+        int[][] charGrid = charGrids.get(charNum);
         int[][] charColors = null;
         if (colorMode == COLOR_MODE_BITMAP) {
-            charColors = hmCharColors.get(charNum);
+            charColors = this.charColors.get(charNum);
         }
         int cset = (int) (Math.floor(charNum / 8));
         for (int y = 0; y < charGrid.length; y++) {
@@ -2802,7 +2800,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         g.dispose();
         boolean empty = Globals.isGridEmpty(charGrid) && (colorMode == COLOR_MODE_GRAPHICS_1 && clrSets[cset][Globals.INDEX_CLR_BACK] == 0 || colorMode == COLOR_MODE_BITMAP && Globals.isColorGridEmpty(charColors));
         // Save image
-        hmCharImages.put(charNum, image);
+        charImages.put(charNum, image);
         mapdMain.setCharImage(charNum, image);
         // Display a question mark if image is empty (only some modes)
         if (empty) {
@@ -2844,7 +2842,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         Color screenColor = getScreenColorPalette()[mapdMain.getColorScreen()];
         jbtnSprite[spriteNum].setBackground(screenColor);
         // Handle missing sprite grid
-        if (hmSpriteGrids.get(spriteNum) == null) {
+        if (spriteGrids.get(spriteNum) == null) {
             if (jbtnSprite[spriteNum].getIcon() != null) {
                 jbtnSprite[spriteNum].setIcon(null);
                 jbtnSprite[spriteNum].setText(Integer.toString(spriteNum));
@@ -2859,7 +2857,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         Color[] palette = colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? TIGlobals.TI_PALETTE_OPAQUE : ecmSpritePalettes[spriteNum].getColors();
         Color foreColor = colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? palette[fore] : null;
         Color transparent = TIGlobals.TI_COLOR_TRANSOPAQUE;
-        int[][] spriteGrid = hmSpriteGrids.get(spriteNum);
+        int[][] spriteGrid = spriteGrids.get(spriteNum);
         boolean empty = true;
         for (int y = 0; y < spriteGrid.length; y++) {
             for (int x = 0; x < spriteGrid[y].length; x++) {
@@ -2879,7 +2877,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         g.dispose();
         image = makeImageTransparent(image);
         // Save image
-        hmSpriteImages.put(spriteNum, image);
+        spriteImages.put(spriteNum, image);
         mapdMain.setSpriteImage(spriteNum, image);
         // Display a default text if image is empty
         if (empty) {
@@ -2988,5 +2986,21 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     public static int getSpriteSetSize(int characterSetSize) {
         return getSpriteSetEnd(characterSetSize) + 1;
+    }
+
+    public DataSet getDataSet() {
+        DataSet dataSet = new DataSet();
+        dataSet.setClrSets(clrSets);
+        dataSet.setCharGrids(charGrids);
+        dataSet.setCharColors(charColors);
+        dataSet.setCharImages(charImages);
+        dataSet.setEcmPalettes(ecmPalettes);
+        dataSet.setEcmCharPalettes(ecmCharPalettes);
+        dataSet.setEcmSpritePalettes(ecmSpritePalettes);
+        dataSet.setEcmCharTransparency(ecmCharTransparency);
+        dataSet.setSpriteGrids(spriteGrids);
+        dataSet.setSpriteImages(spriteImages);
+        dataSet.setSpriteColors(spriteColors);
+        return dataSet;
     }
 }

@@ -3,6 +3,7 @@ package com.dreamcodex.ti.exporters;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapCanvas;
 import com.dreamcodex.ti.component.MapEditor;
+import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.MetaTile;
@@ -15,13 +16,17 @@ import java.util.*;
 
 import static com.dreamcodex.ti.Magellan.*;
 
-public class AsmDataFileExporter extends Exporter {
+public class AssemblyDataFileExporter extends Exporter {
 
-    public AsmDataFileExporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
+    public AssemblyDataFileExporter(MapEditor mapdMain, DataSet dataSet, int colorMode) {
+        this(mapdMain, dataSet.getEcmPalettes(), dataSet.getClrSets(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getEcmCharPalettes(), dataSet.getEcmCharTransparency(), dataSet.getSpriteGrids(), dataSet.getSpriteColors(), dataSet.getEcmSpritePalettes(), colorMode);
+    }
+
+    public AssemblyDataFileExporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
         super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
     }
 
-    public void writeASMDataFile(File mapDataFile, int startChar, int endChar, int startSprite, int endSprite, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, boolean includeSpriteData) throws Exception {
+    public void writeAssemblyDataFile(File mapDataFile, int startChar, int endChar, int startSprite, int endSprite, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, boolean includeSpriteData) throws Exception {
         if ((compression == MagellanExportDialog.COMPRESSION_RLE_BYTE || compression == MagellanExportDialog.COMPRESSION_RLE_WORD) && endChar > 127) {
             throw new Exception("RLE Compression not supported for characters > 127.");
         }
