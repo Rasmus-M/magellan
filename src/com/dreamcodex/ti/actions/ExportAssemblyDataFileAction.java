@@ -13,8 +13,8 @@ import java.io.File;
 
 public class ExportAssemblyDataFileAction extends MagellanAction {
 
-    public ExportAssemblyDataFileAction(JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super("Assembly Data", parent, iconProvider, mapEditor, dataSet, preferences);
+    public ExportAssemblyDataFileAction(String name, JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(name, parent, iconProvider, mapEditor, dataSet, preferences);
     }
 
     @Override

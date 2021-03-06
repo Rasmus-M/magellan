@@ -1,6 +1,6 @@
 package com.dreamcodex.ti;
 
-import com.dreamcodex.ti.actions.ExportAssemblyDataFileAction;
+import com.dreamcodex.ti.actions.*;
 import com.dreamcodex.ti.component.*;
 import com.dreamcodex.ti.exporters.*;
 import com.dreamcodex.ti.iface.IconProvider;
@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 
+import static com.dreamcodex.ti.util.Globals.*;
 import static com.dreamcodex.ti.util.TIGlobals.*;
 
 /**
@@ -398,58 +399,53 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jMenuBar.add(jmenImport);
 
         JMenu jmenExport = new JMenu("Export");
-        JMenuItem jmitExportData = new JMenuItem("BASIC Data");
-        jmitExportData.setActionCommand(Globals.CMD_XPDATA);
-        jmitExportData.addActionListener(this);
+
+        JMenuItem jmitExportData = new JMenuItem();
+        jmitExportData.setAction(new ExportDataFileAction(BASIC_DATA, "BASIC Data", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportData);
-
-        JMenuItem jmitExportBasic = new JMenuItem("BASIC Program");
-        jmitExportBasic.setActionCommand(Globals.CMD_BASIC);
-        jmitExportBasic.addActionListener(this);
+        JMenuItem jmitExportBasic = new JMenuItem();
+        jmitExportBasic.setAction(new ExportDataFileAction(BASIC_PROGRAM, "BASIC Program", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportBasic);
-
-        JMenuItem jmitExportExec = new JMenuItem("XB Program");
-        jmitExportExec.setActionCommand(Globals.CMD_XPEXEC);
-        jmitExportExec.addActionListener(this);
+        JMenuItem jmitExportExec = new JMenuItem();
+        jmitExportExec.setAction(new ExportDataFileAction(XB_PROGRAM, "XB Program", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportExec);
-
-        JMenuItem jmitExportXB256 = new JMenuItem("XB 256 Program");
-        jmitExportXB256.setActionCommand(Globals.CMD_XPXB256);
-        jmitExportXB256.addActionListener(this);
+        JMenuItem jmitExportXB256 = new JMenuItem();
+        jmitExportXB256.setAction(new ExportDataFileAction(XB256_PROGRAM, "XB 256 Program", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportXB256);
+        JMenuItem jmitExportXBDisMer = new JMenuItem();
+        jmitExportXBDisMer.setAction(new ExportXBDisplayMergeAction("XB Display Merge", this, this, mapdMain, getDataSet(), preferences));
+        jmenExport.add(jmitExportXBDisMer);
+
+        jmenExport.addSeparator();
 
         JMenuItem jmitExportAsm = new JMenuItem();
-        jmitExportAsm.setAction(new ExportAssemblyDataFileAction(this, this, mapdMain, getDataSet(), preferences));
+        jmitExportAsm.setAction(new ExportAssemblyDataFileAction("Assembly Data", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportAsm);
-        JMenuItem jmitExportScrollMap = new JMenuItem("Assembler Character Transition Data");
-        jmitExportScrollMap.setActionCommand(Globals.CMD_XPSCROLL);
-        jmitExportScrollMap.addActionListener(this);
+        JMenuItem jmitExportScrollMap = new JMenuItem();
+        jmitExportScrollMap.setAction(new ExportScrollFileAction("Assembly Scroll Data", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportScrollMap);
-        JMenuItem jmitExportBin = new JMenuItem("Binary Data");
-        jmitExportBin.setActionCommand(Globals.CMD_XPBIN);
-        jmitExportBin.addActionListener(this);
-        jmenExport.add(jmitExportBin);
-        JMenuItem jmitExportBinMap = new JMenuItem("Binary Map (Current)");
-        jmitExportBinMap.setActionCommand(Globals.CMD_XPBINMAP);
-        jmitExportBinMap.addActionListener(this);
-        jmenExport.add(jmitExportBinMap);
-        JMenuItem jmitExportXBDisMer = new JMenuItem("XB Display Merge");
-        jmitExportXBDisMer.setActionCommand(Globals.CMD_XPXBDISMER);
-        jmitExportXBDisMer.addActionListener(this);
-        jmenExport.add(jmitExportXBDisMer);
+
         jmenExport.addSeparator();
-        JMenuItem jmitExportChrImgMono = new JMenuItem("Character Image (Mono)");
-        jmitExportChrImgMono.setActionCommand(Globals.CMD_XPCIMGMN);
-        jmitExportChrImgMono.addActionListener(this);
+
+        JMenuItem jmitExportBin = new JMenuItem();
+        jmitExportBin.setAction(new ExportBinaryFileAction("Binary Data", this, this, mapdMain, getDataSet(), preferences));
+        jmenExport.add(jmitExportBin);
+        JMenuItem jmitExportBinMap = new JMenuItem();
+        jmitExportBinMap.setAction(new ExportBinaryMapAction("Binary Map (current)", this, this, mapdMain, getDataSet(), preferences));
+        jmenExport.add(jmitExportBinMap);
+
+        jmenExport.addSeparator();
+
+        JMenuItem jmitExportChrImgMono = new JMenuItem();
+        jmitExportChrImgMono.setAction(new ExportCharImageAction(false, "Character Image (Mono)", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportChrImgMono);
-        JMenuItem jmitExportChrImgColor = new JMenuItem("Character Image (Color)");
-        jmitExportChrImgColor.setActionCommand(Globals.CMD_XPCIMGCL);
-        jmitExportChrImgColor.addActionListener(this);
+        JMenuItem jmitExportChrImgColor = new JMenuItem();
+        jmitExportChrImgColor.setAction(new ExportCharImageAction(true, "Character Image (Color)", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportChrImgColor);
-        JMenuItem jmitExportMapImg = new JMenuItem("Map Image");
-        jmitExportMapImg.setActionCommand(Globals.CMD_XPMAPIMG);
-        jmitExportMapImg.addActionListener(this);
+        JMenuItem jmitExportMapImg = new JMenuItem();
+        jmitExportMapImg.setAction(new ExportMapImageAction("Map Image", this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportMapImg);
+
         // Add menu
         jMenuBar.add(jmenExport);
 
@@ -1192,28 +1188,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 importMapImage();
             } else if (command.equals(Globals.CMD_MPSPRITES)) {
                 importSpriteImage();
-            } else if (command.equals(Globals.CMD_XPDATA)) {
-                exportDataFile(Globals.BASIC_DATA);
-            } else if (command.equals(Globals.CMD_XPXB256)) {
-                exportDataFile(Globals.XB256_PROGRAM);
-            } else if (command.equals(Globals.CMD_XPEXEC)) {
-                exportDataFile(Globals.XB_PROGRAM);
-            } else if (command.equals(Globals.CMD_BASIC)) {
-                exportDataFile(Globals.BASIC_PROGRAM);
-            } else if (command.equals(Globals.CMD_XPSCROLL)) {
-                exportScrollFile();
-            } else if (command.equals(Globals.CMD_XPBIN)) {
-                exportBinaryFile();
-            } else if (command.equals(Globals.CMD_XPBINMAP)) {
-                exportBinaryMapFile();
-            } else if (command.equals(Globals.CMD_XPXBDISMER)) {
-                exportXBDisplayMerge();
-            } else if (command.equals(Globals.CMD_XPCIMGMN)) {
-                exportCharImage(false);
-            } else if (command.equals(Globals.CMD_XPCIMGCL)) {
-                exportCharImage(true);
-            } else if (command.equals(Globals.CMD_XPMAPIMG)) {
-                exportMapImage();
             } else if (command.startsWith(Globals.CMD_EDIT_CHR)) {
                 int oldActiveChar = activeChar;
                 activeChar = Integer.parseInt(command.substring(Globals.CMD_EDIT_CHR.length()));
@@ -2235,230 +2209,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         updateSpriteButtons();
         updateComponents();
         editDefault();
-    }
-
-    protected void exportDataFile(int exportType) throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BASIC, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getCharacterSetStart(), preferences.getCharacterSetCapacity() != CHARACTER_SET_BASIC || exportType == Globals.XB256_PROGRAM ? preferences.getCharacterSetEnd() : (exportType == Globals.XB_PROGRAM ? TIGlobals.FINALXBCHAR : TIGlobals.BASIC_LAST_CHAR), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
-        if (exporter.isOkay()) {
-            File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, XBEXTS, "XB Data Files");
-            if (file != null) {
-                boolean isExtensionAdded = false;
-                for (int ex = 0; ex < XBEXTS.length; ex++) {
-                    if (file.getAbsolutePath().toLowerCase().endsWith("." + XBEXTS[ex])) {
-                        isExtensionAdded = true;
-                    }
-                }
-                if (!isExtensionAdded) {
-                    file = new File(file.getAbsolutePath() + "." + XBEXT);
-                }
-                int sChar = exporter.getStartChar();
-                int eChar = exporter.getEndChar();
-                int aLine = exporter.getCodeLineStart();
-                int cLine = exporter.getCharLineStart();
-                int mLine = exporter.getMapLineStart();
-                int iLine = exporter.getLineInterval();
-                preferences.setExportComments(exporter.includeComments());
-                preferences.setCurrentMapOnly(exporter.currentMapOnly());
-                preferences.setExcludeBlank(exporter.excludeBlank());
-                preferences.setDefStartChar(Math.min(sChar, eChar));
-                preferences.setDefEndChar(Math.max(sChar, eChar));
-                XBDataFileExporter magIO = new XBDataFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                magIO.writeXBDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), aLine, cLine, mLine, iLine, exportType, preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
-            }
-        }
-        exporter.dispose();
-    }
-
-    protected void exportScrollFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getScrollOrientation(), preferences.getScrollFrames());
-        if (exporter.isOkay()) {
-            File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
-            if (file != null) {
-                boolean isExtensionAdded = false;
-                for (int ex = 0; ex < ASMEXTS.length; ex++) {
-                    if (file.getAbsolutePath().toLowerCase().endsWith("." + ASMEXTS[ex])) {
-                        isExtensionAdded = true;
-                    }
-                }
-                if (!isExtensionAdded) {
-                    file = new File(file.getAbsolutePath() + "." + ASMEXT);
-                }
-                int sChar = exporter.getStartChar();
-                int eChar = exporter.getEndChar();
-                preferences.setExportComments(exporter.includeComments());
-                preferences.setIncludeCharNumbers(exporter.includeCharNumbers());
-                preferences.setCurrentMapOnly(exporter.currentMapOnly());
-                preferences.setWrap(exporter.isWrap());
-                preferences.setDefStartChar(Math.min(sChar, eChar));
-                preferences.setDefEndChar(Math.max(sChar, eChar));
-                preferences.setCompression(exporter.getCompression());
-                preferences.setScrollOrientation(exporter.getScrollOrientation());
-                preferences.setScrollFrames(exporter.getFrames());
-                ScrollFileExporter magIO = new ScrollFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                try {
-                    magIO.writeScrollFile(file, preferences.getScrollOrientation(), preferences.isWrap(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.getScrollFrames(), false);
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                    errorAction(this, "Export failed", e.getMessage());
-                }
-            }
-        }
-        exporter.dispose();
-    }
-
-    protected void exportBinaryFile() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
-        if (exporter.isOkay()) {
-            File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
-            if (file != null) {
-                boolean isExtensionAdded = false;
-                for (int ex = 0; ex < BINEXTS.length; ex++) {
-                    if (file.getAbsolutePath().toLowerCase().endsWith("." + BINEXTS[ex])) {
-                        isExtensionAdded = true;
-                    }
-                }
-                if (!isExtensionAdded) {
-                    file = new File(file.getAbsolutePath() + "." + BINEXT);
-                }
-                int sChar = exporter.getStartChar();
-                int eChar = exporter.getEndChar();
-                boolean bIncludeColorsets = exporter.includeColorsets();
-                boolean bIncludeChardata = exporter.includeChardata();
-                boolean bIncludeSpritedata = exporter.includeSpritedata();
-                byte chunkByte = (byte) (0 | (bIncludeColorsets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeChardata ? Exporter.BIN_CHUNK_CHARS : 0) | (bIncludeSpritedata ? Exporter.BIN_CHUNK_SPRITES : 0));
-                preferences.setCurrentMapOnly(exporter.currentMapOnly());
-                preferences.setDefStartChar(Math.min(sChar, eChar));
-                preferences.setDefEndChar(Math.max(sChar, eChar));
-                BinaryFileExporter magIO = new BinaryFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                magIO.writeBinaryFile(file, chunkByte, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.isCurrentMapOnly());
-                updateComponents();
-            }
-        }
-        exporter.dispose();
-    }
-
-    protected void exportBinaryMapFile() throws IOException {
-        File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
-        if (file != null) {
-            boolean isExtensionAdded = false;
-            for (int ex = 0; ex < BINEXTS.length; ex++) {
-                if (file.getAbsolutePath().toLowerCase().endsWith("." + BINEXTS[ex])) {
-                    isExtensionAdded = true;
-                }
-            }
-            if (!isExtensionAdded) {
-                file = new File(file.getAbsolutePath() + "." + BINEXT);
-            }
-            BinaryMapExporter magIO = new BinaryMapExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-            magIO.writeBinaryMap(file);
-        }
-    }
-
-    protected void exportXBDisplayMerge() throws IOException {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
-        if (exporter.isOkay()) {
-            File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ANYS, "Screen Merge Files");
-            if (file != null) {
-                int lineNo = exporter.getCodeLineStart();
-                int dispWidth = exporter.getCharLineStart();
-
-                if (lineNo >= 0 && lineNo <= 32710 && (dispWidth == 28 || dispWidth == 32)) {
-                    int currentMap = mapdMain.getCurrentMapId();
-                    int[][] map = mapdMain.getMapData(currentMap);
-
-                    byte[] init = {7, 'T', 'I', 'F', 'I', 'L', 'E', 'S', 0, 6, (byte) 0x80, 1, (byte) 0x8B, (byte) 0xA3, 6};
-                    byte[] tifiles = new byte[1664];
-                    System.arraycopy(init, 0, tifiles, 0, init.length);
-                    int sectorPosition = 0x80;
-                    byte lineSize = 0x76;
-                    int mapLine = 0;
-                    int outputPos = 0;
-                    int colStart = 2;
-                    int colEnd = 29;
-                    byte stringSize = (byte) 0x70;
-                    if (dispWidth == 32) {
-                        lineSize = (byte) 0x86;
-                        colStart = 0;
-                        colEnd = 31;
-                        stringSize = (byte) 0x80;
-                    }
-
-                    for (int chunk = 0; chunk < 6; chunk++) {
-                        outputPos = sectorPosition;
-                        tifiles[outputPos++] = lineSize;
-                        tifiles[outputPos++] = (byte) (lineNo >> 8);
-                        tifiles[outputPos++] = (byte) (lineNo & 0xFF);
-                        tifiles[outputPos++] = (byte) 0x93; // DATA "
-                        tifiles[outputPos++] = (byte) 0xC7; //
-                        tifiles[outputPos++] = stringSize;
-                        if (dispWidth == 28) {
-                            for (int line = 0; line < 4; line++)
-                                for (int column = colStart; column <= colEnd; column++)
-                                    tifiles[outputPos++] = (byte) map[mapLine + line][column];
-                        } else {
-                            for (int line = 0; line < 4; line++)
-                                for (int column = colStart; column <= colEnd; column++)
-                                    tifiles[outputPos++] = (byte) (0x60 + map[mapLine + line][column]);
-                        }
-                        tifiles[outputPos++] = 0; // end of string
-                        lineNo += 10;
-                        mapLine += 4;
-                        tifiles[outputPos] = (byte) 0xFF; // end of line and sector
-                        sectorPosition += 0x100;
-                    }
-                    tifiles[outputPos++] = (byte) 0x02; // end of file
-                    tifiles[outputPos++] = (byte) 0xFF;
-                    tifiles[outputPos++] = (byte) 0xFF;
-                    tifiles[outputPos] = (byte) 0xFF;
-
-                    try {
-                        FileOutputStream fos = new FileOutputStream(file);
-                        fos.write(tifiles);
-                        fos.flush();
-                        fos.close();
-                    } catch (Exception e) {
-                        errorAction(this, "Program error", e.getMessage());
-                        e.printStackTrace(System.err);
-                    }
-                }
-            }
-        }
-        exporter.dispose();
-    }
-
-    protected void exportCharImage(boolean isColor) throws IOException {
-        File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, IMGEXTS, "Image Files");
-        if (file != null) {
-            boolean isExtensionAdded = false;
-            for (int ex = 0; ex < IMGEXTS.length; ex++) {
-                if (file.getAbsolutePath().toLowerCase().endsWith("." + IMGEXTS[ex])) {
-                    isExtensionAdded = true;
-                }
-            }
-            if (!isExtensionAdded) {
-                file = new File(file.getAbsolutePath() + "." + IMGEXT);
-            }
-            CharacterImageExporter magIO = new CharacterImageExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-            magIO.writeCharImage(file, 8, isColor);
-        }
-    }
-
-    protected void exportMapImage() throws IOException {
-        File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, IMGEXTS, "Image Files");
-        if (file != null) {
-            boolean isExtensionAdded = false;
-            for (int ex = 0; ex < IMGEXTS.length; ex++) {
-                if (file.getAbsolutePath().toLowerCase().endsWith("." + IMGEXTS[ex])) {
-                    isExtensionAdded = true;
-                }
-            }
-            if (!isExtensionAdded) {
-                file = new File(file.getAbsolutePath() + "." + IMGEXT);
-            }
-            updateComponents();
-            MapImageExporter magIO = new MapImageExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-            magIO.writeMapImage(file);
-        }
     }
 
     private File getFileFromChooser(String startDir, int dialogType, String[] exts, String desc) {
