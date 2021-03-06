@@ -1,6 +1,6 @@
 package com.dreamcodex.ti;
 
-import com.dreamcodex.ti.actions.ExportAssemblyFileAction;
+import com.dreamcodex.ti.actions.ExportAssemblyDataFileAction;
 import com.dreamcodex.ti.component.*;
 import com.dreamcodex.ti.exporters.*;
 import com.dreamcodex.ti.iface.IconProvider;
@@ -419,7 +419,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmenExport.add(jmitExportXB256);
 
         JMenuItem jmitExportAsm = new JMenuItem();
-        jmitExportAsm.setAction(new ExportAssemblyFileAction(this, this, mapdMain, getDataSet(), preferences));
+        jmitExportAsm.setAction(new ExportAssemblyDataFileAction(this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportAsm);
         JMenuItem jmitExportScrollMap = new JMenuItem("Assembler Character Transition Data");
         jmitExportScrollMap.setActionCommand(Globals.CMD_XPSCROLL);

@@ -1,6 +1,5 @@
 package com.dreamcodex.ti.actions;
 
-import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.component.ImagePreview;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.iface.IconProvider;
@@ -9,7 +8,6 @@ import com.dreamcodex.ti.util.MutableFilter;
 import com.dreamcodex.ti.util.Preferences;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 
 public abstract class MagellanAction extends AbstractAction {

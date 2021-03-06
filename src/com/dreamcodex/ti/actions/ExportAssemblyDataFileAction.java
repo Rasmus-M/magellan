@@ -11,17 +11,16 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
-public class ExportAssemblyFileAction extends MagellanAction {
+public class ExportAssemblyDataFileAction extends MagellanAction {
 
-    public ExportAssemblyFileAction(JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+    public ExportAssemblyDataFileAction(JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super("Assembly Data", parent, iconProvider, mapEditor, dataSet, preferences);
-
     }
 
     @Override
     public void actionPerformed(ActionEvent evt) {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, iconProvider, preferences);
-        if (exporter.isOkay()) {
+        MagellanExportDialog exportDialog = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, iconProvider, preferences);
+        if (exportDialog.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
                 boolean isExtensionAdded = false;
@@ -33,27 +32,27 @@ public class ExportAssemblyFileAction extends MagellanAction {
                 if (!isExtensionAdded) {
                     file = new File(file.getAbsolutePath() + "." + ASMEXT);
                 }
-                int sChar = exporter.getStartChar();
-                int eChar = exporter.getEndChar();
-                int sSprite = exporter.getStartSprite();
-                int eSprite = exporter.getEndSprite();
-                preferences.setExportComments(exporter.includeComments());
-                preferences.setIncludeCharNumbers(exporter.includeCharNumbers());
-                preferences.setCurrentMapOnly(exporter.currentMapOnly());
+                int sChar = exportDialog.getStartChar();
+                int eChar = exportDialog.getEndChar();
+                int sSprite = exportDialog.getStartSprite();
+                int eSprite = exportDialog.getEndSprite();
+                preferences.setExportComments(exportDialog.includeComments());
+                preferences.setIncludeCharNumbers(exportDialog.includeCharNumbers());
+                preferences.setCurrentMapOnly(exportDialog.currentMapOnly());
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
-                preferences.setIncludeSpriteData(exporter.includeSpritedata());
+                preferences.setIncludeSpriteData(exportDialog.includeSpritedata());
                 preferences.setDefStartSprite(Math.min(sSprite, eSprite));
                 preferences.setDefEndSprite(Math.max(sSprite, eSprite));
-                preferences.setCompression(exporter.getCompression());
-                AssemblyDataFileExporter magIO = new AssemblyDataFileExporter(mapEditor, dataSet, preferences.getColorMode());
+                preferences.setCompression(exportDialog.getCompression());
+                AssemblyDataFileExporter exporter = new AssemblyDataFileExporter(mapEditor, dataSet, preferences.getColorMode());
                 try {
-                    magIO.writeAssemblyDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.isIncludeSpriteData());
+                    exporter.writeAssemblyDataFile(file, preferences);
                 } catch (Exception e) {
                     showError("Export failed", e.getMessage());
                 }
             }
         }
-        exporter.dispose();
+        exportDialog.dispose();
     }
 }
