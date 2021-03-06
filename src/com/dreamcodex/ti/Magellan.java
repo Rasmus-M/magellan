@@ -418,9 +418,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmitExportXB256.addActionListener(this);
         jmenExport.add(jmitExportXB256);
 
-        JMenuItem jmitExportAsm = new JMenuItem("Assembler Data");
-//        jmitExportAsm.setActionCommand(Globals.CMD_XPASM);
-//        jmitExportAsm.addActionListener(this);
+        JMenuItem jmitExportAsm = new JMenuItem();
         jmitExportAsm.setAction(new ExportAssemblyFileAction(this, this, mapdMain, getDataSet(), preferences));
         jmenExport.add(jmitExportAsm);
         JMenuItem jmitExportScrollMap = new JMenuItem("Assembler Character Transition Data");
@@ -1202,8 +1200,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 exportDataFile(Globals.XB_PROGRAM);
             } else if (command.equals(Globals.CMD_BASIC)) {
                 exportDataFile(Globals.BASIC_PROGRAM);
-            } else if (command.equals(Globals.CMD_XPASM)) {
-                exportAssemblerFile();
             } else if (command.equals(Globals.CMD_XPSCROLL)) {
                 exportScrollFile();
             } else if (command.equals(Globals.CMD_XPBIN)) {
@@ -2268,44 +2264,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 preferences.setDefEndChar(Math.max(sChar, eChar));
                 XBDataFileExporter magIO = new XBDataFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
                 magIO.writeXBDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), aLine, cLine, mLine, iLine, exportType, preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
-            }
-        }
-        exporter.dispose();
-    }
-
-    protected void exportAssemblerFile() {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, this, this, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getScrollOrientation(), preferences.getScrollFrames());
-        if (exporter.isOkay()) {
-            File file = getFileFromChooser(currentDirectory, JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
-            if (file != null) {
-                boolean isExtensionAdded = false;
-                for (int ex = 0; ex < ASMEXTS.length; ex++) {
-                    if (file.getAbsolutePath().toLowerCase().endsWith("." + ASMEXTS[ex])) {
-                        isExtensionAdded = true;
-                    }
-                }
-                if (!isExtensionAdded) {
-                    file = new File(file.getAbsolutePath() + "." + ASMEXT);
-                }
-                int sChar = exporter.getStartChar();
-                int eChar = exporter.getEndChar();
-                int sSprite = exporter.getStartSprite();
-                int eSprite = exporter.getEndSprite();
-                preferences.setExportComments(exporter.includeComments());
-                preferences.setIncludeCharNumbers(exporter.includeCharNumbers());
-                preferences.setCurrentMapOnly(exporter.currentMapOnly());
-                preferences.setDefStartChar(Math.min(sChar, eChar));
-                preferences.setDefEndChar(Math.max(sChar, eChar));
-                preferences.setIncludeSpriteData(exporter.includeSpritedata());
-                preferences.setDefStartSprite(Math.min(sSprite, eSprite));
-                preferences.setDefEndSprite(Math.max(sSprite, eSprite));
-                preferences.setCompression(exporter.getCompression());
-                AssemblyDataFileExporter magIO = new AssemblyDataFileExporter(mapdMain, ecmPalettes, clrSets, charGrids, charColors, ecmCharPalettes, ecmCharTransparency, spriteGrids, spriteColors, ecmSpritePalettes, colorMode);
-                try {
-                    magIO.writeAssemblyDataFile(file, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.isIncludeSpriteData());
-                } catch (Exception e) {
-                    errorAction(this, "Export failed", e.getMessage());
-                }
             }
         }
         exporter.dispose();
