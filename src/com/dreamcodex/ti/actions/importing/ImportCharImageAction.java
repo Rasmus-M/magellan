@@ -48,7 +48,7 @@ public class ImportCharImageAction extends MagellanAction {
                 magIO.readCharImageMono(buffImg);
             }
             if (preferences.getColorMode() == Magellan.COLOR_MODE_ECM_2 || preferences.getColorMode() == Magellan.COLOR_MODE_ECM_3) {
-                parent.updateCharPaletteCombo();
+                parent.updateCharPaletteCombo(true);
             }
             parent.updateCharButtons();
             parent.setModified(true);

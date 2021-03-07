@@ -146,10 +146,12 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     // Menu items
     JMenuItem jmitGraphicsColorMode;
+    private ButtonGroup colorModeButtonGroup;
     private JMenuItem jmitBitmapColorMode;
     private JMenuItem jmitECM2ColorMode;
     private JMenuItem jmitECM3ColorMode;
-    private JRadioButtonMenuItem jmitCharacterSetSuper;
+    private ButtonGroup characterSetSizeButtonGroup;
+    private JMenuItem jmitCharacterSetSuper;
 
     // Map editor
     private MapEditor mapdMain;
@@ -434,7 +436,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
         jmenOptions.addSeparator();
 
-        ButtonGroup characterSetSizeButtonGroup = new ButtonGroup();
+        characterSetSizeButtonGroup = new ButtonGroup();
 
         JRadioButtonMenuItem jmitCharacterSetBasic = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_BASIC], preferences.getCharacterSetCapacity() == CHARACTER_SET_BASIC);
         characterSetSizeButtonGroup.add(jmitCharacterSetBasic);
@@ -456,7 +458,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
         jmenOptions.addSeparator();
 
-        ButtonGroup colorModeButtonGroup = new ButtonGroup();
+        colorModeButtonGroup = new ButtonGroup();
         jmitGraphicsColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_GRAPHICS_1], colorMode == COLOR_MODE_GRAPHICS_1);
         colorModeButtonGroup.add(jmitGraphicsColorMode);
         jmitGraphicsColorMode.setActionCommand(Globals.CMD_GRAPHICSCOLORMODE);
@@ -1464,139 +1466,24 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 analyzeCharUsage();
             } else if (command.equals(Globals.CMD_ANALYZECHARTRANS)) {
                 analyzeCharTrans();
-            }
-            else if (command.equals(Globals.CMD_SHOWPOS)) {
+            } else if (command.equals(Globals.CMD_SHOWPOS)) {
                 mapdMain.toggleShowPosIndic();
             } else if (command.equals(Globals.CMD_BASE0POS)) {
                 mapdMain.toggleBase0Position();
             } else if (command.equals(Globals.CMD_BASICCHARSETSIZE)) {
-                preferences.setCharacterSetCapacity(CHARACTER_SET_BASIC);
-                jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
-                jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
+                setCharacterSetSizeBasic();
             } else if (command.equals(Globals.CMD_EXPANDEDCHARSETSIZE)) {
-                preferences.setCharacterSetCapacity(CHARACTER_SET_EXPANDED);
-                jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
-                jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
+                setCharacterSetSizeExpanded();
             } else if (command.equals(Globals.CMD_SUPERCHARSETSIZE)) {
-                preferences.setCharacterSetCapacity(CHARACTER_SET_SUPER);
-                jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
-                jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
+                setCharacterSetSizeSuper();
             } else if (command.equals(Globals.CMD_GRAPHICSCOLORMODE)) {
-                int oldColorMode = colorMode;
-                colorMode = COLOR_MODE_GRAPHICS_1;
-                preferences.setColorMode(colorMode);
-                buildColorDocks();
-                // Characters
-                if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
-                    limitCharGrids(2, colorMode == COLOR_MODE_ECM_2 ? 4 : 8);
-                }
-                gcChar.setColorMode(colorMode, TIGlobals.TI_PALETTE_OPAQUE);
-                int[] clrSet = clrSets[activeChar / 8];
-                gcChar.setColorBack(clrSet[Globals.INDEX_CLR_BACK]);
-                gcChar.setColorDraw(clrSet[Globals.INDEX_CLR_FORE]);
-                for (int i = 0; i < charColorDockButtons.length; i++) {
-                    charColorDockButtons[i].setText(i == gcChar.getColorBack() ? "B" : (i == gcChar.getColorDraw() ? "F" : ""));
-                }
-                updateCharButtons();
-                // Sprites
-                if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
-                    limitSpriteGrids(2, colorMode == COLOR_MODE_ECM_2 ? 4 : 8);
-                }
-                gcSprite.setColorMode(colorMode, TIGlobals.TI_PALETTE_OPAQUE);
-                gcSprite.setColorBack(0);
-                gcSprite.setColorDraw(spriteColors[activeSprite]);
-                for (int i = 0; i < spriteColorDockButtons.length; i++) {
-                    spriteColorDockButtons[i].setText(i == gcSprite.getColorBack() ? "B" : (i == gcSprite.getColorDraw() ? "F" : ""));
-                }
-                updateSpriteButtons();
+                setGraphicsColorMode();
             } else if (command.equals(Globals.CMD_BITMAPCOLORMODE)) {
-                int oldColorMode = colorMode;
-                colorMode = COLOR_MODE_BITMAP;
-                preferences.setColorMode(colorMode);
-                buildColorDocks();
-                // Characters
-                charColors = new HashMap<Integer, int[][]>();
-                for (int ch = TIGlobals.MIN_CHAR; ch <= TIGlobals.MAX_CHAR; ch++) {
-                    int[][] emptyColors = new int[8][2];
-                    for (int y = 0; y < emptyColors.length; y++) {
-                        int[] clrSet = clrSets[ch / 8];
-                        if (oldColorMode == COLOR_MODE_GRAPHICS_1) {
-                            emptyColors[y][Globals.INDEX_CLR_BACK] = clrSet[Globals.INDEX_CLR_BACK];
-                            emptyColors[y][Globals.INDEX_CLR_FORE] = clrSet[Globals.INDEX_CLR_FORE];
-                        }
-                        else {
-                            int[][] charGrid = charGrids.get(ch);
-                            if (charGrid != null) {
-                                int[] row = charGrid[y];
-                                ECMPalette ecmPalette = ecmCharPalettes[ch];
-                                int[][] palette = new int[8][2];
-                                int maxIndex = -1;
-                                for (Integer colorIndex : row) {
-                                    boolean found = false;
-                                    for (int p = 0; p <= maxIndex && !found; p++) {
-                                        if (palette[p][0] == colorIndex) {
-                                            palette[p][1]++;
-                                            found = true;
-                                        }
-                                    }
-                                    if (!found) {
-                                        maxIndex++;
-                                        palette[maxIndex][0] = colorIndex;
-                                        palette[maxIndex][1] = 1;
-                                    }
-                                }
-                                Globals.sortGrid(palette);
-                                emptyColors[y][Globals.INDEX_CLR_BACK] = Globals.getClosestColorIndex(ecmPalette.getColor(palette[0][0]), TIGlobals.TI_PALETTE_OPAQUE);
-                                emptyColors[y][Globals.INDEX_CLR_FORE] = maxIndex > 0  ? Globals.getClosestColorIndex(ecmPalette.getColor(palette[1][0]), TIGlobals.TI_PALETTE_OPAQUE, emptyColors[y][Globals.INDEX_CLR_BACK]) : emptyColors[y][Globals.INDEX_CLR_BACK];
-                                for (int x = 0; x < row.length; x++) {
-                                    row[x] = Globals.colorDistance(ecmPalette.getColor(row[x]), TIGlobals.TI_PALETTE_OPAQUE[emptyColors[y][Globals.INDEX_CLR_BACK]]) <  Globals.colorDistance(ecmPalette.getColor(row[x]), TIGlobals.TI_PALETTE_OPAQUE[emptyColors[y][Globals.INDEX_CLR_FORE]]) ? 0 : 1;
-                                }
-                            }
-                        }
-                    }
-                    charColors.put(ch, emptyColors);
-                }
-                gcChar.setColorMode(colorMode, TIGlobals.TI_PALETTE_OPAQUE);
-                for (int i = 0; i < charColorDockButtons.length; i++) {
-                    charColorDockButtons[i].setText(i == gcChar.getColorBack() ? "B" : (i == gcChar.getColorDraw() ? "F" : ""));
-                }
-                updateCharButtons();
-                // Sprites
-                gcSprite.setColorMode(COLOR_MODE_GRAPHICS_1, TIGlobals.TI_PALETTE_OPAQUE);
-                if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
-                    limitSpriteGrids(2, colorMode == COLOR_MODE_ECM_2 ? 4 : 8);
-                }
-                gcSprite.setColorBack(0);
-                gcSprite.setColorDraw(spriteColors[activeSprite]);
-                for (int i = 0; i < spriteColorDockButtons.length; i++) {
-                    spriteColorDockButtons[i].setText(i == gcSprite.getColorBack() ? "B" : (i == gcSprite.getColorDraw() ? "F" : ""));
-                }
-                updateSpriteButtons();
+                setBitmapColorMode();
             } else if (command.equals(Globals.CMD_ECM2COLORMODE)) {
-                if (colorMode == COLOR_MODE_ECM_3) {
-                    limitCharGrids(4, 8);
-                    limitSpriteGrids(4, 8);
-                }
-                colorMode = COLOR_MODE_ECM_2;
-                preferences.setColorMode(colorMode);
-                buildColorDocks();
-                gcChar.setColorMode(colorMode, ecmCharPalettes[activeChar].getColors());
-                updateCharButtons();
-                gcSprite.setColorMode(colorMode, ecmSpritePalettes[activeSprite].getColors());
-                updateSpriteButtons();
+                setECM2ColorMode();
             } else if (command.equals(Globals.CMD_ECM3COLORMODE)) {
-                for (int i = 0; i < spriteColors.length; i++) {
-                    if (spriteColors[i] > 7) {
-                        spriteColors[i] >>= 1;
-                    }
-                }
-                colorMode = COLOR_MODE_ECM_3;
-                preferences.setColorMode(colorMode);
-                buildColorDocks();
-                gcChar.setColorMode(colorMode, ecmCharPalettes[activeChar].getColors());
-                updateCharButtons();
-                gcSprite.setColorMode(colorMode, ecmSpritePalettes[activeSprite].getColors());
-                updateSpriteButtons();
+                setECM3ColorMode();
             } else if (command.equals(Globals.CMD_VIEW_CHAR_LAYER)) {
                 mapdMain.setViewCharLayer(!mapdMain.getViewCharLayer());
             } else if (command.equals(Globals.CMD_VIEW_SPRITE_LAYER)) {
@@ -1779,6 +1666,176 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     private void setAppTitle() {
         this.setTitle(APPTITLE + (mapDataFile != null ? ": " : "") + (isModified() ? " *" : "") + (mapDataFile != null ? mapDataFile.getName() : ""));
+    }
+
+// Action Methods -------------------------------------------------------------/
+
+    public void setColorModeOption(int colorMode) {
+        switch (colorMode) {
+            case COLOR_MODE_GRAPHICS_1:
+                setGraphicsColorMode();
+                colorModeButtonGroup.setSelected(jmitGraphicsColorMode.getModel(), true);
+                break;
+            case COLOR_MODE_BITMAP:
+                setBitmapColorMode();
+                colorModeButtonGroup.setSelected(jmitBitmapColorMode.getModel(), true);
+                break;
+            case COLOR_MODE_ECM_2:
+                setECM2ColorMode();
+                colorModeButtonGroup.setSelected(jmitECM2ColorMode.getModel(), true);
+                break;
+            case COLOR_MODE_ECM_3:
+                setECM3ColorMode();
+                colorModeButtonGroup.setSelected(jmitECM3ColorMode.getModel(), true);
+                break;
+        }
+    }
+
+    protected void setGraphicsColorMode() {
+        int oldColorMode = colorMode;
+        colorMode = COLOR_MODE_GRAPHICS_1;
+        preferences.setColorMode(colorMode);
+        buildColorDocks();
+        // Characters
+        if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
+            limitCharGrids(2, colorMode == COLOR_MODE_ECM_2 ? 4 : 8);
+        }
+        gcChar.setColorMode(colorMode, TIGlobals.TI_PALETTE_OPAQUE);
+        int[] clrSet = clrSets[activeChar / 8];
+        gcChar.setColorBack(clrSet[Globals.INDEX_CLR_BACK]);
+        gcChar.setColorDraw(clrSet[Globals.INDEX_CLR_FORE]);
+        for (int i = 0; i < charColorDockButtons.length; i++) {
+            charColorDockButtons[i].setText(i == gcChar.getColorBack() ? "B" : (i == gcChar.getColorDraw() ? "F" : ""));
+        }
+        updateCharButtons();
+        // Sprites
+        if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
+            limitSpriteGrids(2, colorMode == COLOR_MODE_ECM_2 ? 4 : 8);
+        }
+        gcSprite.setColorMode(colorMode, TIGlobals.TI_PALETTE_OPAQUE);
+        gcSprite.setColorBack(0);
+        gcSprite.setColorDraw(spriteColors[activeSprite]);
+        for (int i = 0; i < spriteColorDockButtons.length; i++) {
+            spriteColorDockButtons[i].setText(i == gcSprite.getColorBack() ? "B" : (i == gcSprite.getColorDraw() ? "F" : ""));
+        }
+        updateSpriteButtons();
+    }
+
+    protected void setBitmapColorMode() {
+        int oldColorMode = colorMode;
+        colorMode = COLOR_MODE_BITMAP;
+        preferences.setColorMode(colorMode);
+        buildColorDocks();
+        // Characters
+        charColors = new HashMap<Integer, int[][]>();
+        for (int ch = TIGlobals.MIN_CHAR; ch <= TIGlobals.MAX_CHAR; ch++) {
+            int[][] emptyColors = new int[8][2];
+            for (int y = 0; y < emptyColors.length; y++) {
+                int[] clrSet = clrSets[ch / 8];
+                if (oldColorMode == COLOR_MODE_GRAPHICS_1) {
+                    emptyColors[y][Globals.INDEX_CLR_BACK] = clrSet[Globals.INDEX_CLR_BACK];
+                    emptyColors[y][Globals.INDEX_CLR_FORE] = clrSet[Globals.INDEX_CLR_FORE];
+                }
+                else {
+                    int[][] charGrid = charGrids.get(ch);
+                    if (charGrid != null) {
+                        int[] row = charGrid[y];
+                        ECMPalette ecmPalette = ecmCharPalettes[ch];
+                        int[][] palette = new int[8][2];
+                        int maxIndex = -1;
+                        for (Integer colorIndex : row) {
+                            boolean found = false;
+                            for (int p = 0; p <= maxIndex && !found; p++) {
+                                if (palette[p][0] == colorIndex) {
+                                    palette[p][1]++;
+                                    found = true;
+                                }
+                            }
+                            if (!found) {
+                                maxIndex++;
+                                palette[maxIndex][0] = colorIndex;
+                                palette[maxIndex][1] = 1;
+                            }
+                        }
+                        Globals.sortGrid(palette);
+                        emptyColors[y][Globals.INDEX_CLR_BACK] = Globals.getClosestColorIndex(ecmPalette.getColor(palette[0][0]), TIGlobals.TI_PALETTE_OPAQUE);
+                        emptyColors[y][Globals.INDEX_CLR_FORE] = maxIndex > 0  ? Globals.getClosestColorIndex(ecmPalette.getColor(palette[1][0]), TIGlobals.TI_PALETTE_OPAQUE, emptyColors[y][Globals.INDEX_CLR_BACK]) : emptyColors[y][Globals.INDEX_CLR_BACK];
+                        for (int x = 0; x < row.length; x++) {
+                            row[x] = Globals.colorDistance(ecmPalette.getColor(row[x]), TIGlobals.TI_PALETTE_OPAQUE[emptyColors[y][Globals.INDEX_CLR_BACK]]) <  Globals.colorDistance(ecmPalette.getColor(row[x]), TIGlobals.TI_PALETTE_OPAQUE[emptyColors[y][Globals.INDEX_CLR_FORE]]) ? 0 : 1;
+                        }
+                    }
+                }
+            }
+            charColors.put(ch, emptyColors);
+        }
+        gcChar.setColorMode(colorMode, TIGlobals.TI_PALETTE_OPAQUE);
+        for (int i = 0; i < charColorDockButtons.length; i++) {
+            charColorDockButtons[i].setText(i == gcChar.getColorBack() ? "B" : (i == gcChar.getColorDraw() ? "F" : ""));
+        }
+        updateCharButtons();
+        // Sprites
+        gcSprite.setColorMode(COLOR_MODE_GRAPHICS_1, TIGlobals.TI_PALETTE_OPAQUE);
+        if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
+            limitSpriteGrids(2, colorMode == COLOR_MODE_ECM_2 ? 4 : 8);
+        }
+        gcSprite.setColorBack(0);
+        gcSprite.setColorDraw(spriteColors[activeSprite]);
+        for (int i = 0; i < spriteColorDockButtons.length; i++) {
+            spriteColorDockButtons[i].setText(i == gcSprite.getColorBack() ? "B" : (i == gcSprite.getColorDraw() ? "F" : ""));
+        }
+        updateSpriteButtons();
+    }
+
+    protected void setECM2ColorMode() {
+        if (colorMode == COLOR_MODE_ECM_3) {
+            limitCharGrids(4, 8);
+            limitSpriteGrids(4, 8);
+        }
+        colorMode = COLOR_MODE_ECM_2;
+        preferences.setColorMode(colorMode);
+        buildColorDocks();
+        gcChar.setColorMode(colorMode, ecmCharPalettes[activeChar].getColors());
+        updateCharButtons();
+        gcSprite.setColorMode(colorMode, ecmSpritePalettes[activeSprite].getColors());
+        updateSpriteButtons();
+    }
+
+    protected void setECM3ColorMode() {
+        for (int i = 0; i < spriteColors.length; i++) {
+            if (spriteColors[i] > 7) {
+                spriteColors[i] >>= 1;
+            }
+        }
+        colorMode = COLOR_MODE_ECM_3;
+        preferences.setColorMode(colorMode);
+        buildColorDocks();
+        gcChar.setColorMode(colorMode, ecmCharPalettes[activeChar].getColors());
+        updateCharButtons();
+        gcSprite.setColorMode(colorMode, ecmSpritePalettes[activeSprite].getColors());
+        updateSpriteButtons();
+    }
+
+    public void setSuperCharacterSetOption() {
+        setCharacterSetSizeSuper();
+        characterSetSizeButtonGroup.setSelected(jmitCharacterSetSuper.getModel(), true);
+    }
+
+    public void setCharacterSetSizeBasic() {
+        preferences.setCharacterSetCapacity(CHARACTER_SET_BASIC);
+        jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
+        jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
+    }
+
+    public void setCharacterSetSizeExpanded() {
+        preferences.setCharacterSetCapacity(CHARACTER_SET_EXPANDED);
+        jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
+        jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
+    }
+
+    public void setCharacterSetSizeSuper() {
+        preferences.setCharacterSetCapacity(CHARACTER_SET_SUPER);
+        jpnlCharacterDock = buildCharacterDock(jpnlCharacterDock);
+        jpnlSpriteDock = buildSpriteDock(jpnlSpriteDock);
     }
 
 // Tool Methods -------------------------------------------------------------/
@@ -1976,14 +2033,14 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         ActionEvent aeInitChar = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, Globals.CMD_EDIT_CHR + activeChar);
         Magellan.this.actionPerformed(aeInitChar);
         if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
-            updateCharPaletteCombo();
+            updateCharPaletteCombo(false);
         }
         // Edit default sprite
         activeSprite = 0;
         ActionEvent aeInitSprite = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, Globals.CMD_EDIT_SPR + activeSprite);
         Magellan.this.actionPerformed(aeInitSprite);
         if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
-            updateSpritePaletteCombo();
+            updateSpritePaletteCombo(false);
         }
     }
 
@@ -2038,31 +2095,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
         }
         return -1;
-    }
-
-    public void setColorModeOption(int colorMode) {
-        switch (colorMode) {
-            case COLOR_MODE_GRAPHICS_1:
-                jmitGraphicsColorMode.doClick();
-                break;
-            case COLOR_MODE_BITMAP:
-                jmitBitmapColorMode.doClick();
-                break;
-            case COLOR_MODE_ECM_2:
-                jmitECM2ColorMode.doClick();
-                break;
-            case COLOR_MODE_ECM_3:
-                jmitECM3ColorMode.doClick();
-                break;
-        }
-    }
-
-    public void selectSuperCharacterSet() {
-        jmitCharacterSetSuper.doClick();
-    }
-
-    public void updateScreenColorPalette() {
-        mapdMain.setScreenColorPalette(getScreenColorPalette());
     }
 
 // Update Methods ---------------------------------------------------------------------/
@@ -2312,8 +2344,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     public void updatePalettes() {
-        updateCharPaletteCombo();
-        updateSpritePaletteCombo();
+        updateCharPaletteCombo(false);
+        updateSpritePaletteCombo(false);
         gcChar.setPalette(ecmPalettes[charECMPaletteComboBox.getSelectedIndex()].getColors());
         gcChar.setColorScreen(getScreenColorPalette()[mapdMain.getColorScreen()]);
         gcChar.redrawCanvas();
@@ -2325,15 +2357,23 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         updateScreenColorPalette();
     }
 
-    public void updateCharPaletteCombo() {
+    public void updateScreenColorPalette() {
+        mapdMain.setScreenColorPalette(getScreenColorPalette());
+    }
+
+    public void updateCharPaletteCombo(boolean setIndex) {
         charECMPaletteComboBox.setEditable(false);
-        charECMPaletteComboBox.setSelectedItem(ecmCharPalettes[activeChar]);
+        if (setIndex) {
+            charECMPaletteComboBox.setSelectedItem(ecmCharPalettes[activeChar]);
+        }
         charECMPaletteComboBox.setEditable(true);
     }
 
-    public void updateSpritePaletteCombo() {
+    public void updateSpritePaletteCombo(boolean setIndex) {
         spriteECMPaletteComboBox.setEditable(false);
-        spriteECMPaletteComboBox.setSelectedItem(ecmSpritePalettes[activeSprite]);
+        if (setIndex) {
+            spriteECMPaletteComboBox.setSelectedItem(ecmSpritePalettes[activeSprite]);
+        }
         spriteECMPaletteComboBox.setEditable(true);
     }
 

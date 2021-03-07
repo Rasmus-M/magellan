@@ -7,7 +7,6 @@ import com.dreamcodex.ti.importers.DataFileImporter;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.Preferences;
-import com.dreamcodex.ti.util.TIGlobals;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -86,7 +85,7 @@ public class OpenDataFileAction extends MagellanAction {
                     } else if (line.startsWith(Globals.KEY_CHARRANG)) {
                         int endChar = Integer.parseInt(line.substring(Globals.KEY_CHARRANG.length()).split("\\|")[1]);
                         if (endChar == SUPER_LAST_CHAR && preferences.getCharacterSetEnd() != endChar) {
-                            parent.selectSuperCharacterSet();
+                            parent.setSuperCharacterSetOption();
                         }
                         linesToProcess--;
                     }
