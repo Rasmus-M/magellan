@@ -17,11 +17,11 @@ import java.io.IOException;
 
 import static com.dreamcodex.ti.Magellan.CHARACTER_SET_BASIC;
 
-public class ExportDataFileAction extends MagellanAction {
+public class ExportXBDataFileAction extends MagellanAction {
 
     private final int exportType;
 
-    public ExportDataFileAction(int exportType, String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+    public ExportXBDataFileAction(int exportType, String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);
         this.exportType = exportType;
     }

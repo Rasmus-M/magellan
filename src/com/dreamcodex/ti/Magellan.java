@@ -350,16 +350,16 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         JMenu jmenExport = new JMenu("Export");
 
         JMenuItem jmitExportData = new JMenuItem();
-        jmitExportData.setAction(new ExportDataFileAction(BASIC_DATA, "BASIC Data", this, mapdMain, dataSet, preferences));
+        jmitExportData.setAction(new ExportXBDataFileAction(BASIC_DATA, "BASIC Data", this, mapdMain, dataSet, preferences));
         jmenExport.add(jmitExportData);
         JMenuItem jmitExportBasic = new JMenuItem();
-        jmitExportBasic.setAction(new ExportDataFileAction(BASIC_PROGRAM, "BASIC Program", this, mapdMain, dataSet, preferences));
+        jmitExportBasic.setAction(new ExportXBDataFileAction(BASIC_PROGRAM, "BASIC Program", this, mapdMain, dataSet, preferences));
         jmenExport.add(jmitExportBasic);
         JMenuItem jmitExportExec = new JMenuItem();
-        jmitExportExec.setAction(new ExportDataFileAction(XB_PROGRAM, "XB Program", this, mapdMain, dataSet, preferences));
+        jmitExportExec.setAction(new ExportXBDataFileAction(XB_PROGRAM, "XB Program", this, mapdMain, dataSet, preferences));
         jmenExport.add(jmitExportExec);
         JMenuItem jmitExportXB256 = new JMenuItem();
-        jmitExportXB256.setAction(new ExportDataFileAction(XB256_PROGRAM, "XB 256 Program", this, mapdMain, dataSet, preferences));
+        jmitExportXB256.setAction(new ExportXBDataFileAction(XB256_PROGRAM, "XB 256 Program", this, mapdMain, dataSet, preferences));
         jmenExport.add(jmitExportXB256);
         JMenuItem jmitExportXBDisMer = new JMenuItem();
         jmitExportXBDisMer.setAction(new ExportXBDisplayMergeAction("XB Display Merge", this, mapdMain, dataSet, preferences));
