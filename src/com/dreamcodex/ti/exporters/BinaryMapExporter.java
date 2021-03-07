@@ -1,7 +1,9 @@
 package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapEditor;
+import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.ECMPalette;
+import com.dreamcodex.ti.util.Preferences;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,8 +12,8 @@ import java.util.HashMap;
 
 public class BinaryMapExporter extends Exporter {
 
-    public BinaryMapExporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
-        super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+    public BinaryMapExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(mapEditor, dataSet, preferences);
     }
 
     public void writeBinaryMap(File mapDataFile) throws IOException {

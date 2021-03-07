@@ -1,8 +1,9 @@
-package com.dreamcodex.ti.actions;
+package com.dreamcodex.ti.actions.exporting;
 
+import com.dreamcodex.ti.Magellan;
+import com.dreamcodex.ti.actions.MagellanAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.BinaryMapExporter;
-import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 
@@ -13,8 +14,8 @@ import java.io.IOException;
 
 public class ExportBinaryMapAction extends MagellanAction {
 
-    public ExportBinaryMapAction(String name, JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super(name, parent, iconProvider, mapEditor, dataSet, preferences);
+    public ExportBinaryMapAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(name, parent, mapEditor, dataSet, preferences);
     }
 
     @Override
@@ -30,7 +31,7 @@ public class ExportBinaryMapAction extends MagellanAction {
             if (!isExtensionAdded) {
                 file = new File(file.getAbsolutePath() + "." + BINEXT);
             }
-            BinaryMapExporter magIO = new BinaryMapExporter(mapEditor, dataSet.getEcmPalettes(), dataSet.getClrSets(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getEcmCharPalettes(), dataSet.getEcmCharTransparency(), dataSet.getSpriteGrids(), dataSet.getSpriteColors(), dataSet.getEcmSpritePalettes(), preferences.getColorMode());
+            BinaryMapExporter magIO = new BinaryMapExporter(mapEditor, dataSet, preferences);
             try {
                 magIO.writeBinaryMap(file);
             } catch (IOException ioException) {

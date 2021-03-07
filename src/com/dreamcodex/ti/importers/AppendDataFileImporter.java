@@ -1,8 +1,10 @@
 package com.dreamcodex.ti.importers;
 
 import com.dreamcodex.ti.component.MapEditor;
+import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Globals;
+import com.dreamcodex.ti.util.Preferences;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,8 +15,8 @@ import java.util.StringTokenizer;
 
 public class AppendDataFileImporter extends Importer {
 
-    public AppendDataFileImporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
-        super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+    public AppendDataFileImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(mapEditor, dataSet, preferences);
     }
 
     public void readAppendDataFile(File mapDataFile) throws IOException {

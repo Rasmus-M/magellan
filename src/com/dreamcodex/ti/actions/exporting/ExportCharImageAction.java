@@ -1,8 +1,9 @@
-package com.dreamcodex.ti.actions;
+package com.dreamcodex.ti.actions.exporting;
 
+import com.dreamcodex.ti.Magellan;
+import com.dreamcodex.ti.actions.MagellanAction;
 import com.dreamcodex.ti.component.MapEditor;
-import com.dreamcodex.ti.exporters.MapImageExporter;
-import com.dreamcodex.ti.iface.IconProvider;
+import com.dreamcodex.ti.exporters.CharacterImageExporter;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 
@@ -11,10 +12,13 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
-public class ExportMapImageAction extends MagellanAction {
+public class ExportCharImageAction extends MagellanAction {
 
-    public ExportMapImageAction(String name, JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super(name, parent, iconProvider, mapEditor, dataSet, preferences);
+    private final boolean color;
+
+    public ExportCharImageAction(boolean color, String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(name, parent, mapEditor, dataSet, preferences);
+        this.color = color;
     }
 
     @Override
@@ -30,12 +34,13 @@ public class ExportMapImageAction extends MagellanAction {
             if (!isExtensionAdded) {
                 file = new File(file.getAbsolutePath() + "." + IMGEXT);
             }
-            MapImageExporter magIO = new MapImageExporter(mapEditor, dataSet.getEcmPalettes(), dataSet.getClrSets(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getEcmCharPalettes(), dataSet.getEcmCharTransparency(), dataSet.getSpriteGrids(), dataSet.getSpriteColors(), dataSet.getEcmSpritePalettes(), preferences.getColorMode());
+            CharacterImageExporter magIO = new CharacterImageExporter(mapEditor, dataSet, preferences);
             try {
-                magIO.writeMapImage(file);
+                magIO.writeCharImage(file, 8, color);
             } catch (IOException ee) {
-                showError("Exoprt failed", ee.getMessage());
+                showError("Export failed", ee.getMessage());
             }
         }
+
     }
 }

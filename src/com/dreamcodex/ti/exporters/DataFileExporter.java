@@ -1,9 +1,7 @@
 package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapEditor;
-import com.dreamcodex.ti.util.ECMPalette;
-import com.dreamcodex.ti.util.Globals;
-import com.dreamcodex.ti.util.TIGlobals;
+import com.dreamcodex.ti.util.*;
 
 import java.awt.*;
 import java.io.BufferedWriter;
@@ -19,8 +17,8 @@ import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
 
 public class DataFileExporter extends Exporter {
 
-    public DataFileExporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
-        super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+    public DataFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(mapEditor, dataSet, preferences);
     }
 
     public void writeDataFile(File mapDataFile, int characterSetSize) throws IOException {

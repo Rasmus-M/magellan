@@ -1,9 +1,10 @@
-package com.dreamcodex.ti.actions;
+package com.dreamcodex.ti.actions.exporting;
 
+import com.dreamcodex.ti.Magellan;
+import com.dreamcodex.ti.actions.MagellanAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.AssemblyDataFileExporter;
-import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 
@@ -13,13 +14,13 @@ import java.io.File;
 
 public class ExportAssemblyDataFileAction extends MagellanAction {
 
-    public ExportAssemblyDataFileAction(String name, JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super(name, parent, iconProvider, mapEditor, dataSet, preferences);
+    public ExportAssemblyDataFileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(name, parent, mapEditor, dataSet, preferences);
     }
 
     @Override
     public void actionPerformed(ActionEvent evt) {
-        MagellanExportDialog exportDialog = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, iconProvider, preferences);
+        MagellanExportDialog exportDialog = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, parent, preferences);
         if (exportDialog.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -45,7 +46,7 @@ public class ExportAssemblyDataFileAction extends MagellanAction {
                 preferences.setDefStartSprite(Math.min(sSprite, eSprite));
                 preferences.setDefEndSprite(Math.max(sSprite, eSprite));
                 preferences.setCompression(exportDialog.getCompression());
-                AssemblyDataFileExporter exporter = new AssemblyDataFileExporter(mapEditor, dataSet, preferences.getColorMode());
+                AssemblyDataFileExporter exporter = new AssemblyDataFileExporter(mapEditor, dataSet, preferences);
                 try {
                     exporter.writeAssemblyDataFile(file, preferences);
                 } catch (Exception e) {

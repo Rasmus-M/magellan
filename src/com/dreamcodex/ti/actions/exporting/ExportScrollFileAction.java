@@ -1,9 +1,10 @@
-package com.dreamcodex.ti.actions;
+package com.dreamcodex.ti.actions.exporting;
 
+import com.dreamcodex.ti.Magellan;
+import com.dreamcodex.ti.actions.MagellanAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.ScrollFileExporter;
-import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
@@ -14,13 +15,13 @@ import java.io.File;
 
 public class ExportScrollFileAction extends MagellanAction {
 
-    public ExportScrollFileAction(String name, JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super(name, parent, iconProvider, mapEditor, dataSet, preferences);
+    public ExportScrollFileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(name, parent, mapEditor, dataSet, preferences);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, parent, iconProvider, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getScrollOrientation(), preferences.getScrollFrames());
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, parent, parent, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getScrollOrientation(), preferences.getScrollFrames());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -44,7 +45,7 @@ public class ExportScrollFileAction extends MagellanAction {
                 preferences.setCompression(exporter.getCompression());
                 preferences.setScrollOrientation(exporter.getScrollOrientation());
                 preferences.setScrollFrames(exporter.getFrames());
-                ScrollFileExporter magIO = new ScrollFileExporter(mapEditor, dataSet.getEcmPalettes(), dataSet.getClrSets(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getEcmCharPalettes(), dataSet.getEcmCharTransparency(), dataSet.getSpriteGrids(), dataSet.getSpriteColors(), dataSet.getEcmSpritePalettes(), preferences.getColorMode());
+                ScrollFileExporter magIO = new ScrollFileExporter(mapEditor, dataSet, preferences);
                 try {
                     magIO.writeScrollFile(file, preferences.getScrollOrientation(), preferences.isWrap(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.getScrollFrames(), false);
                 } catch (Exception ee) {

@@ -1,10 +1,11 @@
-package com.dreamcodex.ti.actions;
+package com.dreamcodex.ti.actions.exporting;
 
+import com.dreamcodex.ti.Magellan;
+import com.dreamcodex.ti.actions.MagellanAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.BinaryFileExporter;
 import com.dreamcodex.ti.exporters.Exporter;
-import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
@@ -16,13 +17,13 @@ import java.io.IOException;
 
 public class ExportBinaryFileAction extends MagellanAction {
 
-    public ExportBinaryFileAction(String name, JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super(name, parent, iconProvider, mapEditor, dataSet, preferences);
+    public ExportBinaryFileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(name, parent, mapEditor, dataSet, preferences);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, parent, iconProvider, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, parent, parent, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
             if (file != null) {
@@ -44,7 +45,7 @@ public class ExportBinaryFileAction extends MagellanAction {
                 preferences.setCurrentMapOnly(exporter.currentMapOnly());
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
-                BinaryFileExporter magIO = new BinaryFileExporter(mapEditor, dataSet.getEcmPalettes(), dataSet.getClrSets(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getEcmCharPalettes(), dataSet.getEcmCharTransparency(), dataSet.getSpriteGrids(), dataSet.getSpriteColors(), dataSet.getEcmSpritePalettes(), preferences.getColorMode());
+                BinaryFileExporter magIO = new BinaryFileExporter(mapEditor, dataSet, preferences);
                 try {
                     magIO.writeBinaryFile(file, chunkByte, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.isCurrentMapOnly());
                 } catch (IOException ioException) {

@@ -1,8 +1,10 @@
 package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapEditor;
+import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Globals;
+import com.dreamcodex.ti.util.Preferences;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -37,6 +39,22 @@ public abstract class Exporter {
     protected int colorMode;
 
     public Exporter() {
+    }
+
+    public Exporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        this(
+                mapEditor,
+                dataSet.getEcmPalettes(),
+                dataSet.getClrSets(),
+                dataSet.getCharGrids(),
+                dataSet.getCharColors(),
+                dataSet.getEcmCharPalettes(),
+                dataSet.getEcmCharTransparency(),
+                dataSet.getSpriteGrids(),
+                dataSet.getSpriteColors(),
+                dataSet.getEcmSpritePalettes(),
+                preferences.getColorMode()
+        );
     }
 
     public Exporter(

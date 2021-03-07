@@ -1,7 +1,9 @@
 package com.dreamcodex.ti.importers;
 
 import com.dreamcodex.ti.component.MapEditor;
+import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.ECMPalette;
+import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
 
 import javax.imageio.ImageIO;
@@ -10,7 +12,6 @@ import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -18,8 +19,8 @@ import static com.dreamcodex.ti.Magellan.*;
 
 public class SpriteImageImporter extends Importer {
 
-    public SpriteImageImporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
-        super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+    public SpriteImageImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(mapEditor, dataSet, preferences);
     }
 
     public void readSpriteFile(File file, int spriteIndex, int startPalette, int gap) throws Exception {

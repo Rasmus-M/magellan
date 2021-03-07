@@ -1,7 +1,9 @@
 package com.dreamcodex.ti.importers;
 
 import com.dreamcodex.ti.component.MapEditor;
+import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.ECMPalette;
+import com.dreamcodex.ti.util.Preferences;
 
 import java.util.HashMap;
 
@@ -20,6 +22,22 @@ public abstract class Importer {
     protected int colorMode;
 
     public Importer() {
+    }
+
+    public Importer(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        this(
+            mapEditor,
+            dataSet.getEcmPalettes(),
+            dataSet.getClrSets(),
+            dataSet.getCharGrids(),
+            dataSet.getCharColors(),
+            dataSet.getEcmCharPalettes(),
+            dataSet.getEcmCharTransparency(),
+            dataSet.getSpriteGrids(),
+            dataSet.getSpriteColors(),
+            dataSet.getEcmSpritePalettes(),
+            preferences.getColorMode()
+        );
     }
 
     public Importer(

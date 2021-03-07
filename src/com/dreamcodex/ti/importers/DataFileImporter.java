@@ -1,10 +1,7 @@
 package com.dreamcodex.ti.importers;
 
 import com.dreamcodex.ti.component.MapEditor;
-import com.dreamcodex.ti.util.ECMPalette;
-import com.dreamcodex.ti.util.Globals;
-import com.dreamcodex.ti.util.HashPoint;
-import com.dreamcodex.ti.util.TIGlobals;
+import com.dreamcodex.ti.util.*;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -19,8 +16,8 @@ import static com.dreamcodex.ti.Magellan.*;
 
 public class DataFileImporter extends Importer {
 
-    public DataFileImporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
-        super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+    public DataFileImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(mapEditor, dataSet, preferences);
     }
 
     public int readDataFile(File mapDataFile) throws IOException {

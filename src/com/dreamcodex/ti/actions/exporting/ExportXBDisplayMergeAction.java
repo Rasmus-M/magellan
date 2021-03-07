@@ -1,8 +1,9 @@
-package com.dreamcodex.ti.actions;
+package com.dreamcodex.ti.actions.exporting;
 
+import com.dreamcodex.ti.Magellan;
+import com.dreamcodex.ti.actions.MagellanAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
-import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
@@ -14,13 +15,13 @@ import java.io.FileOutputStream;
 
 public class ExportXBDisplayMergeAction extends MagellanAction {
 
-    public ExportXBDisplayMergeAction(String name, JFrame parent, IconProvider iconProvider, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super(name, parent, iconProvider, mapEditor, dataSet, preferences);
+    public ExportXBDisplayMergeAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(name, parent, mapEditor, dataSet, preferences);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, parent, iconProvider, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_XBSCRMER, parent, parent, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, ANYS, "Screen Merge Files");
             if (file != null) {

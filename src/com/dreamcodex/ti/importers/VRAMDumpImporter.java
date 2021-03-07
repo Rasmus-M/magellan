@@ -1,9 +1,7 @@
 package com.dreamcodex.ti.importers;
 
 import com.dreamcodex.ti.component.MapEditor;
-import com.dreamcodex.ti.util.ECMPalette;
-import com.dreamcodex.ti.util.Globals;
-import com.dreamcodex.ti.util.TIGlobals;
+import com.dreamcodex.ti.util.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,11 +12,11 @@ import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
 
 public class VRAMDumpImporter extends Importer {
 
-    public VRAMDumpImporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
-        super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+    public VRAMDumpImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(mapEditor, dataSet, preferences);
     }
 
-    public void readVramDumpFile(File vramDumpFile, int charTableOffset, int mapTableOffset, int colorTableOffset, int spriteTableOffset, int spriteAttrOffset, boolean bitmapMode) throws IOException {
+    public void readVRAMDumpFile(File vramDumpFile, int charTableOffset, int mapTableOffset, int colorTableOffset, int spriteTableOffset, int spriteAttrOffset, boolean bitmapMode, boolean textMode, int textColor, int screenColor) throws IOException {
         FileInputStream fib = new FileInputStream(vramDumpFile);
         boolean basicOffset = false;
         if (charTableOffset == mapTableOffset) {
@@ -128,5 +126,20 @@ public class VRAMDumpImporter extends Importer {
             readPos++;
         }
         fib.close();
+        mapdMain.setColorScreen(screenColor);
+        if (textMode) {
+            for (int i = 0; i < clrSets.length; i++) {
+                clrSets[i][Globals.INDEX_CLR_FORE] = textColor;
+                clrSets[i][Globals.INDEX_CLR_BACK] = 0;
+            }
+        }
+        else {
+            int otherColor = screenColor < 15 ? screenColor + 1 : 1;
+            for (int i = TIGlobals.MIN_SPRITE; i < TIGlobals.MAX_SPRITE; i++) {
+                if (spriteColors[i] == screenColor) {
+                    spriteColors[i] = otherColor;
+                }
+            }
+        }
     }
 }

@@ -2,9 +2,7 @@ package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapCanvas;
 import com.dreamcodex.ti.component.MapEditor;
-import com.dreamcodex.ti.util.ECMPalette;
-import com.dreamcodex.ti.util.Globals;
-import com.dreamcodex.ti.util.TransChar;
+import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
 import java.io.BufferedWriter;
@@ -17,8 +15,8 @@ import java.util.Map;
 
 public class ArtragFileExporter extends Exporter {
 
-    public ArtragFileExporter(MapEditor mapdMain, ECMPalette[] ecmPalettes, int[][] clrSets, HashMap<Integer, int[][]> hmCharGrids, HashMap<Integer, int[][]> hmCharColors, ECMPalette[] ecmCharPalettes, boolean[] ecmCharTransparency, HashMap<Integer, int[][]> hmSpriteGrids, int[] spriteColors, ECMPalette[] ecmSpritePalettes, int colorMode) {
-        super(mapdMain, ecmPalettes, clrSets, hmCharGrids, hmCharColors, ecmCharPalettes, ecmCharTransparency, hmSpriteGrids, spriteColors, ecmSpritePalettes, colorMode);
+    public ArtragFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+        super(mapEditor, dataSet, preferences);
     }
 
     public void writeArtragFile(File mapDataFile, boolean wrap, boolean includeComments, boolean includeCharNumbers, int frames) throws Exception {
