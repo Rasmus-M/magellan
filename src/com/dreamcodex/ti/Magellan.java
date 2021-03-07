@@ -1434,15 +1434,21 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     }
                 }
             } else if (command.equals(Globals.CMD_PALSELECT_CHR)) {
-                ECMPalette ecmPalette = ecmPalettes[charECMPaletteComboBox.getSelectedIndex()];
-                ecmCharPalettes[activeChar] = ecmPalette;
-                gcChar.setPalette(ecmPalette.getColors());
+                int selectedIndex = charECMPaletteComboBox.getSelectedIndex();
+                if (selectedIndex != -1) {
+                    ECMPalette ecmPalette = ecmPalettes[selectedIndex];
+                    ecmCharPalettes[activeChar] = ecmPalette;
+                    gcChar.setPalette(ecmPalette.getColors());
+                }
                 gcChar.redrawCanvas();
                 updateCharButton(activeChar);
             } else if (command.equals(Globals.CMD_PALSELECT_SPR)) {
-                ECMPalette ecmPalette = ecmPalettes[spriteECMPaletteComboBox.getSelectedIndex()];
-                ecmSpritePalettes[activeSprite] = ecmPalette;
-                gcSprite.setPalette(ecmPalette.getColors());
+                int selectedIndex = spriteECMPaletteComboBox.getSelectedIndex();
+                if (selectedIndex != -1) {
+                    ECMPalette ecmPalette = ecmPalettes[selectedIndex];
+                    ecmSpritePalettes[activeSprite] = ecmPalette;
+                    gcSprite.setPalette(ecmPalette.getColors());
+                }
                 gcSprite.redrawCanvas();
                 updateSpriteButton(activeSprite);
             } else if (command.startsWith(Globals.CMD_CLRCHOOSE_CHR)) {
