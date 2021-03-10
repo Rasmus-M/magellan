@@ -31,7 +31,7 @@ public class ECMPalette {
         this.size = size;
         palette = new Color[size];
         for (int i = 0; i < size; i++) {
-            setColor(i, TIGlobals.TI_PALETTE[i + baseColorIndex]);
+            setColor(i, TIGlobals.TI_PALETTE_OPAQUE[i + baseColorIndex]);
         }
     }
 
