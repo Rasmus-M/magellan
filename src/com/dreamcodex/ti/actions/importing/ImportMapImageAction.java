@@ -22,7 +22,7 @@ public class ImportMapImageAction extends MagellanAction {
     public void actionPerformed(ActionEvent e) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, parent, parent, preferences.getColorMode(), preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), dataSet.getEcmPalettes());
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, parent, parent, preferences, dataSet);
             if (importer.isOkay()) {
                 try {
                     MapImageFileImporter magIO = new MapImageFileImporter(mapEditor, dataSet, preferences);

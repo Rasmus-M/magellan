@@ -5,10 +5,11 @@ import com.dreamcodex.ti.Magellan;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.List;
 import java.awt.image.ImageFilter;
 import java.awt.image.RGBImageFilter;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Globals {
     public static final String CMD_NEW = "new";
@@ -612,6 +613,13 @@ public class Globals {
         else {
             return Math.sqrt(Math.pow(c1.getRed() - c2.getRed(), 2) + Math.pow(c1.getGreen() - c2.getGreen(), 2) + Math.pow(c1.getBlue() - c2.getBlue(), 2));
         }
+    }
+
+    public static Color getECMSafeColor(Color color) {
+        int newRed = (int) Math.round((double) color.getRed() / 17d) * 17;
+        int newGreen = (int) Math.round((double) color.getGreen() / 17d) * 17;
+        int newBlue =  (int) Math.round((double) color.getBlue() / 17d) * 17;
+        return new Color(newRed, newGreen, newBlue, 255);
     }
 
     public static ImageFilter ifTrans = new RGBImageFilter() {

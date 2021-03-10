@@ -4,6 +4,8 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import static com.dreamcodex.ti.util.Globals.getECMSafeColor;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Rasmus
@@ -29,7 +31,7 @@ public class ECMPalette {
         this.size = size;
         palette = new Color[size];
         for (int i = 0; i < size; i++) {
-            setColor(i, TIGlobals.TI_PALETTE_OPAQUE[i + baseColorIndex]);
+            setColor(i, TIGlobals.TI_PALETTE[i + baseColorIndex]);
         }
     }
 
@@ -82,11 +84,7 @@ public class ECMPalette {
 
     public void setSafeColor(int index, int c) {
         Color color = new Color(c);
-        int newRed = (int) Math.round((double) color.getRed() / 17d) * 17;
-        int newGreen = (int) Math.round((double) color.getGreen() / 17d) * 17;
-        int newBlue =  (int) Math.round((double) color.getBlue() / 17d) * 17;
-        Color newColor = new Color(newRed, newGreen, newBlue, 255);
-        palette[index] = newColor;
+        palette[index] = getECMSafeColor(color);
     }
 
     public boolean startsWith(int[] colors, int n) {
@@ -100,5 +98,31 @@ public class ECMPalette {
 
     public void sort() {
         Arrays.sort(palette, new ColorComparator());
+    }
+
+    public boolean contains(ECMPalette ecmPalette) {
+        for (int i = 0; i < ecmPalette.size; i++) {
+            if (!contains(ecmPalette.getColor(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean contains(Color color) {
+        return getColorIndex(color) != -1;
+    }
+
+    public int getColorIndex(Color color) {
+        for (int i = 0; i < size; i++) {
+            if (color.equals(palette[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public int getClosestColorIndex(Color color) {
+        return Globals.getClosestColorIndex(color, palette);
     }
 }

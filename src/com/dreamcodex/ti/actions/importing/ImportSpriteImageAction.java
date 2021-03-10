@@ -25,11 +25,11 @@ public class ImportSpriteImageAction extends MagellanAction {
     public void actionPerformed(ActionEvent e) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, parent, parent, preferences.getColorMode(), preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), dataSet.getEcmPalettes());
+            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, parent, parent, preferences, dataSet);
             if (importer.isOkay()) {
                 try {
                     SpriteImageImporter magIO = new SpriteImageImporter(mapEditor, dataSet, preferences);
-                    magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getGap());
+                    magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getEndPalette(), importer.getGap());
                 } catch (Exception ee) {
                     ee.printStackTrace(System.err);
                     showError("Error importing file", ee.getMessage());

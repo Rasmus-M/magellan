@@ -2,9 +2,7 @@ package com.dreamcodex.ti.component;
 
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.IconProvider;
-import com.dreamcodex.ti.util.ECMPalette;
-import com.dreamcodex.ti.util.NamedIcon;
-import com.dreamcodex.ti.util.TIGlobals;
+import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -28,13 +26,19 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
     private static final String OK_TEXT = "Import";
     private static final String CANCEL_TEXT = "Cancel";
 
-    private JComboBox jcmbStartChar;
-    private JComboBox jcmbEndChar;
-    private JComboBox jcmbStartSprite;
-    private JComboBox jcmbStartPalette;
-    private JSpinner jspnGap;
-    private JSlider jsldTolerance;
+    private final JComboBox jcmbStartChar;
+    private final JComboBox jcmbEndChar;
+    private final JComboBox jcmbStartSprite;
+    private final JComboBox jcmbStartPalette;
+    private final JComboBox jcmbEndPalette;
+    private final JSpinner jspnGap;
+    private final JSlider jsldTolerance;
+
     private boolean clickedOkay = false;
+
+    public MagellanImportDialog(int type, JFrame parent, IconProvider ip, Preferences preferences, DataSet dataSet) {
+        this(type, parent, ip, preferences.getColorMode(), preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), dataSet.getEcmPalettes());
+    }
 
     public MagellanImportDialog(int type, JFrame parent, IconProvider ip, int colorMode, int minc, int maxc, int maxSprite, ECMPalette[] palettes) {
         super(parent, "Import Settings", true);
@@ -70,6 +74,8 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
         jcmbStartSprite.setSelectedIndex(0);
 
         jcmbStartPalette = colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3 ? new ECMPaletteComboBox(palettes, -1, -1, this, type == TYPE_MAP_IMAGE) : null;
+        jcmbEndPalette = colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3 ? new ECMPaletteComboBox(palettes, -1, -1, this, type == TYPE_MAP_IMAGE) : null;
+
         jspnGap = new JSpinner(new SpinnerNumberModel(0, 0, 8, 1));
         jsldTolerance = new JSlider(0, 16, 0);
         jsldTolerance.setMajorTickSpacing(2);
@@ -101,6 +107,8 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
                 if (colorMode == Magellan.COLOR_MODE_ECM_2 || colorMode == Magellan.COLOR_MODE_ECM_3) {
                     objForm[objCount++] = new JLabel("Start Palette");
                     objForm[objCount++] = jcmbStartPalette;
+                    objForm[objCount++] = new JLabel("End Palette");
+                    objForm[objCount++] = jcmbEndPalette;
                 }
                 break;
         }
@@ -153,6 +161,10 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
     public int getStartPalette() {
         return jcmbStartPalette != null ? jcmbStartPalette.getSelectedIndex() : 0;
+    }
+
+    public int getEndPalette() {
+        return jcmbEndPalette != null ? jcmbEndPalette.getSelectedIndex() : 0;
     }
 
     public int getTolerance() {
