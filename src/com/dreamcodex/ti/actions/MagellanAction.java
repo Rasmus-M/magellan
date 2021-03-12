@@ -75,7 +75,7 @@ public abstract class MagellanAction extends AbstractAction {
     }
 
     protected void showError(String title, String message) {
-        parent.showError(message, title);
+        parent.showError(title, message);
     }
 
     protected int showConfirmation(String title, String message, boolean includeCancel) {
