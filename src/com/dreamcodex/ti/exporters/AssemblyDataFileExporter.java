@@ -37,7 +37,7 @@ public class AssemblyDataFileExporter extends Exporter {
         }
         StringBuilder sbLine = new StringBuilder();
         BufferedWriter bw = null;
-        mapdMain.storeCurrentMap();
+        mapEditor.storeCurrentMap();
         bw = new BufferedWriter(new FileWriter(mapDataFile));
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
@@ -73,7 +73,7 @@ public class AssemblyDataFileExporter extends Exporter {
         else if (colorMode == COLOR_MODE_BITMAP) {
             sbLine.delete(0, sbLine.length());
             for (int i = startChar; i <= endChar; i++) {
-                int[][] charColors = hmCharColors.get(i);
+                int[][] charColors = this.charColors.get(i);
                 if (charColors != null) {
                     if (includeCharNumbers) {
                         printPaddedLine(bw, "CCH" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA " + i, includeComments);
@@ -146,8 +146,8 @@ public class AssemblyDataFileExporter extends Exporter {
         sbLine.delete(0, sbLine.length());
         for (int i = startChar; i <= endChar; i++) {
             String hexstr = Globals.BLANKCHAR;
-            if (hmCharGrids.get(i) != null) {
-                hexstr = Globals.getHexString(hmCharGrids.get(i)).toUpperCase();
+            if (charGrids.get(i) != null) {
+                hexstr = Globals.getHexString(charGrids.get(i)).toUpperCase();
             }
             if (includeCharNumbers) {
                 printPaddedLine(bw, "PCH" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA " + i, includeComments);
@@ -168,8 +168,8 @@ public class AssemblyDataFileExporter extends Exporter {
             }
             for (int i = startChar; i <= endChar; i++) {
                 String hexstr = Globals.BLANKCHAR;
-                if (hmCharGrids.get(i) != null) {
-                    hexstr = Globals.getHexString(hmCharGrids.get(i), 2).toUpperCase();
+                if (charGrids.get(i) != null) {
+                    hexstr = Globals.getHexString(charGrids.get(i), 2).toUpperCase();
                 }
                 sbLine.append("P1_" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
                 sbLine.append(">" + hexstr.substring(0, 4) + ",");
@@ -188,8 +188,8 @@ public class AssemblyDataFileExporter extends Exporter {
             }
             for (int i = startChar; i <= endChar; i++) {
                 String hexstr = Globals.BLANKCHAR;
-                if (hmCharGrids.get(i) != null) {
-                    hexstr = Globals.getHexString(hmCharGrids.get(i), 4).toUpperCase();
+                if (charGrids.get(i) != null) {
+                    hexstr = Globals.getHexString(charGrids.get(i), 4).toUpperCase();
                 }
                 sbLine.append("P2_" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
                 sbLine.append(">" + hexstr.substring(0, 4) + ",");
@@ -208,8 +208,8 @@ public class AssemblyDataFileExporter extends Exporter {
             }
             sbLine.delete(0, sbLine.length());
             for (int i = startSprite; i <= endSprite; i++) {
-                if (hmSpriteGrids.get(i) != null) {
-                    String hexstr = Globals.getSpriteHexString(hmSpriteGrids.get(i)).toUpperCase();
+                if (spriteGrids.get(i) != null) {
+                    String hexstr = Globals.getSpriteHexString(spriteGrids.get(i)).toUpperCase();
                     sbLine.append((colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? "SPR" : "S0_") + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
                     for (int pos = 0; pos < 64; pos += 4) {
                         if (pos > 0 && pos % 16 == 0) {
@@ -231,8 +231,8 @@ public class AssemblyDataFileExporter extends Exporter {
                 }
                 sbLine.delete(0, sbLine.length());
                 for (int i = startSprite; i <= endSprite; i++) {
-                    if (hmSpriteGrids.get(i) != null) {
-                        String hexstr = Globals.getSpriteHexString(hmSpriteGrids.get(i), 2).toUpperCase();
+                    if (spriteGrids.get(i) != null) {
+                        String hexstr = Globals.getSpriteHexString(spriteGrids.get(i), 2).toUpperCase();
                         sbLine.append("S1_" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
                         for (int pos = 0; pos < 64; pos += 4) {
                             if (pos > 0 && pos % 16 == 0) {
@@ -255,8 +255,8 @@ public class AssemblyDataFileExporter extends Exporter {
                 }
                 sbLine.delete(0, sbLine.length());
                 for (int i = startSprite; i <= endSprite; i++) {
-                    if (hmSpriteGrids.get(i) != null) {
-                        String hexstr = Globals.getSpriteHexString(hmSpriteGrids.get(i), 4).toUpperCase();
+                    if (spriteGrids.get(i) != null) {
+                        String hexstr = Globals.getSpriteHexString(spriteGrids.get(i), 4).toUpperCase();
                         sbLine.append("S2_" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA ");
                         for (int pos = 0; pos < 64; pos += 4) {
                             if (pos > 0 && pos % 16 == 0) {
@@ -277,14 +277,14 @@ public class AssemblyDataFileExporter extends Exporter {
             printPaddedLine(bw, "* Map Data", false);
             printPaddedLine(bw, "****************************************", false);
         }
-        printPaddedLine(bw, "MCOUNT DATA " + (currMapOnly ? 1 : mapdMain.getMapCount()), includeComments);
-        for (int m = 0; m < mapdMain.getMapCount(); m++) {
-            if (!currMapOnly || m == mapdMain.getCurrentMapId()) {
-                int[][] mapToSave = mapdMain.getMapData(m);
+        printPaddedLine(bw, "MCOUNT DATA " + (currMapOnly ? 1 : mapEditor.getMapCount()), includeComments);
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                int[][] mapToSave = mapEditor.getMapData(m);
                 if (includeComments) {
                     printPaddedLine(bw, "* == Map #" + m + " == ", false);
                 }
-                printPaddedLine(bw, "MC" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) + " DATA " + mapdMain.getScreenColor(m), includeComments);
+                printPaddedLine(bw, "MC" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) + " DATA " + mapEditor.getScreenColor(m), includeComments);
                 sbLine.delete(0, sbLine.length());
                 sbLine.append("MS").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" DATA >");
                 sbLine.append(Globals.toHexString(mapToSave[0].length, 4));
@@ -544,12 +544,12 @@ public class AssemblyDataFileExporter extends Exporter {
                     throw new RuntimeException("Compression mode not yet supported.");
                 }
                 if (includeSpriteData) {
-                    HashMap<Point, ArrayList<Integer>> spriteMap = mapdMain.getSpriteMap(m);
+                    HashMap<Point, ArrayList<Integer>> spriteMap = mapEditor.getSpriteMap(m);
                     if (spriteMap.size() > 0) {
                         if (includeComments) {
                             printPaddedLine(bw, "* Sprite Locations", false);
                         }
-                        boolean smallMap = mapdMain.getGridWidth() <= 32 && mapdMain.getGridHeight() <= 32;
+                        boolean smallMap = mapEditor.getGridWidth() <= 32 && mapEditor.getGridHeight() <= 32;
                         boolean first = true;
                         for (Point p : spriteMap.keySet()) {
                             ArrayList<Integer> spriteList = spriteMap.get(p);

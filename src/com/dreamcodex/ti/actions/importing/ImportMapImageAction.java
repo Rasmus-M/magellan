@@ -22,21 +22,20 @@ public class ImportMapImageAction extends MagellanAction {
     public void actionPerformed(ActionEvent e) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, parent, parent, preferences, dataSet);
-            if (importer.isOkay()) {
+            MagellanImportDialog importDialog = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, parent, parent, preferences, dataSet);
+            if (importDialog.isOkay()) {
                 try {
-                    MapImageFileImporter magIO = new MapImageFileImporter(mapEditor, dataSet, preferences);
-                    magIO.readMapImageFile(file, importer.getStartChar(), importer.getEndChar(), importer.getStartPalette(), importer.getTolerance());
+                    MapImageFileImporter importer = new MapImageFileImporter(mapEditor, dataSet, preferences);
+                    importer.readMapImageFile(file, importDialog.getStartChar(), importDialog.getEndChar(), importDialog.getStartPalette(), importDialog.getTolerance());
                 } catch (Exception ex) {
                     ex.printStackTrace(System.err);
                     showError("Error importing file", ex.getMessage());
                 }
-                importer.dispose();
+                importDialog.dispose();
             }
             parent.setModified(true);
         }
-        parent.updateCharButtons();
-        parent.updateComponents();
+        parent.updateAll();
         parent.editDefault();
     }
 }

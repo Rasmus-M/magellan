@@ -2,7 +2,6 @@ package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.util.DataSet;
-import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.Preferences;
 
@@ -18,11 +17,11 @@ public class IsometricFileExporter extends Exporter {
     }
 
     public void writeIsometricFile(File mapDataFile) throws Exception {
-        mapdMain.storeCurrentMap();
+        mapEditor.storeCurrentMap();
         FileWriter writer = null;
         try {
             writer = new FileWriter(mapDataFile);
-            int[][] mapData = mapdMain.getMapData(mapdMain.getCurrentMapId());
+            int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
             int[][] transMapData = new int[mapData.length - 1][mapData[0].length - 2];
             Map<String, Integer> transCharLookup = new HashMap<String, Integer>();
             int[][][] transCharGrids = new int[256][16][24];
@@ -37,12 +36,12 @@ public class IsometricFileExporter extends Exporter {
                         // Found a new transition
                         i = iMax++;
                         transCharLookup.put(key, i);
-                        Globals.copyGrid(hmCharGrids.get(mapData[y][x]), transCharGrids[i], 0, 0);
-                        Globals.copyGrid(hmCharGrids.get(mapData[y][x + 1]), transCharGrids[i], 8, 0);
-                        Globals.copyGrid(hmCharGrids.get(mapData[y][x + 2]), transCharGrids[i], 16, 0);
-                        Globals.copyGrid(hmCharGrids.get(mapData[y + 1][x]), transCharGrids[i], 0, 8);
-                        Globals.copyGrid(hmCharGrids.get(mapData[y + 1][x + 1]), transCharGrids[i], 8, 8);
-                        Globals.copyGrid(hmCharGrids.get(mapData[y + 1][x + 2]), transCharGrids[i], 16, 8);
+                        Globals.copyGrid(charGrids.get(mapData[y][x]), transCharGrids[i], 0, 0);
+                        Globals.copyGrid(charGrids.get(mapData[y][x + 1]), transCharGrids[i], 8, 0);
+                        Globals.copyGrid(charGrids.get(mapData[y][x + 2]), transCharGrids[i], 16, 0);
+                        Globals.copyGrid(charGrids.get(mapData[y + 1][x]), transCharGrids[i], 0, 8);
+                        Globals.copyGrid(charGrids.get(mapData[y + 1][x + 1]), transCharGrids[i], 8, 8);
+                        Globals.copyGrid(charGrids.get(mapData[y + 1][x + 2]), transCharGrids[i], 16, 8);
                         // Globals.printGrid(transCharGrids[i]);
                     }
                     transMapData[y][x] = i;

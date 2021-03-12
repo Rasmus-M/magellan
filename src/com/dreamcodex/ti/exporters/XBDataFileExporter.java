@@ -7,7 +7,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class XBDataFileExporter extends Exporter {
 
@@ -25,13 +24,13 @@ public class XBDataFileExporter extends Exporter {
         int colorCount = (colorSetEnd - colorSetStart) + 1;
         int charDataStart;
         int charCount = 0;
-        int[] mapDataStart = new int[mapdMain.getMapCount()];
+        int[] mapDataStart = new int[mapEditor.getMapCount()];
         int mapCols;
         int mapRows;
         StringBuffer sbOutLine = new StringBuffer();
         charDataStart=charLine;
 
-        mapdMain.storeCurrentMap();
+        mapEditor.storeCurrentMap();
         BufferedWriter bw = new BufferedWriter(new FileWriter(mapDataFile));
         if (exportType == Globals.XB_PROGRAM || exportType == Globals.XB256_PROGRAM || exportType == Globals.BASIC_DATA ) {
             colorDataStart = currLine;
@@ -68,8 +67,8 @@ public class XBDataFileExporter extends Exporter {
 
             for (int i = startChar; i <= endChar; i++) {
                 String hexstr;
-                if (hmCharGrids.get(i) != null) {
-                    hexstr = Globals.getHexString(hmCharGrids.get(i));
+                if (charGrids.get(i) != null) {
+                    hexstr = Globals.getHexString(charGrids.get(i));
                 } else {
                     hexstr = Globals.BLANKCHAR;
                 }
@@ -105,9 +104,9 @@ public class XBDataFileExporter extends Exporter {
                 bw.newLine();
             }
             int mapTicker = 1;
-            for (int m = 0; m < mapdMain.getMapCount(); m++) {
-                if (!currMapOnly || m == mapdMain.getCurrentMapId()) {
-                    int[][] mapToSave = mapdMain.getMapData(m);
+            for (int m = 0; m < mapEditor.getMapCount(); m++) {
+                if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                    int[][] mapToSave = mapEditor.getMapData(m);
                     mapCols = mapToSave[0].length;
                     mapRows = mapToSave.length;
                     mapDataStart[m] = currLine;
@@ -116,7 +115,7 @@ public class XBDataFileExporter extends Exporter {
                         bw.write("REM MAP #" + mapTicker);
                         bw.newLine();
                     }
-                    int mapColor = mapdMain.getScreenColorTI(m);
+                    int mapColor = mapEditor.getScreenColorTI(m);
                     if (includeComments) {
                         bw.write("REM MAP #" + mapTicker + " WIDTH, HEIGHT, SCREEN COLOR");
                         bw.newLine();
@@ -183,8 +182,8 @@ public class XBDataFileExporter extends Exporter {
                 bw.newLine();
                 bw.newLine();
             }
-            for (int mp = 0; mp < mapdMain.getMapCount(); mp++) {
-                if (!currMapOnly || mp == mapdMain.getCurrentMapId()) {
+            for (int mp = 0; mp < mapEditor.getMapCount(); mp++) {
+                if (!currMapOnly || mp == mapEditor.getCurrentMapId()) {
                     bw.write(currLine + " CALL CLEAR");
                     currLine = currLine + interLine;
                     bw.newLine();
@@ -257,8 +256,8 @@ public class XBDataFileExporter extends Exporter {
 
             for (int i = startChar; i <= endChar; i++) {
                 String hexstr;
-                if (hmCharGrids.get(i) != null) {
-                    hexstr = Globals.getHexString(hmCharGrids.get(i));
+                if (charGrids.get(i) != null) {
+                    hexstr = Globals.getHexString(charGrids.get(i));
                 } else {
                     hexstr = Globals.BLANKCHAR;
                 }
@@ -293,9 +292,9 @@ public class XBDataFileExporter extends Exporter {
 
 
             int mapTicker = 1;
-            for (int m = 0; m < mapdMain.getMapCount(); m++) {
-                if (!currMapOnly || m == mapdMain.getCurrentMapId()) {
-                    int[][] mapToSave = mapdMain.getMapData(m);
+            for (int m = 0; m < mapEditor.getMapCount(); m++) {
+                if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                    int[][] mapToSave = mapEditor.getMapData(m);
                     mapCols = mapToSave[0].length;
                     mapRows = mapToSave.length;
                     if (m!=0){
@@ -386,13 +385,13 @@ public class XBDataFileExporter extends Exporter {
 
             currLine += 100;
 
-            int[] mapFillChars = new int[mapdMain.getMapCount() + 1];
-            int[] illegalChars = new int[mapdMain.getMapCount() + 1];
+            int[] mapFillChars = new int[mapEditor.getMapCount() + 1];
+            int[] illegalChars = new int[mapEditor.getMapCount() + 1];
             int totalIllegalChars=0;
             mapTicker = 1;
-            for (int m = 0; m < mapdMain.getMapCount(); m++) {
-                if (!currMapOnly || m == mapdMain.getCurrentMapId()) {
-                    int[][] mapToSave = mapdMain.getMapData(m);
+            for (int m = 0; m < mapEditor.getMapCount(); m++) {
+                if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                    int[][] mapToSave = mapEditor.getMapData(m);
                     mapCols = mapToSave[0].length;
                     mapRows = mapToSave.length;
 
@@ -457,9 +456,9 @@ public class XBDataFileExporter extends Exporter {
                     bw.newLine();
                 }
 
-                for (int mp = 0; mp < mapdMain.getMapCount(); mp++) {
+                for (int mp = 0; mp < mapEditor.getMapCount(); mp++) {
                     if (illegalChars[mp] > 0) {
-                        if (!currMapOnly || mp == mapdMain.getCurrentMapId()) {
+                        if (!currMapOnly || mp == mapEditor.getCurrentMapId()) {
 
                             bw.write(currLine + " RESTORE " + mapDataStart[mp]);
                             currLine = currLine + interLine;

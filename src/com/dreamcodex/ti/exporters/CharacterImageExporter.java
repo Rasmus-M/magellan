@@ -8,7 +8,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 
 import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
 import static com.dreamcodex.ti.Magellan.COLOR_MODE_GRAPHICS_1;
@@ -20,7 +19,7 @@ public class CharacterImageExporter extends Exporter {
     }
 
     public void writeCharImage(File imageOut, int tileCols, boolean isColor) throws IOException {
-        int charCount = hmCharGrids.size();
+        int charCount = charGrids.size();
         int tileRows = (int) Math.ceil(charCount / tileCols);
         BufferedImage bufferCharImage = new BufferedImage(tileCols * 8, tileRows * 8, BufferedImage.TYPE_INT_ARGB);
         if (bufferCharImage == null) {
@@ -54,9 +53,9 @@ public class CharacterImageExporter extends Exporter {
             gf.setColor(TIGlobals.TI_COLOR_BLACK);
             for (int ch = 0; ch < charCount; ch++) {
                 gf.setComposite(AlphaComposite.SrcOver);
-                if (hmCharGrids.containsKey(ch)) {
-                    charGrid = hmCharGrids.get(ch);
-                    charColors = colorMode == COLOR_MODE_BITMAP ? hmCharColors.get(ch) : null;
+                if (charGrids.containsKey(ch)) {
+                    charGrid = charGrids.get(ch);
+                    charColors = colorMode == COLOR_MODE_BITMAP ? this.charColors.get(ch) : null;
                     for (int y = 0; y < charGrid.length; y++) {
                         for (int x = 0; x < charGrid[y].length; x++) {
                             shouldDraw = true;

@@ -6,7 +6,6 @@ import com.dreamcodex.ti.util.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
 
 import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
 
@@ -46,7 +45,7 @@ public class VRAMDumpImporter extends Importer {
                         int mapChar = charRead;
                         if (basicOffset)
                             mapChar = (mapChar + 0xA0) & 0xFF;
-                        hmCharGrids.put(mapChar, Globals.getIntGrid(sbChar.toString(), 8));
+                        charGrids.put(mapChar, Globals.getIntGrid(sbChar.toString(), 8));
                         charRead++;
                         charByte = 0;
                         sbChar.delete(0, sbChar.length());
@@ -60,17 +59,17 @@ public class VRAMDumpImporter extends Importer {
                 int mapChar = readInt;
                 if (basicOffset)
                     mapChar = (mapChar + 0xA0) & 0xFF;
-                mapdMain.setGridAt(mapCol, mapRow, mapChar);
+                mapEditor.setGridAt(mapCol, mapRow, mapChar);
             }
             if (readPos >= colorTableOffset && readPos < (colorTableOffset + colorTableLength)) {
                 if (bitmapMode) {
                     if (colorMode == COLOR_MODE_BITMAP) {
                         int colorByte = readPos - colorTableOffset;
                         int colorChar = colorByte / 8;
-                        int[][] colorGrid = hmCharColors.get(colorChar);
+                        int[][] colorGrid = charColors.get(colorChar);
                         if (colorGrid == null) {
                             colorGrid = new int[8][2];
-                            hmCharColors.put(colorChar, colorGrid);
+                            charColors.put(colorChar, colorGrid);
                         }
                         int row = colorByte % 8;
                         colorGrid[row][0] = readInt & 0x0F;
@@ -87,10 +86,10 @@ public class VRAMDumpImporter extends Importer {
                     clrSets[setNum][Globals.INDEX_CLR_BACK] = colorBack;
                     if (colorMode == COLOR_MODE_BITMAP) {
                         for (int colorChar = setNum * 8; colorChar < setNum * 8 + 8; colorChar++) {
-                            int[][] colorGrid = hmCharColors.get(colorChar);
+                            int[][] colorGrid = charColors.get(colorChar);
                             if (colorGrid == null) {
                                 colorGrid = new int[8][2];
-                                hmCharColors.put(colorChar, colorGrid);
+                                charColors.put(colorChar, colorGrid);
                             }
                             for (int row = 0; row < 8; row++) {
                                 colorGrid[row][0] = colorBack;
@@ -107,7 +106,7 @@ public class VRAMDumpImporter extends Importer {
                 int x0 = byteOffset >= 16 ? 8 : 0;
                 int y0 = byteOffset >= 16 ? byteOffset - 16 : byteOffset;
                 int mask = 0x80;
-                int[][] grid = hmSpriteGrids.get(spriteNum);
+                int[][] grid = spriteGrids.get(spriteNum);
                 int[] row = grid[y0];
                 for (int x = x0; x < x0 + 8; x++) {
                     row[x] = (readInt & mask) != 0 ? 1 : 0;
@@ -126,7 +125,7 @@ public class VRAMDumpImporter extends Importer {
             readPos++;
         }
         fib.close();
-        mapdMain.setColorScreen(screenColor);
+        mapEditor.setColorScreen(screenColor);
         if (textMode) {
             for (int i = 0; i < clrSets.length; i++) {
                 clrSets[i][Globals.INDEX_CLR_FORE] = textColor;

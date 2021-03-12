@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class CharacterDataImporter extends Importer {
 
@@ -29,7 +28,7 @@ public class CharacterDataImporter extends Importer {
             else {
                 if (lineIn.startsWith(Globals.KEY_CHARDATA)) {
                     lineIn = lineIn.substring(Globals.KEY_CHARDATA.length());
-                    hmCharGrids.put(charRead, Globals.getIntGrid(lineIn, 8));
+                    charGrids.put(charRead, Globals.getIntGrid(lineIn, 8));
                     charRead++;
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARRANG)) {

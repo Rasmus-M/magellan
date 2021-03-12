@@ -42,8 +42,8 @@ public class OpenDataFileAction extends MagellanAction {
                     return;
                 }
                 parent.newProject();
-                DataFileImporter magIO = new DataFileImporter(mapEditor, dataSet, preferences);
-                magIO.readDataFile(file);
+                DataFileImporter importer = new DataFileImporter(mapEditor, dataSet, preferences);
+                importer.readDataFile(file);
                 parent.setMapDataFile(file);
                 preferences.addRecentFile(file.getAbsolutePath());
             } catch (IOException ioException) {
@@ -52,12 +52,8 @@ public class OpenDataFileAction extends MagellanAction {
             }
         }
         mapEditor.goToMap(0);
-        parent.resetCharButtons();
-        parent.updateCharButtons();
-        parent.updateSpriteButtons();
-        parent.updateComponents();
+        parent.updateAll();
         parent.editDefault();
-        parent.updateScreenColorPalette();
         parent.setModified(false);
     }
 

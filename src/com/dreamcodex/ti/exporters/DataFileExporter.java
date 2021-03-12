@@ -23,7 +23,7 @@ public class DataFileExporter extends Exporter {
 
     public void writeDataFile(File mapDataFile, int characterSetSize) throws IOException {
         // store working map first
-        mapdMain.storeCurrentMap();
+        mapEditor.storeCurrentMap();
         // get file output buffer
         BufferedWriter bw = new BufferedWriter(new FileWriter(mapDataFile));
         // Build ECM palette map
@@ -86,8 +86,8 @@ public class DataFileExporter extends Exporter {
         bw.newLine();
         for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
             bw.write(Globals.KEY_CHARDATA);
-            if (hmCharGrids.get(i) != null) {
-                String hexstr = Globals.getHexString(hmCharGrids.get(i));
+            if (charGrids.get(i) != null) {
+                String hexstr = Globals.getHexString(charGrids.get(i));
                 bw.write(hexstr, 0, hexstr.length());
             }
             else {
@@ -100,8 +100,8 @@ public class DataFileExporter extends Exporter {
             bw.newLine();
             for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                 bw.write(Globals.KEY_CHARDATA1);
-                if (hmCharGrids.get(i) != null) {
-                    String hexstr = Globals.getHexString(hmCharGrids.get(i), 2);
+                if (charGrids.get(i) != null) {
+                    String hexstr = Globals.getHexString(charGrids.get(i), 2);
                     bw.write(hexstr, 0, hexstr.length());
                 }
                 else {
@@ -115,8 +115,8 @@ public class DataFileExporter extends Exporter {
             bw.newLine();
             for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                 bw.write(Globals.KEY_CHARDATA2);
-                if (hmCharGrids.get(i) != null) {
-                    String hexstr = Globals.getHexString(hmCharGrids.get(i), 4);
+                if (charGrids.get(i) != null) {
+                    String hexstr = Globals.getHexString(charGrids.get(i), 4);
                     bw.write(hexstr, 0, hexstr.length());
                 }
                 else {
@@ -131,7 +131,7 @@ public class DataFileExporter extends Exporter {
             bw.newLine();
             for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
                 bw.write(Globals.KEY_CHARCOLOR);
-                int[][] charColors = hmCharColors.get(i);
+                int[][] charColors = this.charColors.get(i);
                 if (charColors != null) {
                     String hexstr = Globals.getColorHexString(charColors);
                     bw.write(hexstr, 0, hexstr.length());
@@ -145,18 +145,18 @@ public class DataFileExporter extends Exporter {
         // save map parameters
         bw.write("* MAPS");
         bw.newLine();
-        bw.write(Globals.KEY_MAPCOUNT + mapdMain.getMapCount());
+        bw.write(Globals.KEY_MAPCOUNT + mapEditor.getMapCount());
         bw.newLine();
         // save map(s)
-        for (int m = 0; m < mapdMain.getMapCount(); m++) {
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
             bw.write("* MAP #" + (m + 1));
             bw.newLine();
             bw.write(Globals.KEY_MAPSTART);
             bw.newLine();
-            int[][] mapToSave = mapdMain.getMapData(m);
+            int[][] mapToSave = mapEditor.getMapData(m);
             bw.write(Globals.KEY_MAPSIZE + mapToSave[0].length + "|" + mapToSave.length);
             bw.newLine();
-            bw.write(Globals.KEY_MAPBACK + mapdMain.getScreenColor(m));
+            bw.write(Globals.KEY_MAPBACK + mapEditor.getScreenColor(m));
             bw.newLine();
             for (int y = 0; y < mapToSave.length; y++) {
                 bw.write(Globals.KEY_MAPDATA);
@@ -167,7 +167,7 @@ public class DataFileExporter extends Exporter {
             }
             bw.write("* SPRITE LOCATIONS");
             bw.newLine();
-            HashMap<Point, ArrayList<Integer>> spriteMap = mapdMain.getSpriteMap(m);
+            HashMap<Point, ArrayList<Integer>> spriteMap = mapEditor.getSpriteMap(m);
             for (Point p : spriteMap.keySet()) {
                 ArrayList<Integer> spriteList = spriteMap.get(p);
                 for (Integer spriteNum : spriteList) {
@@ -183,8 +183,8 @@ public class DataFileExporter extends Exporter {
         bw.newLine();
         for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
             bw.write(Globals.KEY_SPRITE_PATTERN);
-            if (hmSpriteGrids.get(i) != null) {
-                bw.write(Globals.getHexString(hmSpriteGrids.get(i)));
+            if (spriteGrids.get(i) != null) {
+                bw.write(Globals.getHexString(spriteGrids.get(i)));
             }
             else {
                 bw.write(Globals.BLANKSPRITE);
@@ -196,8 +196,8 @@ public class DataFileExporter extends Exporter {
             bw.newLine();
             for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                 bw.write(Globals.KEY_SPRITE_PATTERN1);
-                if (hmSpriteGrids.get(i) != null) {
-                    bw.write(Globals.getHexString(hmSpriteGrids.get(i), 2));
+                if (spriteGrids.get(i) != null) {
+                    bw.write(Globals.getHexString(spriteGrids.get(i), 2));
                 }
                 else {
                     bw.write(Globals.BLANKSPRITE);
@@ -210,8 +210,8 @@ public class DataFileExporter extends Exporter {
             bw.newLine();
             for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
                 bw.write(Globals.KEY_SPRITE_PATTERN2);
-                if (hmSpriteGrids.get(i) != null) {
-                    bw.write(Globals.getHexString(hmSpriteGrids.get(i), 4));
+                if (spriteGrids.get(i) != null) {
+                    bw.write(Globals.getHexString(spriteGrids.get(i), 4));
                 }
                 else {
                     bw.write(Globals.BLANKSPRITE);

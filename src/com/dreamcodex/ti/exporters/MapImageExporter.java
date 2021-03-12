@@ -2,13 +2,11 @@ package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.util.DataSet;
-import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Preferences;
 
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 
 public class MapImageExporter extends Exporter {
 
@@ -17,6 +15,6 @@ public class MapImageExporter extends Exporter {
     }
 
     public void writeMapImage(File imageOut) throws IOException {
-        ImageIO.write(mapdMain.getBuffer(), "png", imageOut);
+        ImageIO.write(mapEditor.getBuffer(), "png", imageOut);
     }
 }

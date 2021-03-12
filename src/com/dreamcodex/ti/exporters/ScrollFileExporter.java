@@ -23,7 +23,7 @@ public class ScrollFileExporter extends Exporter {
     public void writeScrollFile(File mapDataFile, int orientation, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
         boolean vertical = orientation == SCROLL_ORIENTATION_VERTICAL;
         // store working map first
-        mapdMain.storeCurrentMap();
+        mapEditor.storeCurrentMap();
         BufferedWriter bw = null;
         ArrayList<int[][]> transMaps = new ArrayList<int[][]>();
         Map<String, TransChar> transChars = new HashMap<String, TransChar>();
@@ -34,9 +34,9 @@ public class ScrollFileExporter extends Exporter {
         int endChar = 0;
         int imax = 0;
         boolean allColorsOK = true;
-        for (int m = 0; m < mapdMain.getMapCount(); m++) {
-            if (!currMapOnly || m == mapdMain.getCurrentMapId()) {
-                int[][] mapData = mapdMain.getMapData(m);
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                int[][] mapData = mapEditor.getMapData(m);
                 if (mapData.length > 1 && mapData[0].length > 1) {
                     int i = 0;
                     for (int y = (vertical && !wrap ? 1 : 0); y < mapData.length; y++) {
@@ -68,21 +68,21 @@ public class ScrollFileExporter extends Exporter {
                                 if (colorMode == COLOR_MODE_BITMAP) {
                                     int[][] charColors = new int[8][8];
                                     if (!vertical) {
-                                        int[][] fromColorGrid = hmCharColors.get(fromChar);
-                                        int[][] toColorGrid = hmCharColors.get(toChar);
+                                        int[][] fromColorGrid = this.charColors.get(fromChar);
+                                        int[][] toColorGrid = this.charColors.get(toChar);
                                         for (int r = 0; r < 8 && colorsOK; r++) {
                                             int[] fromColorRow = fromColorGrid[r];
                                             int[] toColorRow = toColorGrid[r];
-                                            int screenColor = mapdMain.getColorScreen();
+                                            int screenColor = mapEditor.getColorScreen();
                                             int fromForeColor = fromColorRow[Globals.INDEX_CLR_FORE] != 0 ? fromColorRow[Globals.INDEX_CLR_FORE] : screenColor;
                                             int toForeColor = toColorRow[Globals.INDEX_CLR_FORE] != 0 ? toColorRow[Globals.INDEX_CLR_FORE] : screenColor;
                                             if (fromForeColor == toForeColor) {
                                                 charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
                                             }
-                                            else if (!Globals.arrayContains(hmCharGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
+                                            else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
                                                 charColors[r][Globals.INDEX_CLR_FORE] = toForeColor;
                                             }
-                                            else if (!Globals.arrayContains(hmCharGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
+                                            else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
                                                 charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
                                             }
                                             else {
@@ -95,10 +95,10 @@ public class ScrollFileExporter extends Exporter {
                                             if (fromBackColor == toBackColor) {
                                                 charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
                                             }
-                                            else if (!Globals.arrayContains(hmCharGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
+                                            else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
                                                 charColors[r][Globals.INDEX_CLR_BACK] = toBackColor;
                                             }
-                                            else if (!Globals.arrayContains(hmCharGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
+                                            else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
                                                 charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
                                             }
                                             else {
@@ -117,7 +117,7 @@ public class ScrollFileExporter extends Exporter {
                                     }
                                 }
                                 else {
-                                    int screenColor = mapdMain.getColorScreen();
+                                    int screenColor = mapEditor.getColorScreen();
                                     int[] fromClrSet = clrSets[fromChar / 8];
                                     int[] toClrSet = clrSets[toChar / 8];
                                     int foreColor;
@@ -127,10 +127,10 @@ public class ScrollFileExporter extends Exporter {
                                     if (fromForeColor == toForeColor) {
                                         foreColor = fromForeColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
+                                    else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
                                         foreColor = toForeColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+                                    else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
                                         foreColor = fromForeColor;
                                     }
                                     else {
@@ -144,10 +144,10 @@ public class ScrollFileExporter extends Exporter {
                                     if (fromBackColor == toBackColor) {
                                         backColor = fromBackColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
+                                    else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
                                         backColor = toBackColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+                                    else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
                                         backColor = fromBackColor;
                                     }
                                     else {
@@ -163,10 +163,10 @@ public class ScrollFileExporter extends Exporter {
                                         if (fromForeColor == toForeColor) {
                                             foreColor = fromForeColor;
                                         }
-                                        else if (!Globals.arrayContains(hmCharGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
+                                        else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
                                             foreColor = toForeColor;
                                         }
-                                        else if (!Globals.arrayContains(hmCharGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+                                        else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
                                             foreColor = fromForeColor;
                                         }
                                         else {
@@ -178,10 +178,10 @@ public class ScrollFileExporter extends Exporter {
                                         if (fromBackColor == toBackColor) {
                                             backColor = fromBackColor;
                                         }
-                                        else if (!Globals.arrayContains(hmCharGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
+                                        else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
                                             backColor = toBackColor;
                                         }
-                                        else if (!Globals.arrayContains(hmCharGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+                                        else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
                                             backColor = fromBackColor;
                                         }
                                         else {
@@ -254,7 +254,7 @@ public class ScrollFileExporter extends Exporter {
             remappedTransCharSet[i] = transChar != null ? new TransChar(transChar) : null;
         }
         int mapTo = 0;
-        for (int mapFrom = startChar; mapFrom <= (animate ? hmCharGrids.size() - 1 : endChar); mapFrom++) {
+        for (int mapFrom = startChar; mapFrom <= (animate ? charGrids.size() - 1 : endChar); mapFrom++) {
             if (usedChars[mapFrom]) {
                 remappedChars.add(mapFrom);
                 for (int i = 0; i < remappedTransCharSet.length; i++) {
@@ -281,8 +281,8 @@ public class ScrollFileExporter extends Exporter {
         for (int j = 0; j < remappedChars.size(); j++) {
             int i = remappedChars.get(j);
             String hexstr = Globals.BLANKCHAR;
-            if (hmCharGrids.get(i) != null) {
-                hexstr = Globals.getHexString(hmCharGrids.get(i)).toUpperCase();
+            if (charGrids.get(i) != null) {
+                hexstr = Globals.getHexString(charGrids.get(i)).toUpperCase();
             }
             if (includeCharNumbers) {
                 printPaddedLine(bw, "PCH" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA >" + Globals.toHexString(i, 2), includeComments);
@@ -301,8 +301,8 @@ public class ScrollFileExporter extends Exporter {
             printPaddedLine(bw, "****************************************", false);
         }
         if (colorMode == COLOR_MODE_BITMAP) {
-            for (int i = startChar; i <= (animate ? hmCharColors.size() - 1 : endChar); i++) {
-                int[][] charColors = hmCharColors.get(i);
+            for (int i = startChar; i <= (animate ? charColors.size() - 1 : endChar); i++) {
+                int[][] charColors = this.charColors.get(i);
                 if (charColors != null && !Globals.isColorGridEmpty(charColors)) {
                     if (includeCharNumbers) {
                         printPaddedLine(bw, "CCH" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA " + Globals.toHexString(i, 2), includeComments);
@@ -424,7 +424,7 @@ public class ScrollFileExporter extends Exporter {
             if (includeComments) {
                 printPaddedLine(bw, "* == Map #" + m + " == ", false);
             }
-            printPaddedLine(bw, "MC" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) + " DATA " + mapdMain.getScreenColor(m), includeComments);
+            printPaddedLine(bw, "MC" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) + " DATA " + mapEditor.getScreenColor(m), includeComments);
             sbLine.append("MS").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" DATA >");
             sbLine.append(Globals.toHexString(mapToSave[0].length, 4));
             sbLine.append(",>").append(Globals.toHexString(mapToSave.length, 4));
@@ -612,8 +612,8 @@ public class ScrollFileExporter extends Exporter {
                         String hexstr;
                         TransChar transChar = transCharSet[i];
                         if (transChar != null) {
-                            int[][] fromGrid = hmCharGrids.get(transChar.getFromChar() + (animate ? f * 32 : 0));
-                            int[][] toGrid = hmCharGrids.get(transChar.getToChar() + (animate ? f * 32 : 0));
+                            int[][] fromGrid = charGrids.get(transChar.getFromChar() + (animate ? f * 32 : 0));
+                            int[][] toGrid = charGrids.get(transChar.getToChar() + (animate ? f * 32 : 0));
                             if (transChar.isInvert()) {
                                 toGrid = Globals.cloneGrid(toGrid);
                                 Globals.invertGrid(toGrid, 1);
@@ -665,8 +665,8 @@ public class ScrollFileExporter extends Exporter {
                     TransChar transChar = transCharSet[i];
                     if (transChar != null) {
                         hexstr =
-                                Globals.getHexString(hmCharGrids.get(transChar.getToChar())).toUpperCase() +
-                                        Globals.getHexString(hmCharGrids.get(transChar.getFromChar())).toUpperCase();
+                                Globals.getHexString(charGrids.get(transChar.getToChar())).toUpperCase() +
+                                        Globals.getHexString(charGrids.get(transChar.getFromChar())).toUpperCase();
                     }
                     else {
                         hexstr = Globals.BLANKCHAR + Globals.BLANKCHAR;
@@ -709,8 +709,8 @@ public class ScrollFileExporter extends Exporter {
                         String hexstr;
                         TransChar transChar = transCharSet[i];
                         if (transChar != null) {
-                            int[][] fromGrid = hmCharColors.get(transChar.getFromChar() + (animate ? f * 32 : 0));
-                            int[][] toGrid = hmCharColors.get(transChar.getToChar() + (animate ? f * 32 : 0));
+                            int[][] fromGrid = charColors.get(transChar.getFromChar() + (animate ? f * 32 : 0));
+                            int[][] toGrid = charColors.get(transChar.getToChar() + (animate ? f * 32 : 0));
                             hexstr = "";
                             if (vertical) {
                                 for (int y = 8 - offset; y < 8; y++) {
@@ -726,26 +726,26 @@ public class ScrollFileExporter extends Exporter {
                                 for (int y = 0; y < 8; y++) {
                                     int foreColor = 0;
                                     int backColor = 0;
-                                    int fromForeColor = fromGrid[y][Globals.INDEX_CLR_FORE] != 0 ? fromGrid[y][Globals.INDEX_CLR_FORE] : mapdMain.getColorScreen();
-                                    int toForeColor = toGrid[y][Globals.INDEX_CLR_FORE] != 0 ? toGrid[y][Globals.INDEX_CLR_FORE] : mapdMain.getColorScreen();
+                                    int fromForeColor = fromGrid[y][Globals.INDEX_CLR_FORE] != 0 ? fromGrid[y][Globals.INDEX_CLR_FORE] : mapEditor.getColorScreen();
+                                    int toForeColor = toGrid[y][Globals.INDEX_CLR_FORE] != 0 ? toGrid[y][Globals.INDEX_CLR_FORE] : mapEditor.getColorScreen();
                                     if (fromForeColor == toForeColor) {
                                         foreColor = fromForeColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(transChar.getFromChar())[y], Globals.INDEX_CLR_FORE)) {
+                                    else if (!Globals.arrayContains(charGrids.get(transChar.getFromChar())[y], Globals.INDEX_CLR_FORE)) {
                                         foreColor = toForeColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(transChar.getToChar())[y], Globals.INDEX_CLR_FORE)) {
+                                    else if (!Globals.arrayContains(charGrids.get(transChar.getToChar())[y], Globals.INDEX_CLR_FORE)) {
                                         foreColor = fromForeColor;
                                     }
-                                    int fromBackColor = fromGrid[y][Globals.INDEX_CLR_BACK] != 0 ? fromGrid[y][Globals.INDEX_CLR_BACK] : mapdMain.getColorScreen();
-                                    int toBackColor = toGrid[y][Globals.INDEX_CLR_BACK] != 0 ? toGrid[y][Globals.INDEX_CLR_BACK] : mapdMain.getColorScreen();
+                                    int fromBackColor = fromGrid[y][Globals.INDEX_CLR_BACK] != 0 ? fromGrid[y][Globals.INDEX_CLR_BACK] : mapEditor.getColorScreen();
+                                    int toBackColor = toGrid[y][Globals.INDEX_CLR_BACK] != 0 ? toGrid[y][Globals.INDEX_CLR_BACK] : mapEditor.getColorScreen();
                                     if (fromBackColor == toBackColor) {
                                         backColor = fromBackColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(transChar.getFromChar())[y], Globals.INDEX_CLR_BACK)) {
+                                    else if (!Globals.arrayContains(charGrids.get(transChar.getFromChar())[y], Globals.INDEX_CLR_BACK)) {
                                         backColor = toBackColor;
                                     }
-                                    else if (!Globals.arrayContains(hmCharGrids.get(transChar.getToChar())[y], Globals.INDEX_CLR_BACK)) {
+                                    else if (!Globals.arrayContains(charGrids.get(transChar.getToChar())[y], Globals.INDEX_CLR_BACK)) {
                                         backColor = fromBackColor;
                                     }
                                     hexstr += Integer.toHexString(foreColor).toUpperCase();
@@ -770,11 +770,11 @@ public class ScrollFileExporter extends Exporter {
                     String hexstr = "";
                     TransChar transChar = transCharSet[i];
                     if (transChar != null) {
-                        int[][] toColors = hmCharColors.get(transChar.getToChar());
+                        int[][] toColors = charColors.get(transChar.getToChar());
                         for (int row = 0; row < 8; row++) {
                             hexstr += Integer.toHexString(toColors[row][1]) + Integer.toHexString(toColors[row][0]);
                         }
-                        int[][] fromColors = hmCharColors.get(transChar.getFromChar());
+                        int[][] fromColors = charColors.get(transChar.getFromChar());
                         for (int row = 0; row < 8; row++) {
                             hexstr += Integer.toHexString(fromColors[row][1]) + Integer.toHexString(fromColors[row][0]);
                         }

@@ -41,16 +41,13 @@ public class ImportCharImageAction extends MagellanAction {
                 buffImg.getGraphics().drawImage(charImg, 0, 0, parent);
             }
             if (color) {
-                CharacterImageColorImporter magIO = new CharacterImageColorImporter(mapEditor, dataSet, preferences);
-                magIO.readCharImageColor(buffImg);
+                CharacterImageColorImporter importer = new CharacterImageColorImporter(mapEditor, dataSet, preferences);
+                importer.readCharImageColor(buffImg);
             } else {
-                CharacterImageMonoImporter magIO = new CharacterImageMonoImporter(mapEditor, dataSet, preferences);
-                magIO.readCharImageMono(buffImg);
+                CharacterImageMonoImporter importer = new CharacterImageMonoImporter(mapEditor, dataSet, preferences);
+                importer.readCharImageMono(buffImg);
             }
-            if (preferences.getColorMode() == Magellan.COLOR_MODE_ECM_2 || preferences.getColorMode() == Magellan.COLOR_MODE_ECM_3) {
-                parent.updateCharPaletteCombo(true);
-            }
-            parent.updateCharButtons();
+            parent.updateAll();
             parent.setModified(true);
         }
         parent.updateComponents();

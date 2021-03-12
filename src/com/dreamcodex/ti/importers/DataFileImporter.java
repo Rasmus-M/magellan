@@ -21,7 +21,7 @@ public class DataFileImporter extends Importer {
     }
 
     public int readDataFile(File mapDataFile) throws IOException {
-        hmCharGrids.clear();
+        charGrids.clear();
         BufferedReader br = new BufferedReader(new FileReader(mapDataFile));
         String lineIn = "";
         int mapY = 0;
@@ -60,18 +60,18 @@ public class DataFileImporter extends Importer {
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARDATA)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_CHARDATA.length()), 16);
-                    hmCharGrids.put(charRead, Globals.getIntGrid(lineIn, 8));
+                    charGrids.put(charRead, Globals.getIntGrid(lineIn, 8));
                     charRead++;
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARDATA1) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_CHARDATA1.length()), 16);
-                    int[][] charGrid = hmCharGrids.get(charRead1++);
+                    int[][] charGrid = charGrids.get(charRead1++);
                     int[][] charGrid1 = Globals.getIntGrid(lineIn, 8);
                     Globals.orGrid(charGrid1, charGrid, 1);
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARDATA2) && (colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_CHARDATA2.length()), 16);
-                    int[][] charGrid = hmCharGrids.get(charRead2++);
+                    int[][] charGrid = charGrids.get(charRead2++);
                     int[][] charGrid2 = Globals.getIntGrid(lineIn, 8);
                     Globals.orGrid(charGrid2, charGrid, 2);
                 }
@@ -89,7 +89,7 @@ public class DataFileImporter extends Importer {
                         charColors[y][1] = Integer.parseInt(Character.toString(lineIn.charAt(y * 2)), 16);
                         charColors[y][0] = Integer.parseInt(Character.toString(lineIn.charAt(y * 2 + 1)), 16);
                     }
-                    hmCharColors.put(charColorRead, charColors);
+                    this.charColors.put(charColorRead, charColors);
                     charColorRead++;
                 }
                 else if (lineIn.startsWith(Globals.KEY_PALETTE) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
@@ -133,7 +133,7 @@ public class DataFileImporter extends Importer {
                 else if (lineIn.startsWith(Globals.KEY_SCRBACK)) {
                     lineIn = lineIn.substring(Globals.KEY_SCRBACK.length());
                     mapColor = Integer.parseInt(lineIn);
-                    mapdMain.setColorScreen(mapColor);
+                    mapEditor.setColorScreen(mapColor);
                 }
                 else if (lineIn.startsWith(Globals.KEY_MAPCOUNT)) {
                     lineIn = lineIn.substring(Globals.KEY_MAPCOUNT.length());
@@ -141,42 +141,42 @@ public class DataFileImporter extends Importer {
                 }
                 else if (lineIn.equals(Globals.KEY_MAPSTART)) {
                     if (mapY > 0) {
-                        mapdMain.addBlankMap(mapWidth, mapHeight);
+                        mapEditor.addBlankMap(mapWidth, mapHeight);
                         currMap++;
-                        mapdMain.setCurrentMapId(currMap);
+                        mapEditor.setCurrentMapId(currMap);
                         mapY = 0;
                     }
                 }
                 else if (lineIn.equals(Globals.KEY_MAPEND)) {
-                    mapdMain.setColorScreen(mapColor);
-                    mapdMain.storeCurrentMap();
+                    mapEditor.setColorScreen(mapColor);
+                    mapEditor.storeCurrentMap();
                 }
                 else if (lineIn.startsWith(Globals.KEY_MAPSIZE)) {
                     lineIn = lineIn.substring(Globals.KEY_MAPSIZE.length());
                     mapWidth = Integer.parseInt(lineIn.substring(0, lineIn.indexOf("|")));
                     mapHeight = Integer.parseInt(lineIn.substring(lineIn.indexOf("|") + 1));
-                    mapdMain.setGridWidth(mapWidth);
-                    mapdMain.setGridHeight(mapHeight);
+                    mapEditor.setGridWidth(mapWidth);
+                    mapEditor.setGridHeight(mapHeight);
                 }
                 else if (lineIn.startsWith(Globals.KEY_MAPBACK)) {
                     lineIn = lineIn.substring(Globals.KEY_MAPBACK.length());
                     mapColor = Integer.parseInt(lineIn);
-                    mapdMain.setColorScreen(mapColor);
+                    mapEditor.setColorScreen(mapColor);
                 }
                 else if (lineIn.startsWith(Globals.KEY_MAPDATA)) {
                     if (mapY >= mapHeight) {
-                        mapdMain.setColorScreen(mapColor);
-                        mapdMain.storeCurrentMap();
-                        mapdMain.addBlankMap(mapWidth, mapHeight);
+                        mapEditor.setColorScreen(mapColor);
+                        mapEditor.storeCurrentMap();
+                        mapEditor.addBlankMap(mapWidth, mapHeight);
                         currMap++;
-                        mapdMain.setCurrentMapId(currMap);
+                        mapEditor.setCurrentMapId(currMap);
                         mapY = 0;
                     }
                     lineIn = lineIn.substring(Globals.KEY_MAPDATA.length());
                     StringTokenizer stParse = new StringTokenizer(lineIn, "|", false);
                     while (stParse.hasMoreTokens()) {
                         String sVal = stParse.nextToken();
-                        mapdMain.setGridAt(mapX, mapY, Integer.parseInt(sVal));
+                        mapEditor.setGridAt(mapX, mapY, Integer.parseInt(sVal));
                         mapX++;
                     }
                     mapX = 0;
@@ -188,7 +188,7 @@ public class DataFileImporter extends Importer {
                     if (lineParts.length == 3) {
                         HashPoint p = new HashPoint(Integer.parseInt(lineParts[0]), Integer.parseInt(lineParts[1]));
                         int spriteNum = Integer.parseInt(lineParts[2]);
-                        HashMap<Point, ArrayList<Integer>> spriteMap = mapdMain.getSpriteMap();
+                        HashMap<Point, ArrayList<Integer>> spriteMap = mapEditor.getSpriteMap();
                         ArrayList<Integer> spriteList = spriteMap.get(p);
                         if (spriteList == null) {
                             spriteList = new ArrayList<Integer>();
@@ -199,17 +199,17 @@ public class DataFileImporter extends Importer {
                 }
                 else if (lineIn.startsWith(Globals.KEY_SPRITE_PATTERN)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_SPRITE_PATTERN.length()), 64);
-                    hmSpriteGrids.put(spriteRead++, Globals.getIntGrid(lineIn, 16));
+                    spriteGrids.put(spriteRead++, Globals.getIntGrid(lineIn, 16));
                 }
                 else if (lineIn.startsWith(Globals.KEY_SPRITE_PATTERN1) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_SPRITE_PATTERN1.length()), 64);
-                    int[][] spriteGrid = hmSpriteGrids.get(spriteRead1++);
+                    int[][] spriteGrid = spriteGrids.get(spriteRead1++);
                     int[][] spriteGrid1 = Globals.getIntGrid(lineIn, 16);
                     Globals.orGrid(spriteGrid1, spriteGrid, 1);
                 }
                 else if (lineIn.startsWith(Globals.KEY_SPRITE_PATTERN2) && (colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = Globals.trimHex(lineIn.substring(Globals.KEY_SPRITE_PATTERN2.length()), 64);
-                    int[][] spriteGrid = hmSpriteGrids.get(spriteRead2++);
+                    int[][] spriteGrid = spriteGrids.get(spriteRead2++);
                     int[][] spriteGrid2 = Globals.getIntGrid(lineIn, 16);
                     Globals.orGrid(spriteGrid2, spriteGrid, 2);
                 }
@@ -233,11 +233,11 @@ public class DataFileImporter extends Importer {
         if (colorMode == COLOR_MODE_BITMAP && charColorRead == charStart) {
             // Bitmap color mode but no bitmap colors found - use color sets
             for (int i = charStart; i <= charEnd; i++) {
-                if (hmCharGrids.get(i) != null) {
-                    int[][] colorGrid = hmCharColors.get(i);
+                if (charGrids.get(i) != null) {
+                    int[][] colorGrid = charColors.get(i);
                     if (colorGrid == null) {
                         colorGrid = new int[8][2];
-                        hmCharColors.put(i, colorGrid);
+                        charColors.put(i, colorGrid);
                     }
                     for (int row = 0; row < 8; row++) {
                         colorGrid[row][0] = clrSets[i / 8][Globals.INDEX_CLR_BACK];

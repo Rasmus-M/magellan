@@ -78,7 +78,7 @@ public class SpriteImageImporter extends Importer {
             }
         }
         for (int colorIndex : colorLayers.keySet()) {
-            hmSpriteGrids.put(spriteIndex, colorLayers.get(colorIndex));
+            spriteGrids.put(spriteIndex, colorLayers.get(colorIndex));
             spriteColors[spriteIndex] = colorIndex;
             spriteIndex++;
         }
@@ -86,6 +86,29 @@ public class SpriteImageImporter extends Importer {
     }
 
     private int importECMSprite(Raster raster, IndexColorModel indexColorModel, int x0, int y0, int spriteIndex, int minPalette, int maxPalette) {
+        Color[][] colorGrid = getColorGrid(raster, indexColorModel, x0, y0);
+        ECMPalette optimalPalette = getPaletteForGrid(colorGrid, nColors);
+        ECMPalette palette = findExistingPalette(optimalPalette);
+        if (palette == null) {
+            palette = findPaletteWithSpace(optimalPalette);
+            if (palette != null) {
+                copyColorsToPalette(optimalPalette, palette);
+            }
+        }
+        if (palette == null && lastPalette <= maxPalette) {
+            palette = optimalPalette;
+            ecmPalettes[lastPalette++] = palette;
+        }
+        if (palette != null) {
+            int[][] grid = getGridForPalette(colorGrid, palette);
+            spriteGrids.put(spriteIndex, grid);
+            ecmSpritePalettes[spriteIndex] = palette;
+            spriteIndex++;
+        }
+        return spriteIndex;
+    }
+
+    private Color[][] getColorGrid(Raster raster, IndexColorModel indexColorModel, int x0, int y0) {
         Color[][] colorGrid = new Color[16][16];
         for (int y = 0; y < 16; y++) {
             for (int x = 0; x < 16; x++) {
@@ -95,37 +118,17 @@ public class SpriteImageImporter extends Importer {
                 colorGrid[y][x] = colorIndex != 0 ? getECMSafeColor(new Color(indexColorModel.getRGB(colorIndex))) : null;
             }
         }
-        ECMPalette optimalPalette = getPaletteForGrid(colorGrid, nColors);
-        ECMPalette palette = findExistingPalette(optimalPalette);
-        if (palette == null && lastPalette <= maxPalette) {
-            palette = optimalPalette;
-            lastPalette++;
-            ecmPalettes[lastPalette] = palette;
-        }
-        if (palette != null) {
-            int[][] grid = getGridForPalette(colorGrid, palette);
-            hmSpriteGrids.put(spriteIndex, grid);
-            ecmSpritePalettes[spriteIndex] = palette;
-            spriteIndex++;
-        }
-        return spriteIndex;
-    }
-
-    private ECMPalette findExistingPalette(ECMPalette newPalette) {
-        for (int i = firstPalette; i < lastPalette; i++) {
-            ECMPalette existingPalette = ecmPalettes[i];
-            if (existingPalette.contains(newPalette)) {
-                return existingPalette;
-            }
-        }
-        return null;
+        return colorGrid;
     }
 
     private ECMPalette getPaletteForGrid(Color[][] colorGrid, int nColors) {
         ArrayList<Map.Entry<Color, Integer>> colorCounts = countColors(colorGrid);
         ECMPalette palette = new ECMPalette(nColors);
-        for (int i = 1; i < Math.min(nColors, colorCounts.size()); i++) {
-            palette.setColor(i, colorCounts.get(i).getKey());
+        for (int i = 1; i < nColors; i++) {
+            palette.setColor(i, null);
+        }
+        for (int i = 1; i < Math.min(nColors, colorCounts.size() + 1); i++) {
+            palette.setColor(i, colorCounts.get(i - 1).getKey());
         }
         return palette;
     }
@@ -146,12 +149,40 @@ public class SpriteImageImporter extends Importer {
         return colorList;
     }
 
+    private ECMPalette findExistingPalette(ECMPalette newPalette) {
+        for (int i = firstPalette; i < lastPalette; i++) {
+            ECMPalette existingPalette = ecmPalettes[i];
+            if (existingPalette.contains(newPalette)) {
+                return existingPalette;
+            }
+        }
+        return null;
+    }
+
+    private ECMPalette findPaletteWithSpace(ECMPalette newPalette) {
+        int neededSpace = newPalette.getOccupied() - 1;
+        for (int i = firstPalette; i < lastPalette; i++) {
+            ECMPalette existingPalette = ecmPalettes[i];
+            if (existingPalette.getSpace() >= neededSpace) {
+                return existingPalette;
+            }
+        }
+        return null;
+    }
+
+    private void copyColorsToPalette(ECMPalette fromPalette, ECMPalette toPalette) {
+        int firstSpaceIndex = toPalette.getSize() - toPalette.getSpace();
+        for (int i = 1; i < fromPalette.getOccupied() - 1; i++) {
+            toPalette.setColor(firstSpaceIndex + i - 1, fromPalette.getColor(i));
+        }
+    }
+
     private int[][] getGridForPalette(Color[][] colorGrid, ECMPalette palette) {
         int[][] grid = new int[16][16];
         for (int y = 0; y < 16; y++) {
             for (int x = 0; x < 16; x++) {
                 Color color = colorGrid[y][x];
-                grid[y][x] = color != null ? palette.getColorIndex(color) : 0;
+                grid[y][x] = color != null ? palette.getClosestColorIndex(color) : 0;
             }
         }
         return grid;

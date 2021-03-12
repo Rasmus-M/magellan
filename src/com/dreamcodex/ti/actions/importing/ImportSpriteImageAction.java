@@ -25,25 +25,20 @@ public class ImportSpriteImageAction extends MagellanAction {
     public void actionPerformed(ActionEvent e) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            MagellanImportDialog importer = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, parent, parent, preferences, dataSet);
-            if (importer.isOkay()) {
+            MagellanImportDialog importDialog = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, parent, parent, preferences, dataSet);
+            if (importDialog.isOkay()) {
                 try {
-                    SpriteImageImporter magIO = new SpriteImageImporter(mapEditor, dataSet, preferences);
-                    magIO.readSpriteFile(file, importer.getStartSprite(), importer.getStartPalette(), importer.getEndPalette(), importer.getGap());
+                    SpriteImageImporter importer = new SpriteImageImporter(mapEditor, dataSet, preferences);
+                    importer.readSpriteFile(file, importDialog.getStartSprite(), importDialog.getStartPalette(), importDialog.getEndPalette(), importDialog.getGap());
                 } catch (Exception ee) {
                     ee.printStackTrace(System.err);
                     showError("Error importing file", ee.getMessage());
                 }
-                importer.dispose();
+                importDialog.dispose();
             }
             parent.setModified(true);
-            if (preferences.getColorMode() == COLOR_MODE_ECM_2 || preferences.getColorMode() == COLOR_MODE_ECM_3) {
-                parent.updatePalettes();
-            }
         }
-        parent.updateCharButtons();
-        parent.updateSpriteButtons();
-        parent.updateComponents();
+        parent.updateAll();
         parent.editDefault();
     }
 }

@@ -24,9 +24,9 @@ public class MapImageFileImporter extends Importer {
         BufferedImage bufferedImage = ImageIO.read(mapImageFile);
         int width = bufferedImage.getWidth() / 8;
         int height = bufferedImage.getHeight() / 8;
-        mapdMain.setGridWidth(width);
-        mapdMain.setGridHeight(height);
-        int[][] mapData = mapdMain.getMapData(mapdMain.getCurrentMapId());
+        mapEditor.setGridWidth(width);
+        mapEditor.setGridHeight(height);
+        int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
         // Find unique patterns based on RGB values
         // Produces a list of pairs
         // First element of the pair is the RGB grid
@@ -117,7 +117,7 @@ public class MapImageFileImporter extends Importer {
                     Globals.sortGrid(palette);
                     int backColorIndex = Globals.getClosestColorIndex(new Color(palette[0][0], true), TIGlobals.TI_PALETTE);
                     int foreColorIndex = iMax > 0 ? Globals.getClosestColorIndex(new Color(palette[1][0], true), TIGlobals.TI_PALETTE, backColorIndex) : backColorIndex;
-                    int screenColor = mapdMain.getColorScreen();
+                    int screenColor = mapEditor.getColorScreen();
                     boolean mono = backColorIndex == foreColorIndex;
                     if (!mono && foreColorIndex == screenColor) {
                         int tmp = foreColorIndex;
@@ -265,12 +265,12 @@ public class MapImageFileImporter extends Importer {
                     ArrayList<Integer> charSet = charSetPair.getSecond();
                     for (Integer n : charSet) {
                         charMap.put(n, ch);
-                        hmCharGrids.put(ch + startIndex, charGrids[n]);
+                        this.charGrids.put(ch + startIndex, charGrids[n]);
                         ch++;
                     }
                     // Fill up character color set
                     while (ch % 8 != 0) {
-                        hmCharGrids.put(ch + startIndex, new int[8][8]);
+                        this.charGrids.put(ch + startIndex, new int[8][8]);
                         ch++;
                     }
                     int key = charSetPair.getFirst();
@@ -292,17 +292,17 @@ public class MapImageFileImporter extends Importer {
             case COLOR_MODE_BITMAP:
                 for (int i = 0; i < patterns.size() && i <= maxIndex; i++) {
                     int[][] rgbGrid = patterns.get(i).getFirst();
-                    int[][] charGrid = hmCharGrids.get(i + startIndex);
+                    int[][] charGrid = this.charGrids.get(i + startIndex);
                     if (charGrid == null) {
                         charGrid = new int[8][8];
-                        hmCharGrids.put(i + startIndex, charGrid);
+                        this.charGrids.put(i + startIndex, charGrid);
                     }
-                    int[][] charColors = hmCharColors.get(i + startIndex);
+                    int[][] charColors = this.charColors.get(i + startIndex);
                     if (charColors == null) {
                         charColors = new int[8][2];
-                        hmCharColors.put(i + startIndex, charColors);
+                        this.charColors.put(i + startIndex, charColors);
                     }
-                    int screenColor = mapdMain.getColorScreen();
+                    int screenColor = mapEditor.getColorScreen();
                     for (int y = 0; y < rgbGrid.length; y++) {
                         int[] row = rgbGrid[y];
                         int[][] palette = new int[8][2];
@@ -521,7 +521,7 @@ public class MapImageFileImporter extends Importer {
                     }
                     // Build data structures
                     ecmPalettes[paletteIndex + startPalette].setSafeColors(palArray);
-                    hmCharGrids.put(i + startIndex, grid);
+                    this.charGrids.put(i + startIndex, grid);
                     ecmCharPalettes[i + startIndex] = ecmPalettes[paletteIndex + startPalette];
                 }
                 break;

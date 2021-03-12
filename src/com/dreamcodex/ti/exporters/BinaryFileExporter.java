@@ -2,14 +2,12 @@ package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.util.DataSet;
-import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.Preferences;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 
 import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
 
@@ -21,7 +19,7 @@ public class BinaryFileExporter extends Exporter {
 
     public void writeBinaryFile(File mapDataFile, byte chunkFlags, int startChar, int endChar, boolean currMapOnly) throws IOException {
         // store working map first
-        mapdMain.storeCurrentMap();
+        mapEditor.storeCurrentMap();
         // get file output buffer
         FileOutputStream fos = new FileOutputStream(mapDataFile);
 
@@ -29,7 +27,7 @@ public class BinaryFileExporter extends Exporter {
         fos.write(BIN_HEADER_MAG);
         fos.write(BIN_HEADER_VER);
         fos.write(chunkFlags);
-        byte mapCount = (byte) (currMapOnly ? 1 : mapdMain.getMapCount());
+        byte mapCount = (byte) (currMapOnly ? 1 : mapEditor.getMapCount());
         fos.write(mapCount);
 
         // write Colorset Chunk (if present)
@@ -58,13 +56,13 @@ public class BinaryFileExporter extends Exporter {
         }
 
         // write Maps
-        for (int m = 0; m < mapdMain.getMapCount(); m++) {
-            if (!currMapOnly || m == mapdMain.getCurrentMapId()) {
-                int[][] mapToSave = mapdMain.getMapData(m);
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                int[][] mapToSave = mapEditor.getMapData(m);
                 int mapCols = mapToSave[0].length;
                 int mapRows = mapToSave.length;
                 int mapSize = mapCols * mapRows;
-                int mapScreenColor = mapdMain.getScreenColor(m);
+                int mapScreenColor = mapEditor.getScreenColor(m);
 
                 // write Map Header
                 //   reserved bytes for Magellan use
@@ -128,7 +126,7 @@ public class BinaryFileExporter extends Exporter {
 
     protected byte[] getColorBytes(int charnum) {
         byte[] colorbytes = new byte[8];
-        int[][] colorarray = hmCharColors.get(charnum);
+        int[][] colorarray = charColors.get(charnum);
         for (int y = 0; y < 8; y++) {
             byte background = (byte) colorarray[y][0];
             byte foreground = (byte) (colorarray[y][1] << 4);
@@ -139,7 +137,7 @@ public class BinaryFileExporter extends Exporter {
 
     protected byte[] getCharBytes(int charnum) {
         byte[] charbytes = new byte[8];
-        int[][] chararray = hmCharGrids.get(charnum);
+        int[][] chararray = charGrids.get(charnum);
         if (chararray != null) {
             int bcount = 0;
             byte byteval = (byte) 0;

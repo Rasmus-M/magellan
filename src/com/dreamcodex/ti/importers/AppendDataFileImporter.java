@@ -2,7 +2,6 @@ package com.dreamcodex.ti.importers;
 
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.util.DataSet;
-import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.Preferences;
 
@@ -10,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.StringTokenizer;
 
 public class AppendDataFileImporter extends Importer {
@@ -28,7 +26,7 @@ public class AppendDataFileImporter extends Importer {
         int mapColor = 15;
         int mapWidth = 32;
         int mapHeight = 24;
-        int currMap = mapdMain.getMapCount();
+        int currMap = mapEditor.getMapCount();
         do {
             lineIn = br.readLine();
             if (lineIn == null) {
@@ -54,42 +52,42 @@ public class AppendDataFileImporter extends Importer {
                 }
                 else if (lineIn.equals(Globals.KEY_MAPSTART)) {
                     if (mapY > 0) {
-                        mapdMain.addBlankMap(mapWidth, mapHeight);
+                        mapEditor.addBlankMap(mapWidth, mapHeight);
                         currMap++;
-                        mapdMain.setCurrentMapId(currMap);
+                        mapEditor.setCurrentMapId(currMap);
                         mapY = 0;
                     }
                 }
                 else if (lineIn.equals(Globals.KEY_MAPEND)) {
-                    mapdMain.setColorScreen(mapColor);
-                    mapdMain.storeCurrentMap();
+                    mapEditor.setColorScreen(mapColor);
+                    mapEditor.storeCurrentMap();
                 }
                 else if (lineIn.startsWith(Globals.KEY_MAPBACK)) {
                     lineIn = lineIn.substring(Globals.KEY_MAPBACK.length());
                     mapColor = Integer.parseInt(lineIn);
-                    mapdMain.setColorScreen(mapColor);
+                    mapEditor.setColorScreen(mapColor);
                 }
                 else if (lineIn.startsWith(Globals.KEY_MAPDATA)) {
-                    if (currMap == mapdMain.getMapCount()) {
-                        mapdMain.storeCurrentMap();
-                        mapdMain.addBlankMap(mapWidth, mapHeight);
-                        mapdMain.setCurrentMapId(currMap);
+                    if (currMap == mapEditor.getMapCount()) {
+                        mapEditor.storeCurrentMap();
+                        mapEditor.addBlankMap(mapWidth, mapHeight);
+                        mapEditor.setCurrentMapId(currMap);
                         mapY = 0;
-                        mapdMain.setColorScreen(mapColor);
+                        mapEditor.setColorScreen(mapColor);
                     }
                     else if (mapY >= mapHeight) {
-                        mapdMain.storeCurrentMap();
-                        mapdMain.addBlankMap();
+                        mapEditor.storeCurrentMap();
+                        mapEditor.addBlankMap();
                         currMap++;
-                        mapdMain.setCurrentMapId(currMap);
+                        mapEditor.setCurrentMapId(currMap);
                         mapY = 0;
-                        mapdMain.setColorScreen(mapColor);
+                        mapEditor.setColorScreen(mapColor);
                     }
                     lineIn = lineIn.substring(Globals.KEY_MAPDATA.length());
                     StringTokenizer stParse = new StringTokenizer(lineIn, "|", false);
                     while (stParse.hasMoreTokens()) {
                         String sVal = stParse.nextToken();
-                        mapdMain.setGridAt(mapX, mapY, Integer.parseInt(sVal));
+                        mapEditor.setGridAt(mapX, mapY, Integer.parseInt(sVal));
                         mapX++;
                     }
                     mapX = 0;
@@ -98,6 +96,6 @@ public class AppendDataFileImporter extends Importer {
             }
         } while (lineIn != null);
         br.close();
-        mapdMain.updateComponents();
+        mapEditor.updateComponents();
     }
 }

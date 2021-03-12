@@ -1118,8 +1118,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                     setAppTitle();
                     editDefault();
                 }
-            } else if (command.equals(Globals.CMD_LOADDEFS)) {
-                loadDefaultCharacters();
             } else if (command.startsWith(Globals.CMD_EDIT_CHR)) {
                 int oldActiveChar = activeChar;
                 activeChar = Integer.parseInt(command.substring(Globals.CMD_EDIT_CHR.length()));
@@ -2112,12 +2110,68 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         return -1;
     }
 
+
+    protected Image makeImageTransparent(Image imgSrc) {
+        ImageProducer ipTrans = new FilteredImageSource(imgSrc.getSource(), Globals.ifTrans);
+        return Toolkit.getDefaultToolkit().createImage(ipTrans);
+    }
+
+    public static int getCharacterSetStart(int characterSetSize) {
+        switch (characterSetSize) {
+            case CHARACTER_SET_BASIC:
+                return TIGlobals.BASIC_FIRST_CHAR;
+            case CHARACTER_SET_EXPANDED:
+                return TIGlobals.EXP_FIRST_CHAR;
+            case CHARACTER_SET_SUPER:
+                return TIGlobals.SUPER_FIRST_CHAR;
+            default:
+                return TIGlobals.BASIC_FIRST_CHAR;
+        }
+    }
+
+    public static int getCharacterSetEnd(int characterSetSize) {
+        switch (characterSetSize) {
+            case CHARACTER_SET_BASIC:
+                return TIGlobals.BASIC_LAST_CHAR;
+            case CHARACTER_SET_EXPANDED:
+                return TIGlobals.EXP_LAST_CHAR;
+            case CHARACTER_SET_SUPER:
+                return SUPER_LAST_CHAR;
+            default:
+                return TIGlobals.BASIC_LAST_CHAR;
+        }
+    }
+
+    public static int getCharacterSetSize(int characterSetSize) {
+        return getCharacterSetEnd(characterSetSize) - getCharacterSetStart(characterSetSize) + 1;
+    }
+
+    public static int getSpriteSetEnd(int characterSetSize) {
+        switch (characterSetSize) {
+            case CHARACTER_SET_BASIC:
+                return BASIC_LAST_SPRITE;
+            case CHARACTER_SET_EXPANDED:
+                return EXP_LAST_SPRITE;
+            case CHARACTER_SET_SUPER:
+                return SUPER_LAST_SPRITE;
+            default:
+                return BASIC_LAST_SPRITE;
+        }
+    }
+
+    public static int getSpriteSetSize(int characterSetSize) {
+        return getSpriteSetEnd(characterSetSize) + 1;
+    }
+
 // Update Methods ---------------------------------------------------------------------/
 
-    protected void loadDefaultCharacters() {
+    public void updateAll() {
         updateCharButtons();
-        updateCharButton(activeChar);
+        updateSpriteButtons();
         updateComponents();
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
+            updatePalettes();
+        }
     }
 
     public void updateComponents() {
@@ -2149,13 +2203,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         mapdMain.updateComponents();
     }
 
-    public void resetCharButtons() {
-        for (int cn = 0; cn < jbtnChar.length; cn++) {
-            jbtnChar[cn].setIcon(null);
-            jbtnChar[cn].setText((cn >= TIGlobals.CHARMAPSTART) && (cn < (TIGlobals.CHARMAPSTART + TIGlobals.CHARMAP.length)) ? "" + TIGlobals.CHARMAP[cn - TIGlobals.CHARMAPSTART] : "?");
-        }
-    }
-
     public void updateCharButtons() {
         for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
             updateCharButton(i, false);
@@ -2180,12 +2227,12 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         // Background color
         Color screenColor = getScreenColorPalette()[mapdMain.getColorScreen()];
         jbtnChar[charNum].setBackground(screenColor);
-        // Handle missing char grid
+        // Set text for buttons with no char grid
         if (dataSet.getCharGrids().get(charNum) == null) {
             if (jbtnChar[charNum].getIcon() != null) {
                 jbtnChar[charNum].setIcon(null);
-                int charmapIndex = charNum - TIGlobals.CHARMAPSTART;
-                jbtnChar[charNum].setText((charmapIndex >= 0) && (charmapIndex < TIGlobals.CHARMAP.length) ? "" + TIGlobals.CHARMAP[charmapIndex] : "?");
+                int charMapIndex = charNum - TIGlobals.CHARMAPSTART;
+                jbtnChar[charNum].setText(charMapIndex >= 0 && charMapIndex < TIGlobals.CHARMAP.length ? "" + TIGlobals.CHARMAP[charMapIndex] : "?");
             }
             return;
         }
@@ -2393,57 +2440,5 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             spriteECMPaletteComboBox.setSelectedItem(dataSet.getEcmSpritePalettes()[activeSprite]);
         }
         spriteECMPaletteComboBox.setEditable(true);
-    }
-
-    protected Image makeImageTransparent(Image imgSrc) {
-        ImageProducer ipTrans = new FilteredImageSource(imgSrc.getSource(), Globals.ifTrans);
-        return Toolkit.getDefaultToolkit().createImage(ipTrans);
-    }
-
-    public static int getCharacterSetStart(int characterSetSize) {
-        switch (characterSetSize) {
-            case CHARACTER_SET_BASIC:
-                return TIGlobals.BASIC_FIRST_CHAR;
-            case CHARACTER_SET_EXPANDED:
-                return TIGlobals.EXP_FIRST_CHAR;
-            case CHARACTER_SET_SUPER:
-                return TIGlobals.SUPER_FIRST_CHAR;
-            default:
-                return TIGlobals.BASIC_FIRST_CHAR;
-        }
-    }
-
-    public static int getCharacterSetEnd(int characterSetSize) {
-        switch (characterSetSize) {
-            case CHARACTER_SET_BASIC:
-                return TIGlobals.BASIC_LAST_CHAR;
-            case CHARACTER_SET_EXPANDED:
-                return TIGlobals.EXP_LAST_CHAR;
-            case CHARACTER_SET_SUPER:
-                return SUPER_LAST_CHAR;
-            default:
-                return TIGlobals.BASIC_LAST_CHAR;
-        }
-    }
-
-    public static int getCharacterSetSize(int characterSetSize) {
-        return getCharacterSetEnd(characterSetSize) - getCharacterSetStart(characterSetSize) + 1;
-    }
-
-    public static int getSpriteSetEnd(int characterSetSize) {
-        switch (characterSetSize) {
-            case CHARACTER_SET_BASIC:
-                return BASIC_LAST_SPRITE;
-            case CHARACTER_SET_EXPANDED:
-                return EXP_LAST_SPRITE;
-            case CHARACTER_SET_SUPER:
-                return SUPER_LAST_SPRITE;
-            default:
-                return BASIC_LAST_SPRITE;
-        }
-    }
-
-    public static int getSpriteSetSize(int characterSetSize) {
-        return getSpriteSetEnd(characterSetSize) + 1;
     }
 }

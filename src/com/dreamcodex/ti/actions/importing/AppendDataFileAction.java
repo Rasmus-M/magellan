@@ -22,14 +22,15 @@ public class AppendDataFileAction extends MagellanAction {
     public void actionPerformed(ActionEvent e) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, FILEEXTS, "Map Data Files");
         if (file != null) {
-            AppendDataFileImporter magIO = new AppendDataFileImporter(mapEditor, dataSet, preferences);
+            AppendDataFileImporter importer = new AppendDataFileImporter(mapEditor, dataSet, preferences);
             try {
-                magIO.readAppendDataFile(file);
+                importer.readAppendDataFile(file);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
                 showError("Error appending data file", ioException.getMessage());
             }
-            parent.updateComponents();
+            parent.updateAll();
+            parent.setModified(true);
         }
     }
 }

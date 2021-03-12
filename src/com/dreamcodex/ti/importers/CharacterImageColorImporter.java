@@ -6,7 +6,6 @@ import com.dreamcodex.ti.util.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import java.util.HashMap;
 
 import static com.dreamcodex.ti.Magellan.*;
 import static com.dreamcodex.ti.Magellan.COLOR_MODE_ECM_3;
@@ -109,8 +108,8 @@ public class CharacterImageColorImporter extends Importer {
                 Arrays.sort(ecmColors);
             }
             // ...
-            if (hmCharGrids.containsKey(charNum)) {
-                hmCharGrids.remove(charNum);
+            if (charGrids.containsKey(charNum)) {
+                charGrids.remove(charNum);
             }
             for (int y = 0; y < 8; y++) {
                 int[] newColors = newColorArray[y];
@@ -152,9 +151,9 @@ public class CharacterImageColorImporter extends Importer {
                     }
                 }
             }
-            hmCharGrids.put(charNum, newCharArray);
+            charGrids.put(charNum, newCharArray);
             if (colorMode == COLOR_MODE_BITMAP) {
-                hmCharColors.put(charNum, newColorArray);
+                charColors.put(charNum, newColorArray);
             }
             if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
                 if (ecmGlobalPalette == null) {

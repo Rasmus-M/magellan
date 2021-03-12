@@ -102,7 +102,8 @@ public class ECMPalette {
 
     public boolean contains(ECMPalette ecmPalette) {
         for (int i = 0; i < ecmPalette.size; i++) {
-            if (!contains(ecmPalette.getColor(i))) {
+            Color color = ecmPalette.getColor(i);
+            if (color != null && !contains(color)) {
                 return false;
             }
         }
@@ -124,5 +125,19 @@ public class ECMPalette {
 
     public int getClosestColorIndex(Color color) {
         return Globals.getClosestColorIndex(color, palette);
+    }
+
+    public int getSpace() {
+        int space = 0;
+        for (int i = 0; i < size; i++) {
+            if (palette[i] == null) {
+                space++;
+            }
+        }
+        return space;
+    }
+
+    public int getOccupied() {
+        return getSize() - getSpace();
     }
 }

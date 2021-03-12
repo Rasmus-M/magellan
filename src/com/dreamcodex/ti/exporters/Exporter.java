@@ -26,14 +26,14 @@ public abstract class Exporter {
 
     private final int ASM_LINELEN = 40;
 
-    protected MapEditor mapdMain;
+    protected MapEditor mapEditor;
     protected int[][] clrSets;
     protected ECMPalette[] ecmPalettes;
-    protected HashMap<Integer, int[][]> hmCharGrids;
-    protected HashMap<Integer, int[][]> hmCharColors;
+    protected HashMap<Integer, int[][]> charGrids;
+    protected HashMap<Integer, int[][]> charColors;
     protected ECMPalette[] ecmCharPalettes;
     protected boolean[] ecmCharTransparency;
-    protected HashMap<Integer, int[][]> hmSpriteGrids;
+    protected HashMap<Integer, int[][]> spriteGrids;
     protected int[] spriteColors;
     protected ECMPalette[] ecmSpritePalettes;
     protected int colorMode;
@@ -58,25 +58,25 @@ public abstract class Exporter {
     }
 
     public Exporter(
-        MapEditor mapdMain,
+        MapEditor mapEditor,
         ECMPalette[] ecmPalettes, int[][] clrSets,
-        HashMap<Integer, int[][]> hmCharGrids,
-        HashMap<Integer, int[][]> hmCharColors,
+        HashMap<Integer, int[][]> charGrids,
+        HashMap<Integer, int[][]> charColors,
         ECMPalette[] ecmCharPalettes,
         boolean[] ecmCharTransparency,
-        HashMap<Integer, int[][]> hmSpriteGrids,
+        HashMap<Integer, int[][]> spriteGrids,
         int[] spriteColors,
         ECMPalette[] ecmSpritePalettes,
         int colorMode
     ) {
-        this.mapdMain = mapdMain;
+        this.mapEditor = mapEditor;
         this.clrSets = clrSets;
-        this.hmCharGrids = hmCharGrids;
-        this.hmCharColors = hmCharColors;
+        this.charGrids = charGrids;
+        this.charColors = charColors;
         this.ecmPalettes = ecmPalettes;
         this.ecmCharPalettes = ecmCharPalettes;
         this.ecmCharTransparency = ecmCharTransparency;
-        this.hmSpriteGrids = hmSpriteGrids;
+        this.spriteGrids = spriteGrids;
         this.spriteColors = spriteColors;
         this.ecmSpritePalettes = ecmSpritePalettes;
         this.colorMode = colorMode;

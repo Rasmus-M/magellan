@@ -99,7 +99,6 @@ public class Globals {
     public static final String CMD_SHOWPOS = "toggleshowpos";
     public static final String CMD_BASE0POS = "base0position";
     public static final String CMD_XPXBDISMER = "screenMerge";
-    public static final String CMD_LOADDEFS = "loaddefaultchars";
     public static final String CMD_SWAPCHARS = "swapcharacters";
     public static final String CMD_ANALYZECHARUSAGE = "analyzecharusage";
     public static final String CMD_ANALYZECHARTRANS = "analyzechartrans";

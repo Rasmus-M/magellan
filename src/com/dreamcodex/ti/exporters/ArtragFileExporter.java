@@ -31,7 +31,7 @@ public class ArtragFileExporter extends Exporter {
         colorLinkHints.put("0-73", "0-23");
 
         // store working map first
-        mapdMain.storeCurrentMap();
+        mapEditor.storeCurrentMap();
         BufferedWriter bw = null;
         int[][][] transMaps = new int[2][][];
         Map<String, TransChar>[] transCharsArr = new Map[2];
@@ -47,7 +47,7 @@ public class ArtragFileExporter extends Exporter {
             TransChar[] transCharSet = new TransChar[256];
             transCharSetArr[m] = transCharSet;
             int yOffset = m == 0 ? 8 : 0;
-            int[][] mapData = mapdMain.getMapData(mapdMain.getCurrentMapId());
+            int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
             if (mapData.length > 1 && mapData[0].length > 1) {
                 int i = 0;
                 for (int y = yOffset; y < yOffset + 8; y++) {
@@ -76,14 +76,14 @@ public class ArtragFileExporter extends Exporter {
                         else {
                             boolean colorsOK = true;
                             int[][] charColors = new int[8][8];
-                            int[][] fromCharGrid = hmCharGrids.get(fromChar);
-                            int[][] toCharGrid = hmCharGrids.get(toChar);
-                            int[][] fromColorGrid = hmCharColors.get(fromChar);
-                            int[][] toColorGrid = hmCharColors.get(toChar);
+                            int[][] fromCharGrid = charGrids.get(fromChar);
+                            int[][] toCharGrid = charGrids.get(toChar);
+                            int[][] fromColorGrid = this.charColors.get(fromChar);
+                            int[][] toColorGrid = this.charColors.get(toChar);
                             for (int r = 0; r < 8 && colorsOK; r++) {
                                 int[] fromColorRow = fromColorGrid[r];
                                 int[] toColorRow = toColorGrid[r];
-                                int screenColor = mapdMain.getColorScreen();
+                                int screenColor = mapEditor.getColorScreen();
                                 int fromForeColor = fromColorRow[Globals.INDEX_CLR_FORE] != 0 ? fromColorRow[Globals.INDEX_CLR_FORE] : screenColor;
                                 int toForeColor = toColorRow[Globals.INDEX_CLR_FORE] != 0 ? toColorRow[Globals.INDEX_CLR_FORE] : screenColor;
                                 if (!Globals.arrayContains(fromCharGrid[r], Globals.INDEX_CLR_FORE) && !Globals.arrayContains(toCharGrid[r], Globals.INDEX_CLR_FORE)) {
@@ -285,7 +285,7 @@ public class ArtragFileExporter extends Exporter {
             if (includeComments) {
                 printPaddedLine(bw, "* == Map #" + m + " == ", false);
             }
-            printPaddedLine(bw, "MC" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) + " DATA " + mapdMain.getScreenColor(m), includeComments);
+            printPaddedLine(bw, "MC" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) + " DATA " + mapEditor.getScreenColor(m), includeComments);
             sbLine.append("MS").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" DATA >");
             sbLine.append(Globals.toHexString(mapToSave[0].length, 4));
             sbLine.append(",>").append(Globals.toHexString(mapToSave.length, 4));
@@ -358,8 +358,8 @@ public class ArtragFileExporter extends Exporter {
                         String hexstr;
                         TransChar transChar = transCharSetArr[m][i];
                         if (transChar != null) {
-                            int[][] fromGrid = hmCharGrids.get(transChar.getFromChar());
-                            int[][] toGrid = hmCharGrids.get(transChar.getToChar());
+                            int[][] fromGrid = charGrids.get(transChar.getFromChar());
+                            int[][] toGrid = charGrids.get(transChar.getToChar());
                             if (transChar.isInvert()) {
                                 toGrid = Globals.cloneGrid(toGrid);
                                 Globals.invertGrid(toGrid, 1);

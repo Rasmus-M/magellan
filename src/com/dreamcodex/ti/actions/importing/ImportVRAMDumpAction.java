@@ -70,9 +70,7 @@ public class ImportVRAMDumpAction extends MagellanAction {
                 }
                 VRAMDumpImporter importer = new VRAMDumpImporter(mapEditor, dataSet, preferences);
                 importer.readVRAMDumpFile(file, charOffset, mapOffset, colorOffset, spriteOffset, spriteAttrOffset, bitmapMode, textMode, textColor, screenColor);
-                parent.updateCharButtons();
-                parent.updateSpriteButtons();
-                parent.updateComponents();
+                parent.updateAll();
                 parent.setModified(true);
             } catch (IOException ioException) {
                 showError("Error importing file", ioException.getMessage());
