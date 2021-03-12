@@ -35,6 +35,15 @@ public class ECMPalette {
         }
     }
 
+    public void copyColorsFrom(ECMPalette ecmPalette) {
+        for (int i = 0; i < size; i++) {
+            Color color = ecmPalette.getColor(i);
+            if (color != null) {
+                setColor(i, color);
+            }
+        }
+    }
+
     public int getSize() {
         return size;
     }
@@ -137,7 +146,28 @@ public class ECMPalette {
         return space;
     }
 
+    public void fillSpace(Color color) {
+        for (int i = 0; i < size; i++) {
+            if (palette[i] == null) {
+                palette[i] = color;
+            }
+        }
+    }
+
     public int getOccupied() {
         return getSize() - getSpace();
+    }
+
+    public double getDistance(ECMPalette ecmPalette, int excludeIndex) {
+        double distance = 0;
+        for (int i = 0; i < ecmPalette.size; i++) {
+            if (i != excludeIndex) {
+                Color color = ecmPalette.getColor(i);
+                if (color != null) {
+                    distance += Globals.getClosestColorDistance(color, palette, excludeIndex);
+                }
+            }
+        }
+        return distance;
     }
 }

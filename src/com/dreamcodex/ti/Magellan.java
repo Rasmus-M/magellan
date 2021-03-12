@@ -707,7 +707,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected void buildECMPalettes() {
-
         ECMPalette[] ecmPalettes;
         if (colorMode == COLOR_MODE_ECM_2) {
             ecmPalettes = new ECMPalette[16];

@@ -597,6 +597,10 @@ public class Globals {
         return colorIndex;
     }
 
+    public static double getClosestColorDistance(Color color, Color[] palette, int excludeIndex) {
+        return colorDistance(color, palette[getClosestColorIndex(color, palette, excludeIndex)]);
+    }
+
     public static double colorDistance(int color1, int color2) {
         return colorDistance(new Color(color1, true), new Color(color2, true));
     }

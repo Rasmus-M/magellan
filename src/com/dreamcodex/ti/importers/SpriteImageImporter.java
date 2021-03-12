@@ -17,6 +17,7 @@ import java.util.TreeMap;
 
 import static com.dreamcodex.ti.Magellan.*;
 import static com.dreamcodex.ti.util.Globals.getECMSafeColor;
+import static com.dreamcodex.ti.util.Globals.toHexString;
 
 public class SpriteImageImporter extends Importer {
 
@@ -52,6 +53,11 @@ public class SpriteImageImporter extends Importer {
                                 spriteIndex = importECMSprite(raster, indexColorModel, x0, y0, spriteIndex, minPalette, maxPalette);
                             }
                         }
+                    }
+                }
+                if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
+                    for (int i = firstPalette; i < lastPalette; i++) {
+                        ecmPalettes[i].fillSpace(new Color(0, 0, 0));
                     }
                 }
             }
@@ -96,8 +102,11 @@ public class SpriteImageImporter extends Importer {
             }
         }
         if (palette == null && lastPalette <= maxPalette) {
-            palette = optimalPalette;
-            ecmPalettes[lastPalette++] = palette;
+            palette = ecmPalettes[lastPalette++];
+            palette.copyColorsFrom(optimalPalette);
+        }
+        if (palette == null) {
+            palette = findBestExistingPalette(optimalPalette);
         }
         if (palette != null) {
             int[][] grid = getGridForPalette(colorGrid, palette);
@@ -157,6 +166,20 @@ public class SpriteImageImporter extends Importer {
             }
         }
         return null;
+    }
+
+    private ECMPalette findBestExistingPalette(ECMPalette newPalette) {
+        int minIndex = -1;
+        double minDistance = Double.MAX_VALUE;
+        for (int i = firstPalette; i < lastPalette; i++) {
+            ECMPalette existingPalette = ecmPalettes[i];
+            double distance = Math.min(minDistance, existingPalette.getDistance(newPalette, 0));
+            if (distance < minDistance) {
+                minIndex = i;
+                minDistance = distance;
+            }
+        }
+        return ecmPalettes[minIndex];
     }
 
     private ECMPalette findPaletteWithSpace(ECMPalette newPalette) {
