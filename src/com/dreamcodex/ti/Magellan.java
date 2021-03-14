@@ -391,6 +391,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         JMenuItem jmitExportChrImgColor = new JMenuItem();
         jmitExportChrImgColor.setAction(new ExportCharImageAction(true, "Character Image (Color)", this, mapdMain, dataSet, preferences));
         jmenExport.add(jmitExportChrImgColor);
+        JMenuItem jmitExportSpriteImg = new JMenuItem();
+        jmitExportSpriteImg.setAction(new ExportSpriteImageAction(true, "Sprite Image", this, mapdMain, dataSet, preferences));
+        jmenExport.add(jmitExportSpriteImg);
         JMenuItem jmitExportMapImg = new JMenuItem();
         jmitExportMapImg.setAction(new ExportMapImageAction("Map Image", this, mapdMain, dataSet, preferences));
         jmenExport.add(jmitExportMapImg);

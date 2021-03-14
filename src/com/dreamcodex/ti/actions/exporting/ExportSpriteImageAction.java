@@ -4,6 +4,7 @@ import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.actions.MagellanAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.CharacterImageExporter;
+import com.dreamcodex.ti.exporters.SpriteImageExporter;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 
@@ -12,11 +13,11 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
-public class ExportCharImageAction extends MagellanAction {
+public class ExportSpriteImageAction extends MagellanAction {
 
     private final boolean color;
 
-    public ExportCharImageAction(boolean color, String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+    public ExportSpriteImageAction(boolean color, String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);
         this.color = color;
     }
@@ -34,9 +35,9 @@ public class ExportCharImageAction extends MagellanAction {
             if (!isExtensionAdded) {
                 file = new File(file.getAbsolutePath() + "." + IMGEXT);
             }
-            CharacterImageExporter exporter = new CharacterImageExporter(mapEditor, dataSet, preferences);
+            SpriteImageExporter exporter = new SpriteImageExporter(mapEditor, dataSet, preferences);
             try {
-                exporter.writeCharImage(file, 8, color);
+                exporter.writeSpriteImage(file, 4);
             } catch (IOException ee) {
                 showError("Export failed", ee.getMessage());
             }

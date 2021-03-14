@@ -132,8 +132,8 @@ public class ECMPalette {
         return -1;
     }
 
-    public int getClosestColorIndex(Color color) {
-        return Globals.getClosestColorIndex(color, palette);
+    public int getClosestColorIndex(Color color, int excludeIndex) {
+        return Globals.getClosestColorIndex(color, palette, excludeIndex);
     }
 
     public int getSpace() {

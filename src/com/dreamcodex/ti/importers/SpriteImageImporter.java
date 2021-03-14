@@ -171,7 +171,7 @@ public class SpriteImageImporter extends Importer {
     private ECMPalette findBestExistingPalette(ECMPalette newPalette) {
         int minIndex = -1;
         double minDistance = Double.MAX_VALUE;
-        for (int i = firstPalette; i < lastPalette; i++) {
+        for (int i = 0; i < lastPalette; i++) {
             ECMPalette existingPalette = ecmPalettes[i];
             double distance = Math.min(minDistance, existingPalette.getDistance(newPalette, 0));
             if (distance < minDistance) {
@@ -205,7 +205,7 @@ public class SpriteImageImporter extends Importer {
         for (int y = 0; y < 16; y++) {
             for (int x = 0; x < 16; x++) {
                 Color color = colorGrid[y][x];
-                grid[y][x] = color != null ? palette.getClosestColorIndex(color) : 0;
+                grid[y][x] = color != null ? palette.getClosestColorIndex(color, 0) : 0;
             }
         }
         return grid;
