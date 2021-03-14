@@ -195,7 +195,7 @@ public class SpriteImageImporter extends Importer {
 
     private void copyColorsToPalette(ECMPalette fromPalette, ECMPalette toPalette) {
         int firstSpaceIndex = toPalette.getSize() - toPalette.getSpace();
-        for (int i = 1; i < fromPalette.getOccupied() - 1; i++) {
+        for (int i = 1; i < fromPalette.getOccupied(); i++) {
             toPalette.setColor(firstSpaceIndex + i - 1, fromPalette.getColor(i));
         }
     }

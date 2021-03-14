@@ -38,9 +38,9 @@ public class ECMPalette {
     public void copyColorsFrom(ECMPalette ecmPalette) {
         for (int i = 0; i < size; i++) {
             Color color = ecmPalette.getColor(i);
-            if (color != null) {
+            // if (color != null) {
                 setColor(i, color);
-            }
+            // }
         }
     }
 
