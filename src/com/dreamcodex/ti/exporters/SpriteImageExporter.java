@@ -14,6 +14,7 @@ import java.io.IOException;
 
 import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
 import static com.dreamcodex.ti.Magellan.COLOR_MODE_GRAPHICS_1;
+import static com.dreamcodex.ti.util.Globals.isGridEmpty;
 
 public class SpriteImageExporter extends Exporter {
 
@@ -23,7 +24,7 @@ public class SpriteImageExporter extends Exporter {
 
     public void writeSpriteImage(File imageOut, int spriteCols) throws IOException {
         int spriteCount = spriteGrids.size();
-        while (spriteCount > 64 && spriteGrids.get(spriteCount - 1) == null) {
+        while (spriteCount > 64 && (spriteGrids.get(spriteCount - 1) == null || isGridEmpty(spriteGrids.get(spriteCount - 1)))) {
             spriteCount--;
         }
         int spriteRows = (int) Math.ceil((double) spriteCount / spriteCols);
@@ -37,7 +38,7 @@ public class SpriteImageExporter extends Exporter {
         gf.setColor(TIGlobals.TI_COLOR_BLACK);
         for (int i = 0; i < spriteCount; i++) {
             gf.setComposite(AlphaComposite.SrcOver);
-            if (charGrids.containsKey(i)) {
+            if (spriteGrids.containsKey(i)) {
                 int[][] spriteGrid = spriteGrids.get(i);
                 for (int y = 0; y < spriteGrid.length; y++) {
                     for (int x = 0; x < spriteGrid[y].length; x++) {
