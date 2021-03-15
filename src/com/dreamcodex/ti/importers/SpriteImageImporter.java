@@ -21,6 +21,8 @@ import static com.dreamcodex.ti.util.Globals.toHexString;
 
 public class SpriteImageImporter extends Importer {
 
+    private static final boolean useExistingPalettes = false;
+
     int firstPalette;
     int lastPalette;
     int nColors;
@@ -159,7 +161,7 @@ public class SpriteImageImporter extends Importer {
     }
 
     private ECMPalette findExistingPalette(ECMPalette newPalette) {
-        for (int i = firstPalette; i < lastPalette; i++) {
+        for (int i = useExistingPalettes ? 0 : firstPalette; i < lastPalette; i++) {
             ECMPalette existingPalette = ecmPalettes[i];
             if (existingPalette.contains(newPalette)) {
                 return existingPalette;
@@ -171,7 +173,7 @@ public class SpriteImageImporter extends Importer {
     private ECMPalette findBestExistingPalette(ECMPalette newPalette) {
         int minIndex = -1;
         double minDistance = Double.MAX_VALUE;
-        for (int i = 0; i < lastPalette; i++) {
+        for (int i = useExistingPalettes ? 0 : firstPalette; i < lastPalette; i++) {
             ECMPalette existingPalette = ecmPalettes[i];
             double distance = Math.min(minDistance, existingPalette.getDistance(newPalette, 0));
             if (distance < minDistance) {
@@ -183,9 +185,14 @@ public class SpriteImageImporter extends Importer {
     }
 
     private ECMPalette findPaletteWithSpace(ECMPalette newPalette) {
-        int neededSpace = newPalette.getOccupied() - 1;
         for (int i = firstPalette; i < lastPalette; i++) {
             ECMPalette existingPalette = ecmPalettes[i];
+            int neededSpace = newPalette.getOccupied() - 1;
+            for (int j = 1; j < newPalette.getOccupied(); j++) {
+                if (existingPalette.contains(newPalette.getColor(j))) {
+                    neededSpace--;
+                }
+            }
             if (existingPalette.getSpace() >= neededSpace) {
                 return existingPalette;
             }
@@ -196,7 +203,10 @@ public class SpriteImageImporter extends Importer {
     private void copyColorsToPalette(ECMPalette fromPalette, ECMPalette toPalette) {
         int firstSpaceIndex = toPalette.getSize() - toPalette.getSpace();
         for (int i = 1; i < fromPalette.getOccupied(); i++) {
-            toPalette.setColor(firstSpaceIndex + i - 1, fromPalette.getColor(i));
+            Color color = fromPalette.getColor(i);
+            if (!toPalette.contains(color)) {
+                toPalette.setColor(firstSpaceIndex++, color);
+            }
         }
     }
 
