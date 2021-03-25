@@ -12,11 +12,14 @@ import com.dreamcodex.ti.util.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -1503,13 +1506,21 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 updateCharButton(activeChar, true);
             } else if (command.equals(Globals.CMD_ABOUT)) {
                 showInformation(
-                        "About Magellan",
-                    "Magellan, version " + VERSION_NUMBER + ".\n\n" +
-                    "\u00a9 2010 Howard Kistler/Dream Codex Retrogames (www.dreamcodex.com)\n\n" +
-                    "Magellan is free software maintained by the TI-99/4A community.\n\n" +
-                    "Modified by:\n\u2022 retroclouds (2011)\n\u2022 sometimes99er (2013)\n\u2022 David Vella (2016)\n\u2022 Rasmus Moustgaard (2013 - ongoing)\n\n" +
-                    "Source code available from: https://github.com/Rasmus-M/magellan\n\n" +
-                    "Java runtime version: " + System.getProperty("java.version")
+                    "About Magellan",
+                    "<html>" +
+                        "<h1>Magellan, version " + VERSION_NUMBER + "</h1>" +
+                        "<p>\u00a9 2010 Howard Kistler/Dream Codex Retrogames (<a href=\"http://www.dreamcodex.com\">www.dreamcodex.com</a>)</p>" +
+                        "<p>Magellan is free software maintained by the TI-99/4A community.</p>" +
+                        "<p>Modified by:</p>" +
+                        "<ul>" +
+                            "<li>Retroclouds (2011)</li>" +
+                            "<li>Sometimes99er (2013)</li>" +
+                            "<li>David Vella (2016)</li>" +
+                            "<li>Rasmus Moustgaard (2013 - ongoing)</li>" +
+                        "</ul>" +
+                        "<p>Source code available from: <a href=\"https://github.com/Rasmus-M/magellan\">github.com/Rasmus-M/magellan</a></p>" +
+                        "<p>Java runtime version: " + System.getProperty("java.version") + "</p>" +
+                    "</html>"
                 );
             }
             mapdMain.redrawCanvas();
@@ -2063,7 +2074,21 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     public void showInformation(String title, String message) {
-        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE, new ImageIcon(getClass().getResource("images/logo.png")));
+        JEditorPane jEditorPane = new JEditorPane("text/html", message);
+        jEditorPane.setEditable(false);
+        jEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        jEditorPane.setBackground(new Color(238, 238, 238));
+        jEditorPane.addHyperlinkListener(e -> {
+            if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
+                try {
+                    Desktop.getDesktop().browse(e.getURL().toURI());
+                } catch (IOException | URISyntaxException e1) {
+                    e1.printStackTrace();
+                    showError("Error browsing", e1.getMessage());
+                }
+            }
+        });
+        JOptionPane.showMessageDialog(this, jEditorPane, title, JOptionPane.INFORMATION_MESSAGE, new ImageIcon(getClass().getResource("images/logo.png")));
     }
 
     public void showError(String title, String message) {
