@@ -472,6 +472,16 @@ public class Globals {
         return true;
     }
 
+    public static void gridReplace(int[][] grid, int value, int replaceWith) {
+        for (int[] row : grid) {
+            for (int i = 0; i < row.length; i++) {
+                if (row[i] == value) {
+                    row[i] = replaceWith;
+                }
+            }
+        }
+    }
+
     public static void sortGrid(int[][] grid) {
         Arrays.sort(grid, new Comparator<int[]>() {
             public int compare(int[] a1, int[] a2) {
