@@ -281,6 +281,14 @@ public class AssemblyDataFileExporter extends Exporter {
         for (int m = 0; m < mapEditor.getMapCount(); m++) {
             if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
                 int[][] mapToSave = mapEditor.getMapData(m);
+                boolean has16BitValues = false;
+                for (int[] mapRow : mapToSave) {
+                    for (int mapChar : mapRow) {
+                        if (mapChar > 255) {
+                            has16BitValues = true;
+                        }
+                    }
+                }
                 if (includeComments) {
                     printPaddedLine(bw, "* == Map #" + m + " == ", false);
                 }
