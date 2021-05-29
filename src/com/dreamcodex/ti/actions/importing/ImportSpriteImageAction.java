@@ -29,7 +29,7 @@ public class ImportSpriteImageAction extends MagellanAction {
             if (importDialog.isOkay()) {
                 try {
                     SpriteImageImporter importer = new SpriteImageImporter(mapEditor, dataSet, preferences);
-                    importer.readSpriteFile(file, importDialog.getStartSprite(), importDialog.getStartPalette(), importDialog.getEndPalette(), importDialog.getGap());
+                    importer.readSpriteFile(file, importDialog.getStartSprite(), importDialog.getStartPalette(), importDialog.getEndPalette(), importDialog.getGap(), importDialog.useExistingPalettes());
                 } catch (Exception ee) {
                     ee.printStackTrace(System.err);
                     showError("Error importing file", ee.getMessage());

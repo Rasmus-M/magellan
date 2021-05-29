@@ -33,6 +33,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
     private final JComboBox jcmbEndPalette;
     private final JSpinner jspnGap;
     private final JSlider jsldTolerance;
+    private final JCheckBox useExistingPalettes;
 
     private boolean clickedOkay = false;
 
@@ -84,6 +85,8 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
         jsldTolerance.setPaintTicks(true);
         jsldTolerance.setPaintLabels(true);
 
+        useExistingPalettes = new JCheckBox("Use existing palettes");
+
         Object[] objForm = new Object[15];
         int objCount = 0;
         switch (type) {
@@ -109,6 +112,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
                     objForm[objCount++] = jcmbStartPalette;
                     objForm[objCount++] = new JLabel("End Palette");
                     objForm[objCount++] = jcmbEndPalette;
+                    objForm[objCount] = useExistingPalettes;
                 }
                 break;
         }
@@ -170,6 +174,10 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
     public int getTolerance() {
         int value = jsldTolerance.getValue();
         return value == 0 ? 0 : (int) Math.pow(2, value);
+    }
+
+    public boolean useExistingPalettes() {
+        return this.useExistingPalettes.isSelected();
     }
 
     public void itemStateChanged(ItemEvent e) {

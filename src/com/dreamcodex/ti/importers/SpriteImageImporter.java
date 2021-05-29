@@ -21,8 +21,6 @@ import static com.dreamcodex.ti.util.Globals.toHexString;
 
 public class SpriteImageImporter extends Importer {
 
-    private static final boolean useExistingPalettes = false;
-
     int firstPalette;
     int lastPalette;
     int nColors;
@@ -31,7 +29,7 @@ public class SpriteImageImporter extends Importer {
         super(mapEditor, dataSet, preferences);
     }
 
-    public void readSpriteFile(File file, int spriteIndex, int minPalette, int maxPalette, int gap) throws Exception {
+    public void readSpriteFile(File file, int spriteIndex, int minPalette, int maxPalette, int gap, boolean useExistingPalettes) throws Exception {
         int size = 16 + gap;
         BufferedImage image = ImageIO.read(file);
         ColorModel colorModel = image.getColorModel();
@@ -40,7 +38,7 @@ public class SpriteImageImporter extends Importer {
             if (indexColorModel.getMapSize() <= 256) {
                 nColors = colorMode == COLOR_MODE_ECM_2 ? 4 : 8;
                 firstPalette = minPalette;
-                lastPalette = minPalette;
+                lastPalette = useExistingPalettes ? minPalette : maxPalette + 1;
                 Raster raster = image.getRaster();
                 int xSprites = image.getWidth() / size;
                 int ySprites = image.getHeight() / size;
@@ -52,7 +50,7 @@ public class SpriteImageImporter extends Importer {
                             if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
                                 spriteIndex = importSprite(raster, indexColorModel, x0, y0, spriteIndex);
                             } else {
-                                spriteIndex = importECMSprite(raster, indexColorModel, x0, y0, spriteIndex, minPalette, maxPalette);
+                                spriteIndex = importECMSprite(raster, indexColorModel, x0, y0, spriteIndex, maxPalette, useExistingPalettes);
                             }
                         }
                     }
@@ -93,11 +91,11 @@ public class SpriteImageImporter extends Importer {
         return spriteIndex;
     }
 
-    private int importECMSprite(Raster raster, IndexColorModel indexColorModel, int x0, int y0, int spriteIndex, int minPalette, int maxPalette) {
+    private int importECMSprite(Raster raster, IndexColorModel indexColorModel, int x0, int y0, int spriteIndex, int maxPalette, boolean useExistingPalettes) {
         Color[][] colorGrid = getColorGrid(raster, indexColorModel, x0, y0);
         ECMPalette optimalPalette = getPaletteForGrid(colorGrid, nColors);
         ECMPalette palette = findExistingPalette(optimalPalette);
-        if (palette == null) {
+        if (palette == null && !useExistingPalettes) {
             palette = findPaletteWithSpace(optimalPalette);
             if (palette != null) {
                 copyColorsToPalette(optimalPalette, palette);
@@ -161,7 +159,7 @@ public class SpriteImageImporter extends Importer {
     }
 
     private ECMPalette findExistingPalette(ECMPalette newPalette) {
-        for (int i = useExistingPalettes ? 0 : firstPalette; i < lastPalette; i++) {
+        for (int i = firstPalette; i < lastPalette; i++) {
             ECMPalette existingPalette = ecmPalettes[i];
             if (existingPalette.contains(newPalette)) {
                 return existingPalette;
@@ -173,7 +171,7 @@ public class SpriteImageImporter extends Importer {
     private ECMPalette findBestExistingPalette(ECMPalette newPalette) {
         int minIndex = -1;
         double minDistance = Double.MAX_VALUE;
-        for (int i = useExistingPalettes ? 0 : firstPalette; i < lastPalette; i++) {
+        for (int i = firstPalette; i < lastPalette; i++) {
             ECMPalette existingPalette = ecmPalettes[i];
             double distance = Math.min(minDistance, existingPalette.getDistance(newPalette, 0));
             if (distance < minDistance) {
