@@ -928,6 +928,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void mouseExited(MouseEvent me) {
+        setHotCell(PT_OFFGRID);
+        redrawCanvas();
     }
 
     /* MouseMotionListener methods */
