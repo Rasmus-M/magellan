@@ -38,7 +38,7 @@ public class SpriteImageImporter extends Importer {
             if (indexColorModel.getMapSize() <= 256) {
                 nColors = colorMode == COLOR_MODE_ECM_2 ? 4 : 8;
                 firstPalette = minPalette;
-                lastPalette = useExistingPalettes ? minPalette : maxPalette + 1;
+                lastPalette = useExistingPalettes ? maxPalette + 1 : minPalette;
                 Raster raster = image.getRaster();
                 int xSprites = image.getWidth() / size;
                 int ySprites = image.getHeight() / size;
