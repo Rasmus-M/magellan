@@ -1,5 +1,9 @@
 package com.dreamcodex.ti;
 
+import com.dreamcodex.ti.actions.clipboard.CopyCharAction;
+import com.dreamcodex.ti.actions.clipboard.CopySpriteAction;
+import com.dreamcodex.ti.actions.clipboard.PasteCharAction;
+import com.dreamcodex.ti.actions.clipboard.PasteSpriteAction;
 import com.dreamcodex.ti.actions.exporting.*;
 import com.dreamcodex.ti.actions.importing.*;
 import com.dreamcodex.ti.component.*;
@@ -572,12 +576,19 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jbtnUpdateChar = getToolButton(Globals.CMD_UPDATE_CHR, "Set Char");
         jbtnUpdateChar.addActionListener(this);
         jpnlCharToolbar.add(jbtnUpdateChar);
-        JButton copyButton = getToolButton(Globals.CMD_COPY_CHR, "Copy");
-        copyButton.addActionListener(this);
+
+        Action copyCharAction = new CopyCharAction(getIcon(Globals.CMD_COPY_CHR), jtxtChar);
+        JButton copyButton = getToolButton(copyCharAction, "Copy");
+        copyButton.getActionMap().put(Globals.CMD_COPY_CHR, copyCharAction);
+        copyButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) copyCharAction.getValue(Action.ACCELERATOR_KEY), Globals.CMD_COPY_CHR);
         jpnlCharToolbar.add(copyButton);
-        JButton pasteButton = getToolButton(Globals.CMD_PASTE_CHR, "Paste and set");
-        pasteButton.addActionListener(this);
+
+        Action pasteCharAction = new PasteCharAction(getIcon(Globals.CMD_PASTE_CHR), jtxtChar, jbtnUpdateChar);
+        JButton pasteButton = getToolButton(pasteCharAction, "Paste and set");
+        pasteButton.getActionMap().put(Globals.CMD_PASTE_CHR, pasteCharAction);
+        pasteButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) pasteCharAction.getValue(Action.ACCELERATOR_KEY), Globals.CMD_PASTE_CHR);
         jpnlCharToolbar.add(pasteButton);
+
         jpnlCharTool.add(jpnlCharToolbar, BorderLayout.EAST);
         jpnlCharTools.add(jpnlCharTool, new GridBagConstraints(1, 6, 6, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, insets, 2, 2));
 
@@ -659,12 +670,19 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jbtnUpdateSprite = getToolButton(Globals.CMD_UPDATE_SPR, "Set Sprite");
         jbtnUpdateSprite.addActionListener(this);
         jpnlSpriteToolbar.add(jbtnUpdateSprite);
-        JButton sprCopyButton = getToolButton(Globals.CMD_COPY_SPR, "Copy");
-        sprCopyButton.addActionListener(this);
-        jpnlSpriteToolbar.add(sprCopyButton);
-        JButton sprPasteButton = getToolButton(Globals.CMD_PASTE_SPR, "Paste and set");
-        sprPasteButton.addActionListener(this);
-        jpnlSpriteToolbar.add(sprPasteButton);
+
+        Action copySpriteAction = new CopySpriteAction(getIcon(Globals.CMD_COPY_SPR), jtxtSprite);
+        JButton copySpriteButton = getToolButton(copySpriteAction, "Copy");
+        copySpriteButton.getActionMap().put(CMD_COPY_SPR, copySpriteAction);
+        copySpriteButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) copySpriteAction.getValue(Action.ACCELERATOR_KEY), Globals.CMD_COPY_SPR);
+        jpnlSpriteToolbar.add(copySpriteButton);
+
+        Action pasteSpriteAction = new PasteSpriteAction(getIcon(Globals.CMD_PASTE_SPR), jtxtSprite, jbtnUpdateSprite);
+        JButton pasteSpriteButton = getToolButton(pasteSpriteAction, "Paste and set");
+        pasteSpriteButton.getActionMap().put(CMD_PASTE_SPR, pasteSpriteAction);
+        pasteSpriteButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) pasteSpriteAction.getValue(Action.ACCELERATOR_KEY), CMD_PASTE_SPR);
+        jpnlSpriteToolbar.add(pasteSpriteButton);
+
         jpnlSpriteTool.add(jpnlSpriteToolbar, BorderLayout.EAST);
         jpnlSpriteTools.add(jpnlSpriteTool, new GridBagConstraints(1, 6, 6, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, insets, 2, 2));
 
@@ -907,19 +925,31 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         return new ImageIcon(Toolkit.getDefaultToolkit().getImage(imageURL));
     }
 
-    protected JButton getToolButton(String buttonkey, String tooltip, Color bgcolor) {
-        JButton jbtnTool = new JButton(getIcon(buttonkey));
-        jbtnTool.setActionCommand(buttonkey);
-        jbtnTool.addActionListener(this);
+    protected JButton getToolButton(Action action, String tooltip) {
+        JButton jbtnTool = getToolButton((ImageIcon) null, tooltip, CLR_BUTTON_NORMAL);
+        jbtnTool.setAction(action);
         jbtnTool.setToolTipText(tooltip);
+        return jbtnTool;
+    }
+
+    protected JButton getToolButton(String buttonKey, String tooltip) {
+        return getToolButton(buttonKey, tooltip, Globals.CLR_BUTTON_NORMAL);
+    }
+
+    protected JButton getToolButton(String buttonKey, String tooltip, Color bgcolor) {
+        JButton jbtnTool = getToolButton(getIcon(buttonKey), tooltip, bgcolor);
+        jbtnTool.setToolTipText(tooltip);
+        jbtnTool.setActionCommand(buttonKey);
+        jbtnTool.addActionListener(this);
+        return jbtnTool;
+    }
+
+    private JButton getToolButton(ImageIcon imageIcon, String tooltip, Color bgcolor) {
+        JButton jbtnTool = new JButton(imageIcon);
         jbtnTool.setMargin(new Insets(0, 0, 0, 0));
         jbtnTool.setBackground(bgcolor);
         jbtnTool.setPreferredSize(Globals.DM_TOOL);
         return jbtnTool;
-    }
-
-    protected JButton getToolButton(String buttonkey, String tooltip) {
-        return getToolButton(buttonkey, tooltip, Globals.CLR_BUTTON_NORMAL);
     }
 
     protected JButton getDockButton(String buttonlabel, String actcmd, Color bgcolor) {
@@ -1275,20 +1305,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 dataSet.getSpriteGrids().put(activeSprite, spriteGrid);
                 gcSprite.setGrid(dataSet.getSpriteGrids().get(activeSprite));
                 updateCharButton(activeSprite);
-            } else if (command.equals(Globals.CMD_COPY_CHR)) {
-                jtxtChar.selectAll();
-                jtxtChar.copy();
-            } else if (command.equals(Globals.CMD_COPY_SPR)) {
-                jtxtSprite.selectAll();
-                jtxtSprite.copy();
-            } else if (command.equals(Globals.CMD_PASTE_CHR)) {
-                jtxtChar.selectAll();
-                jtxtChar.paste();
-                jbtnUpdateChar.doClick();
-            } else if (command.equals(Globals.CMD_PASTE_SPR)) {
-                jtxtSprite.selectAll();
-                jtxtSprite.paste();
-                jbtnUpdateSprite.doClick();
             } else if (command.startsWith(Globals.CMD_CLRFORE_CHR)) {
                 int index = Integer.parseInt(command.substring(Globals.CMD_CLRFORE_CHR.length()));
                 if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
