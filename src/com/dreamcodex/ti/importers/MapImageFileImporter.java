@@ -128,7 +128,7 @@ public class MapImageFileImporter extends Importer {
                     int[][] rgbGrid = new int[8][8];
                     for (int y = 0; y < 8; y++) {
                         for (int x = 0; x < 8; x++) {
-                            rgbGrid[y][x] = bufferedImage.getRGB(x + x1, y + y1) & 0xffffff;
+                            rgbGrid[y][x] = bufferedImage.getRGB(x + x1, y + y1) | 0xff000000;
                         }
                     }
                     // Find exact match in the existing characters
