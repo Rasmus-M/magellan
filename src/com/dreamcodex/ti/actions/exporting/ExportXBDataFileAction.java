@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.exporting;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.XBDataFileExporter;
@@ -17,7 +17,7 @@ import java.io.IOException;
 
 import static com.dreamcodex.ti.Magellan.CHARACTER_SET_BASIC;
 
-public class ExportXBDataFileAction extends MagellanAction {
+public class ExportXBDataFileAction extends FileAction {
 
     private final int exportType;
 

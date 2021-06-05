@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.exporting;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.AssemblyDataFileExporter;
@@ -12,7 +12,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
-public class ExportAssemblyDataFileAction extends MagellanAction {
+public class ExportAssemblyDataFileAction extends FileAction {
 
     public ExportAssemblyDataFileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);

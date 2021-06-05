@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.importing;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.importers.AppendDataFileImporter;
 import com.dreamcodex.ti.util.DataSet;
@@ -12,7 +12,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
-public class AppendDataFileAction extends MagellanAction {
+public class AppendDataFileAction extends FileAction {
 
     public AppendDataFileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);

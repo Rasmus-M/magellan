@@ -1,9 +1,8 @@
 package com.dreamcodex.ti.actions.exporting;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MapEditor;
-import com.dreamcodex.ti.exporters.CharacterImageExporter;
 import com.dreamcodex.ti.exporters.SpriteImageExporter;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
@@ -13,7 +12,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 
-public class ExportSpriteImageAction extends MagellanAction {
+public class ExportSpriteImageAction extends FileAction {
 
     private final boolean color;
 

@@ -12,7 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
-public abstract class MagellanAction extends AbstractAction {
+public abstract class FileAction extends AbstractAction {
 
     protected final String FILEEXT = "mag";
     protected final String[] FILEEXTS = {FILEEXT};
@@ -34,7 +34,7 @@ public abstract class MagellanAction extends AbstractAction {
     protected final DataSet dataSet;
     protected final Preferences preferences;
 
-    public MagellanAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+    public FileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name);
         this.parent = parent;
         this.mapEditor = mapEditor;

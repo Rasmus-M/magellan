@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.exporting;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.ScrollFileExporter;
@@ -13,7 +13,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
-public class ExportScrollFileAction extends MagellanAction {
+public class ExportScrollFileAction extends FileAction {
 
     public ExportScrollFileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);

@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.importing;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.component.VramImportDialog;
 import com.dreamcodex.ti.importers.VRAMDumpImporter;
@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class ImportVRAMDumpAction extends MagellanAction {
+public class ImportVRAMDumpAction extends FileAction {
 
     public ImportVRAMDumpAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);

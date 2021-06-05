@@ -41,7 +41,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Constants -------------------------------------------------------------------------------/
 
-    public static final String VERSION_NUMBER = "4.1.1";
+    public static final String VERSION_NUMBER = "4.1.2";
 
     public static final int CHARACTER_SET_BASIC = 0;
     public static final int CHARACTER_SET_EXPANDED = 1;
@@ -1936,6 +1936,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 for (int i = 0; i < spritesAtPoint.size(); i++) {
                     if (spritesAtPoint.get(i) == oldActiveSprite) {
                         spritesAtPoint.set(i, activeSprite);
+                    } else if (spritesAtPoint.get(i) == activeSprite) {
+                        spritesAtPoint.set(i, oldActiveSprite);
                     }
                 }
             }

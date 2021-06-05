@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.importing;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.importers.CharacterImageColorImporter;
 import com.dreamcodex.ti.importers.CharacterImageMonoImporter;
@@ -15,7 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-public class ImportCharImageAction extends MagellanAction {
+public class ImportCharImageAction extends FileAction {
 
     private final boolean color;
 

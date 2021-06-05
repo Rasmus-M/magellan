@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.importing;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.importers.DataFileImporter;
 import com.dreamcodex.ti.util.DataSet;
@@ -18,7 +18,7 @@ import java.io.IOException;
 import static com.dreamcodex.ti.Magellan.*;
 import static com.dreamcodex.ti.util.TIGlobals.SUPER_LAST_CHAR;
 
-public class OpenDataFileAction extends MagellanAction {
+public class OpenDataFileAction extends FileAction {
 
     private final String filePath;
 

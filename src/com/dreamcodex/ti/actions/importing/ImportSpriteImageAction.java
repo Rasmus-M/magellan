@@ -1,7 +1,7 @@
 package com.dreamcodex.ti.actions.importing;
 
 import com.dreamcodex.ti.Magellan;
-import com.dreamcodex.ti.actions.MagellanAction;
+import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MagellanImportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.importers.SpriteImageImporter;
@@ -12,10 +12,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_ECM_2;
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_ECM_3;
-
-public class ImportSpriteImageAction extends MagellanAction {
+public class ImportSpriteImageAction extends FileAction {
 
     public ImportSpriteImageAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);
