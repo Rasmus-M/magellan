@@ -1156,18 +1156,19 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             } else if (command.startsWith(Globals.CMD_EDIT_CHR)) {
                 int oldActiveChar = activeChar;
                 activeChar = Integer.parseInt(command.substring(Globals.CMD_EDIT_CHR.length()));
+                HashMap<Integer, int[][]> charGrids = dataSet.getCharGrids();
                 if ((ae.getModifiers() & (ActionEvent.SHIFT_MASK | KeyEvent.CTRL_MASK)) != 0) {
                     swapCharacters(activeChar, oldActiveChar, 0, true, true, true);
                 }
-                if (dataSet.getCharGrids().get(activeChar) == null) {
+                if (charGrids.get(activeChar) == null) {
                     gcChar.clearGrid();
-                    dataSet.getCharGrids().put(activeChar, gcChar.getGridData());
+                    charGrids.put(activeChar, gcChar.getGridData());
                     if (colorMode == COLOR_MODE_BITMAP) {
                         dataSet.getCharColors().put(activeChar, gcChar.getGridColors());
                     }
                 }
                 gcChar.resetUndoRedo();
-                gcChar.setGridAndColors(dataSet.getCharGrids().get(activeChar), colorMode == COLOR_MODE_BITMAP ? dataSet.getCharColors().get(activeChar) : null);
+                gcChar.setGridAndColors(charGrids.get(activeChar), colorMode == COLOR_MODE_BITMAP ? dataSet.getCharColors().get(activeChar) : null);
                 if (colorMode == COLOR_MODE_GRAPHICS_1) {
                     int cset = activeChar / 8;
                     gcChar.setColorBack(dataSet.getClrSets()[cset][Globals.INDEX_CLR_BACK]);
@@ -1193,20 +1194,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 int[] spriteColors = dataSet.getSpriteColors();
                 ECMPalette[] ecmSpritePalettes = dataSet.getEcmSpritePalettes();
                 if ((ae.getModifiers() & (ActionEvent.SHIFT_MASK | KeyEvent.CTRL_MASK)) != 0) {
-                    // Swap first TODO
-                    int[][] tempGrid = Globals.cloneGrid(spriteGrids.get(activeSprite));
-                    Globals.copyGrid(spriteGrids.get(oldActiveSprite), spriteGrids.get(activeSprite));
-                    Globals.copyGrid(tempGrid, spriteGrids.get(oldActiveSprite));
-                    int tempCol = spriteColors[activeSprite];
-                    spriteColors[activeSprite] = spriteColors[oldActiveSprite];
-                    spriteColors[oldActiveSprite] = tempCol;
-                    if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
-                        ECMPalette tmpPalette = ecmSpritePalettes[activeSprite];
-                        ecmSpritePalettes[activeSprite] = ecmSpritePalettes[oldActiveSprite];
-                        ecmSpritePalettes[oldActiveSprite] = tmpPalette;
-                    }
-                    updateSpriteButton(oldActiveSprite);
-                    setModified(true);
+                    swapSprites(activeSprite, oldActiveSprite);
                 }
                 if (spriteGrids.get(activeSprite) == null) {
                     gcSprite.clearGrid();
@@ -1937,6 +1925,37 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
             setModified(true);
         }
+    }
+
+    protected void swapSprites(int activeSprite, int oldActiveSprite) {
+        // Swap on map
+        for (int m = 0; m < mapdMain.getMapCount(); m++) {
+            HashMap<Point, ArrayList<Integer>> spriteMap = mapdMain.getSpriteMap(m);
+            for (Point p : spriteMap.keySet()) {
+                ArrayList<Integer> spritesAtPoint = spriteMap.get(p);
+                for (int i = 0; i < spritesAtPoint.size(); i++) {
+                    if (spritesAtPoint.get(i) == oldActiveSprite) {
+                        spritesAtPoint.set(i, activeSprite);
+                    }
+                }
+            }
+        }
+        HashMap<Integer, int[][]> spriteGrids = dataSet.getSpriteGrids();
+        int[] spriteColors = dataSet.getSpriteColors();
+        ECMPalette[] ecmSpritePalettes = dataSet.getEcmSpritePalettes();
+        int[][] tempGrid = Globals.cloneGrid(spriteGrids.get(activeSprite));
+        Globals.copyGrid(spriteGrids.get(oldActiveSprite), spriteGrids.get(activeSprite));
+        Globals.copyGrid(tempGrid, spriteGrids.get(oldActiveSprite));
+        int tempCol = spriteColors[activeSprite];
+        spriteColors[activeSprite] = spriteColors[oldActiveSprite];
+        spriteColors[oldActiveSprite] = tempCol;
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
+            ECMPalette tmpPalette = ecmSpritePalettes[activeSprite];
+            ecmSpritePalettes[activeSprite] = ecmSpritePalettes[oldActiveSprite];
+            ecmSpritePalettes[oldActiveSprite] = tmpPalette;
+        }
+        updateSpriteButton(oldActiveSprite);
+        setModified(true);
     }
 
     protected void analyzeCharUsage() {
