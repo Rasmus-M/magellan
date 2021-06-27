@@ -12,8 +12,11 @@ import static com.dreamcodex.ti.Magellan.COLOR_MODE_ECM_3;
 
 public class CharacterImageColorImporter extends Importer {
 
+    private Preferences preferences;
+
     public CharacterImageColorImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
+        this.preferences = preferences;
     }
 
     public void readCharImageColor(BufferedImage buffImg) {
@@ -79,7 +82,7 @@ public class CharacterImageColorImporter extends Importer {
         int colOffset = 0;
         int cSet = 0;
         int ecmPaletteIndex = 1;
-        for (int charNum = TIGlobals.MIN_CHAR; charNum <= TIGlobals.MAX_CHAR; charNum++) {
+        for (int charNum = TIGlobals.MIN_CHAR; charNum <= preferences.getCharacterSetEnd(); charNum++) {
             int[][] newCharArray = new int[8][8];
             int[][] newColorArray = new int[8][2];
             // ECM palette for character
@@ -111,73 +114,69 @@ public class CharacterImageColorImporter extends Importer {
             if (charGrids.containsKey(charNum)) {
                 charGrids.remove(charNum);
             }
-            for (int y = 0; y < 8; y++) {
-                int[] newColors = newColorArray[y];
-                newColors[0] = -1;
-                newColors[1] = -1;
-                for (int x = 0; x < 8; x++) {
-                    int color = buffImg.getRGB((colOffset * 8) + x, (rowOffset * 8) + y) | 0xff000000;
-                    if (colorMode == COLOR_MODE_GRAPHICS_1) {
-                        newCharArray[y][x] = (color == TIGlobals.TI_PALETTE_OPAQUE[clrSets[cSet][Globals.INDEX_CLR_FORE]].getRGB() ? 1 : 0);
-                    }
-                    else if (colorMode == COLOR_MODE_BITMAP) {
-                        int tiColor = getTIColorForPixel(color);
-                        if (newColors[0] == -1) {
-                            newColors[0] = tiColor;
+            if (colOffset * 8 + 7 < buffImg.getWidth() && rowOffset * 8 + 7 < buffImg.getHeight()) {
+                for (int y = 0; y < 8; y++) {
+                    int[] newColors = newColorArray[y];
+                    newColors[0] = -1;
+                    newColors[1] = -1;
+                    for (int x = 0; x < 8; x++) {
+                        int color = buffImg.getRGB((colOffset * 8) + x, (rowOffset * 8) + y) | 0xff000000;
+                        if (colorMode == COLOR_MODE_GRAPHICS_1) {
+                            newCharArray[y][x] = (color == TIGlobals.TI_PALETTE_OPAQUE[clrSets[cSet][Globals.INDEX_CLR_FORE]].getRGB() ? 1 : 0);
+                        } else if (colorMode == COLOR_MODE_BITMAP) {
+                            int tiColor = getTIColorForPixel(color);
+                            if (newColors[0] == -1) {
+                                newColors[0] = tiColor;
+                            } else if (newColors[1] == -1 && newColors[0] != tiColor) {
+                                newColors[1] = tiColor;
+                            }
+                            newCharArray[y][x] = tiColor == newColors[0] ? 0 : 1;
+                        } else {
+                            boolean found = false;
+                            if (ecmGlobalPalette == null) {
+                                for (int i = 0; i < ecmColors.length && !found; i++) {
+                                    if (ecmColors[i] == color) {
+                                        newCharArray[y][x] = i;
+                                        found = true;
+                                    }
+                                }
+                            } else {
+                                for (int i = 0; i < ecmGlobalPalette.getSize() && !found; i++) {
+                                    if (ecmGlobalPalette.getColor(i).getRGB() == color) {
+                                        newCharArray[y][x] = i;
+                                        found = true;
+                                    }
+                                }
+                            }
                         }
-                        else if (newColors[1] == -1 && newColors[0] != tiColor) {
-                            newColors[1] = tiColor;
-                        }
-                        newCharArray[y][x] = tiColor == newColors[0] ? 0 : 1;
                     }
-                    else {
+                }
+                charGrids.put(charNum, newCharArray);
+                if (colorMode == COLOR_MODE_BITMAP) {
+                    charColors.put(charNum, newColorArray);
+                }
+                if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
+                    if (ecmGlobalPalette == null) {
+                        // Match char palette to existing palettes
                         boolean found = false;
-                        if (ecmGlobalPalette == null) {
-                            for (int i = 0; i < ecmColors.length && !found; i++) {
-                                if (ecmColors[i] == color) {
-                                    newCharArray[y][x] = i;
-                                    found = true;
-                                }
+                        for (int i = 0; i < Math.min(ecmPaletteIndex, ecmPalettes.length); i++) {
+                            if (ecmPalettes[i].startsWith(ecmColors, ecmColorIndex)) {
+                                ecmCharPalettes[charNum] = ecmPalettes[i];
+                                found = true;
                             }
                         }
-                        else {
-                            for (int i = 0; i < ecmGlobalPalette.getSize() && !found; i++) {
-                                if (ecmGlobalPalette.getColor(i).getRGB() == color) {
-                                    newCharArray[y][x] = i;
-                                    found = true;
-                                }
+                        if (!found) {
+                            if (ecmPaletteIndex < ecmPalettes.length - 1) {
+                                ecmPalettes[ecmPaletteIndex].setIntColors(ecmColors);
+                                ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
+                                ecmPaletteIndex++;
+                            } else {
+                                ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
                             }
                         }
+                    } else {
+                        ecmCharPalettes[charNum] = ecmGlobalPalette;
                     }
-                }
-            }
-            charGrids.put(charNum, newCharArray);
-            if (colorMode == COLOR_MODE_BITMAP) {
-                charColors.put(charNum, newColorArray);
-            }
-            if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
-                if (ecmGlobalPalette == null) {
-                    // Match char palette to existing palettes
-                    boolean found = false;
-                    for (int i = 0; i < Math.min(ecmPaletteIndex, ecmPalettes.length); i++) {
-                        if (ecmPalettes[i].startsWith(ecmColors, ecmColorIndex)) {
-                            ecmCharPalettes[charNum] = ecmPalettes[i];
-                            found = true;
-                        }
-                    }
-                    if (!found) {
-                        if (ecmPaletteIndex < ecmPalettes.length - 1) {
-                            ecmPalettes[ecmPaletteIndex].setIntColors(ecmColors);
-                            ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
-                            ecmPaletteIndex++;
-                        }
-                        else {
-                            ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
-                        }
-                    }
-                }
-                else {
-                    ecmCharPalettes[charNum] = ecmGlobalPalette;
                 }
             }
             colOffset++;
