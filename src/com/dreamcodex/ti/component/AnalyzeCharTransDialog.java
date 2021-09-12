@@ -3,7 +3,9 @@ package com.dreamcodex.ti.component;
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.MapChangeListener;
 import com.dreamcodex.ti.util.Globals;
+import com.dreamcodex.ti.util.Lists;
 import com.dreamcodex.ti.util.TransChar;
+import com.dreamcodex.ti.util.TransitionType;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -29,18 +31,19 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     private final HashMap<Integer, int[][]> charGrids;
     private final HashMap<Integer, int[][]> charColors;
     private final int[][] clrSets;
-    private int colorMode;
-    private int screenColor;
-    private ArrayList<TransChar> sortedTransCharList;
-    private static boolean vertical = true;
+    private final int colorMode;
+    private final int screenColor;
+    private static TransitionType transitionType = TransitionType.BOTTOM_TO_TOP;
     private static boolean wrap = false;
-    private JRadioButton verticalButton;
-    private JRadioButton horizontalButton;
-    private JCheckBox wrapCheckbox;
-    private JTable jTable;
-    private CharTransTableModel tableModel;
-    private JButton refreshButton;
-    private JButton closeButton;
+    private final JRadioButton verticalButton;
+    private final JRadioButton horizontalButton;
+    private final JRadioButton twoDimensionalButton;
+    private final JCheckBox wrapCheckbox;
+    private final JTable jTable;
+    private final CharTransTableModel tableModel;
+    private final JButton refreshButton;
+    private final JButton closeButton;
+    private ArrayList<TransChar> sortedTransCharList;
 
     private class CharTransTableModel extends AbstractTableModel {
 
@@ -58,68 +61,106 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         }
 
         public void buildMap() {
-            transCharMap = new HashMap<String, TransChar>();
+            transCharMap = new HashMap<>();
             int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
-            if (mapData.length > 1 && mapData[0].length > 1) {
-                for (int y = (vertical && !wrap ? 1 : 0); y < mapData.length; y++) {
-                    for (int x = 0; x < mapData[0].length - (vertical || wrap ? 0 : 1); x++) {
-                        int fromChar = mapData[y][x];
-                        int toChar = vertical ? mapData[y > 0 ? y - 1 : mapData.length - 1][x] : mapData[y][x < mapData[0].length - 1 ? x + 1 : 0];
-                        String key = Integer.toString(fromChar) + "-" + Integer.toString(toChar);
-                        TransChar transChar = transCharMap.get(key);
-                        if (transChar != null) {
-                            transChar.incCount();
+            int height = mapData.length;
+            int width = mapData[0].length;
+            if (width > 1 && height > 1) {
+                switch (transitionType) {
+                    case BOTTOM_TO_TOP:
+                        for (int y = wrap ? 0 : 1; y < height; y++) {
+                            for (int x = 0; x < width; x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar = mapData[y > 0 ? y - 1 : height - 1][x];
+                                addTransCharToMap(new TransChar(fromChar, toChar));
+                            }
                         }
-                        else {
-                            boolean colorsOK;
-                            if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 ) {
-                                int[] fromClrSet = clrSets[fromChar / 8];
-                                int[] toClrSet = clrSets[toChar / 8];
-                                colorsOK = Globals.isColorTransitionOK(
-                                    fromClrSet[Globals.INDEX_CLR_FORE],
-                                    toClrSet[Globals.INDEX_CLR_FORE],
-                                    fromClrSet[Globals.INDEX_CLR_BACK],
-                                    toClrSet[Globals.INDEX_CLR_BACK],
-                                    screenColor,
-                                    charGrids.get(fromChar),
-                                    charGrids.get(toChar)
-                                );
+                        break;
+                    case LEFT_TO_RIGHT:
+                        for (int y = 0; y < height; y++) {
+                            for (int x = 0; x < width - (wrap ? 0 : 1); x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar = mapData[y][x < width - 1 ? x + 1 : 0];
+                                addTransCharToMap(new TransChar(fromChar, toChar));
                             }
-                            else if (colorMode == Magellan.COLOR_MODE_BITMAP) {
-                                if (vertical) {
-                                    colorsOK = true;
-                                }
-                                else {
-                                    colorsOK = true;
-                                    int[][] fromColorGrid = charColors.get(fromChar);
-                                    int[][] toColorGrid = charColors.get(toChar);
-                                    int[][] fromCharGrid = charGrids.get(fromChar);
-                                    int[][] toCharGrid = charGrids.get(toChar);
-                                    for (int i = 0; i < 8 && colorsOK; i++) {
-                                        if (!Globals.isColorTransitionOK(
-                                            fromColorGrid[i][Globals.INDEX_CLR_FORE],
-                                            toColorGrid[i][Globals.INDEX_CLR_FORE],
-                                            fromColorGrid[i][Globals.INDEX_CLR_BACK],
-                                            toColorGrid[i][Globals.INDEX_CLR_BACK],
-                                            screenColor,
-                                            fromCharGrid[i],
-                                            toCharGrid[i]
-                                        )) {
-                                            colorsOK = false;
-                                        }
-                                    }
-                                }
+                        }
+                        break;
+                    case TWO_DIMENSIONAL:
+                        for (int y = wrap ? 0 : 1; y < mapData.length; y++) {
+                            for (int x = 0; x < width - (wrap ? 0 : 1); x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar1 = mapData[y][x < width - 1 ? x + 1 : 0];
+                                int toChar2 = mapData[y > 0 ? y - 1 : height - 1][x];
+                                int toChar3 = mapData[y > 0 ? y - 1 : height - 1][x < width - 1 ? x + 1 : 0];
+                                addTransCharToMap(new TransChar(fromChar, toChar1, toChar2, toChar3));
                             }
-                            else {
-                                colorsOK = true;
-                            }
-                            transCharMap.put(key, new TransChar(fromChar, toChar, colorsOK));
+                        }
+                        break;
+                    case ISOMETRIC:
+                        break;
+                }
+            }
+            sortedTransCharList = new ArrayList<>(transCharMap.values());
+            sortedTransCharList.sort(new TransChar.TransCharCountComparator());
+        }
+
+        private void addTransCharToMap(TransChar transChar) {
+            String key = transChar.getKey();
+
+            TransChar existingTransChar = transCharMap.get(key);
+            if (existingTransChar != null) {
+                existingTransChar.incCount();
+            }
+            else {
+                transChar.setColorsOK(areColorsOK(transChar));
+                transCharMap.put(key, transChar);
+            }
+        }
+
+        private boolean areColorsOK(TransChar transChar) {
+            boolean colorsOK;
+            if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 ) {
+                int[] fromClrSet = clrSets[transChar.getFromChar() / 8];
+                int[] toClrSet = clrSets[transChar.getToChar() / 8];
+                colorsOK = Globals.isColorTransitionOK(
+                        fromClrSet[Globals.INDEX_CLR_FORE],
+                        toClrSet[Globals.INDEX_CLR_FORE],
+                        fromClrSet[Globals.INDEX_CLR_BACK],
+                        toClrSet[Globals.INDEX_CLR_BACK],
+                        screenColor,
+                        charGrids.get(transChar.getFromChar()),
+                        charGrids.get(transChar.getToChar())
+                );
+            }
+            else if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+                if (transitionType == TransitionType.BOTTOM_TO_TOP) {
+                    colorsOK = true;
+                }
+                else {
+                    colorsOK = true;
+                    int[][] fromColorGrid = charColors.get(transChar.getFromChar());
+                    int[][] toColorGrid = charColors.get(transChar.getToChar());
+                    int[][] fromCharGrid = charGrids.get(transChar.getFromChar());
+                    int[][] toCharGrid = charGrids.get(transChar.getToChar());
+                    for (int i = 0; i < 8 && colorsOK; i++) {
+                        if (!Globals.isColorTransitionOK(
+                                fromColorGrid[i][Globals.INDEX_CLR_FORE],
+                                toColorGrid[i][Globals.INDEX_CLR_FORE],
+                                fromColorGrid[i][Globals.INDEX_CLR_BACK],
+                                toColorGrid[i][Globals.INDEX_CLR_BACK],
+                                screenColor,
+                                fromCharGrid[i],
+                                toCharGrid[i]
+                        )) {
+                            colorsOK = false;
                         }
                     }
                 }
             }
-            sortedTransCharList = new ArrayList<TransChar>(transCharMap.values());
-            Collections.sort(sortedTransCharList, new TransChar.TransCharCountComparator());
+            else {
+                colorsOK = true;
+            }
+            return colorsOK;
         }
 
         public int getRowCount() {
@@ -188,7 +229,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         }
     }
 
-    private class CenteredRenderer extends DefaultTableCellRenderer {
+    private static class CenteredRenderer extends DefaultTableCellRenderer {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             setHorizontalAlignment(SwingConstants.CENTER);
             return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -211,7 +252,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                 setIcon(new ImageIcon(charImages.get(transChar.getFromChar())));
             }
             else {
-                setText(Integer.toString(transChar.getToChar()));
+                setText(Lists.commaSeparatedList(transChar.getToChars()));
                 setIcon(new ImageIcon(charImages.get(transChar.getToChar())));
             }
             return this;
@@ -236,14 +277,16 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         this.colorMode = colorMode;
         screenColor = mapEditor.getColorScreen();
         setLayout(new BorderLayout());
-        verticalButton = new JRadioButton("From Bottom to Top", vertical);
-        horizontalButton = new JRadioButton("From Left to Right", !vertical);
+        verticalButton = new JRadioButton("From Bottom to Top", transitionType == TransitionType.BOTTOM_TO_TOP);
+        horizontalButton = new JRadioButton("From Left to Right", transitionType == TransitionType.LEFT_TO_RIGHT);
+        twoDimensionalButton = new JRadioButton("2-dimensional", transitionType == TransitionType.TWO_DIMENSIONAL);
         ButtonGroup radioButtonGroup = new ButtonGroup();
         radioButtonGroup.add(verticalButton);
         radioButtonGroup.add(horizontalButton);
         JPanel radioButtonPanel = new JPanel();
         radioButtonPanel.add(verticalButton);
         radioButtonPanel.add(horizontalButton);
+        radioButtonPanel.add(twoDimensionalButton);
         wrapCheckbox = new JCheckBox("Wrap Edges", wrap);
         JPanel optionsPanel = new JPanel();
         optionsPanel.add(radioButtonPanel);
@@ -252,7 +295,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         jTable = new JTable();
         tableModel = new CharTransTableModel();
         jTable.setModel(tableModel);
-        TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(jTable.getModel());
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(jTable.getModel());
         sorter.setComparator(1, new TransChar.TransCharFromComparator());
         sorter.setComparator(2, new TransChar.TransCharToComparator());
         sorter.setSortsOnUpdates(true);
@@ -279,6 +322,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         addWindowListener(this);
         verticalButton.addActionListener(this);
         horizontalButton.addActionListener(this);
+        twoDimensionalButton.addActionListener(this);
         wrapCheckbox.addActionListener(this);
         refreshButton.addActionListener(this);
         closeButton.addActionListener(this);
@@ -291,11 +335,15 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == verticalButton) {
-            vertical = true;
+            transitionType = TransitionType.BOTTOM_TO_TOP;
             tableModel.refresh();
         }
         else if (e.getSource() == horizontalButton) {
-            vertical = false;
+            transitionType = TransitionType.LEFT_TO_RIGHT;
+            tableModel.refresh();
+        }
+        else if (e.getSource() == twoDimensionalButton) {
+            transitionType = TransitionType.TWO_DIMENSIONAL;
             tableModel.refresh();
         }
         else if (e.getSource() == wrapCheckbox) {
@@ -317,16 +365,52 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             mapEditor.removeAllHighlights();
             TransChar transChar =  sortedTransCharList.get(jTable.convertRowIndexToModel(jTable.getSelectedRow()));
             int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
-            if (mapData.length > 1 && mapData[0].length > 1) {
-                for (int y = (vertical ? 1 : 0); y < mapData.length; y++) {
-                    for (int x = 0; x < mapData[0].length - (vertical ? 0 : 1); x++) {
-                        int fromChar = mapData[y][x];
-                        int toChar = vertical ? mapData[y - 1][x] : mapData[y][x + 1];
-                        if (fromChar == transChar.getFromChar() && toChar == transChar.getToChar()) {
-                            mapEditor.highlightCell(x, y);
-                            mapEditor.highlightCell(vertical ? x : x + 1, vertical ? y - 1 : y);
+            int height = mapData.length;
+            int width = mapData[0].length;
+            if (height > 1 && width > 1) {
+                switch (transitionType) {
+                    case BOTTOM_TO_TOP:
+                        for (int y = 1; y < height; y++) {
+                            for (int x = 0; x < width; x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar = mapData[y - 1][x];
+                                if (fromChar == transChar.getFromChar() && toChar == transChar.getToChar()) {
+                                    mapEditor.highlightCell(x, y);
+                                    mapEditor.highlightCell(x, y - 1);
+                                }
+                            }
                         }
-                    }
+                        break;
+                    case LEFT_TO_RIGHT:
+                        for (int y = 0; y < height; y++) {
+                            for (int x = 0; x < width - 1; x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar = mapData[y][x + 1];
+                                if (fromChar == transChar.getFromChar() && toChar == transChar.getToChar()) {
+                                    mapEditor.highlightCell(x, y);
+                                    mapEditor.highlightCell(x + 1, y);
+                                }
+                            }
+                        }
+                        break;
+                    case TWO_DIMENSIONAL:
+                        for (int y = 1; y < height; y++) {
+                            for (int x = 0; x < width - 1; x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar1 = mapData[y][x + 1];
+                                int toChar2 = mapData[y - 1][x];
+                                int toChar3 = mapData[y - 1][x + 1];
+                                if (fromChar == transChar.getFromChar() && Arrays.equals(transChar.getToChars(), new int[] {toChar1, toChar2, toChar3})) {
+                                    mapEditor.highlightCell(x, y);
+                                    mapEditor.highlightCell(x + 1, y);
+                                    mapEditor.highlightCell(x, y - 1);
+                                    mapEditor.highlightCell(x + 1, y - 1);
+                                }
+                            }
+                        }
+                        break;
+                    case ISOMETRIC:
+                        break;
                 }
             }
             mapEditor.redrawCanvas();

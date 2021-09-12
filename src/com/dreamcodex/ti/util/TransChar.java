@@ -1,8 +1,8 @@
 package com.dreamcodex.ti.util;
 
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Objects;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,7 +13,7 @@ import java.util.Set;
 public class TransChar {
 
     private int fromChar;
-    private int toChar;
+    private int[] toChars;
     private int index;
     private int count;
     private boolean colorsOK;
@@ -24,7 +24,7 @@ public class TransChar {
 
     public TransChar(TransChar transChar) {
         this.fromChar = transChar.fromChar;
-        this.toChar = transChar.toChar;
+        this.toChars = transChar.toChars;
         this.index = transChar.index;
         this.count = transChar.count;
         this.colorsOK = transChar.colorsOK;
@@ -34,9 +34,25 @@ public class TransChar {
         this.invert = transChar.invert;
     }
 
+    public TransChar(int fromChar, int toChar) {
+        this(fromChar, toChar, false);
+    }
+
+    public TransChar(int fromChar, int toChar1, int toChar2, int toChar3) {
+        this(fromChar, new int[] {toChar1, toChar2, toChar3}, false);
+    }
+
+    public TransChar(int fromChar, int toChar1, int toChar2, int toChar3, int toChar4, int toChar5) {
+        this(fromChar, new int[] {toChar1, toChar2, toChar3, toChar4, toChar5}, false);
+    }
+
     public TransChar(int fromChar, int toChar, boolean colorsOK) {
+        this(fromChar, new int[] {toChar}, colorsOK);
+    }
+
+    public TransChar(int fromChar, int[] toChars, boolean colorsOK) {
         this.fromChar = fromChar;
-        this.toChar = toChar;
+        this.toChars = toChars;
         this.colorsOK = colorsOK;
         count = 1;
     }
@@ -46,14 +62,21 @@ public class TransChar {
         this.index = index;
         this.foreColor = foreColor;
         this.backColor = backColor;
-        count = 1;
     }
 
     public TransChar(int fromChar, int toChar, int index, boolean colorsOK, int[][] colorGrid) {
         this(fromChar, toChar, colorsOK);
         this.index = index;
         this.colorGrid = colorGrid;
-        count = 1;
+    }
+
+    public String getKey() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(fromChar);
+        for (int toChar : toChars) {
+            sb.append("-").append(toChar);
+        }
+        return sb.toString();
     }
 
     public int getFromChar() {
@@ -64,12 +87,20 @@ public class TransChar {
         this.fromChar = fromChar;
     }
 
+    public int[] getToChars() {
+        return toChars;
+    }
+
+    public void setToChars(int[] toChars) {
+        this.toChars = toChars;
+    }
+
     public int getToChar() {
-        return toChar;
+        return toChars[0];
     }
 
     public void setToChar(int toChar) {
-        this.toChar = toChar;
+        this.toChars[0] = toChar;
     }
 
     public int getIndex() {
@@ -86,6 +117,10 @@ public class TransChar {
 
     public boolean isColorsOK() {
         return colorsOK;
+    }
+
+    public void setColorsOK(boolean colorsOK) {
+        this.colorsOK = colorsOK;
     }
 
     public int getForeColor() {
@@ -117,7 +152,10 @@ public class TransChar {
     }
 
     public boolean equals(Object o) {
-        return this == o || o instanceof TransChar && ((TransChar) o).getFromChar() == fromChar && ((TransChar) o).getToChar() == toChar;
+        return this == o ||
+            o instanceof TransChar &&
+            ((TransChar) o).getFromChar() == fromChar &&
+            Arrays.equals(((TransChar) o).getToChars(), toChars);
     }
 
     public static class TransCharCountComparator implements Comparator<TransChar> {
