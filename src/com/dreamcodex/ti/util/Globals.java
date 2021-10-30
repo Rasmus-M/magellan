@@ -114,6 +114,7 @@ public class Globals {
     public static final String CMD_ABOUT = "helpabout";
     public static final String CMD_VIEW_CHAR_LAYER = "viewchars";
     public static final String CMD_VIEW_SPRITE_LAYER = "viewsprites";
+    public static final String CMD_MAGNIFY_SPRITES = "magnifysprites";
 
     public static final String KEY_SCRBACK = "SB:"; // phasing out
     public static final String KEY_COLOR_MODE = "CM:";

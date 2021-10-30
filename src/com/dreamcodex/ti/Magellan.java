@@ -492,6 +492,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jmitViewSpriteLayer.addActionListener(this);
         jmenOptions.add(jmitViewSpriteLayer);
 
+        jmenOptions.addSeparator();
+
+        JMenuItem jmitMagnifySprites = new JCheckBoxMenuItem("Magnify Sprites", mapdMain.getMagnifySprites());
+        jmitMagnifySprites.setActionCommand(CMD_MAGNIFY_SPRITES);
+        jmitMagnifySprites.addActionListener(this);
+        jmenOptions.add(jmitMagnifySprites);
+
         // Add menu
         jMenuBar.add(jmenOptions);
 
@@ -1503,6 +1510,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 mapdMain.setViewCharLayer(!mapdMain.getViewCharLayer());
             } else if (command.equals(Globals.CMD_VIEW_SPRITE_LAYER)) {
                 mapdMain.setViewSpriteLayer(!mapdMain.getViewSpriteLayer());
+            } else if (command.equals(CMD_MAGNIFY_SPRITES)) {
+                mapdMain.setMagnifySprites(!mapdMain.getMagnifySprites());
             } else if (command.equals(Globals.CMD_TRANSPARENCY)) {
                 dataSet.getEcmCharTransparency()[activeChar] = jchkTransparency.isSelected();
                 gcChar.setECMTransparency(dataSet.getEcmCharTransparency()[activeChar]);

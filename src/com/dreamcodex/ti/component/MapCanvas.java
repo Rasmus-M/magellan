@@ -51,6 +51,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     protected boolean spriteMode = false;
     protected boolean viewCharLayer = true;
     protected boolean viewSpriteLayer = true;
+    protected boolean magnifySprites = false;
+    int spriteMagnification = 1;
 
 // Components ------------------------------------------------------------------------------/
 
@@ -490,6 +492,15 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         redrawCanvas();
     }
 
+    public boolean getMagnifySprites() {
+        return magnifySprites;
+    }
+
+    public void setMagnifySprites(boolean magnifySprites) {
+        this.magnifySprites = magnifySprites;
+        this.spriteMagnification = magnifySprites ? 2 : 1;
+    }
+
     public void toggleGrid() {
         this.setShowGrid(!this.isShowGrid());
         this.redrawCanvas();
@@ -580,7 +591,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                         for (int spriteNum : spriteList) {
                             Image spriteImage = hmSpriteImages.get(spriteNum);
                             if (spriteImage != null) {
-                                g.drawImage(spriteImage, p.x * optScale, p.y * optScale, 16, 16, this);
+                                g.drawImage(spriteImage, p.x * optScale, p.y * optScale, 16 * spriteMagnification, 16 * spriteMagnification, this);
                             }
                         }
                     }
@@ -643,7 +654,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private void outlineCell(Graphics g, int x, int y, Color clr) {
         g.setColor(clr);
-        int size = (optScale << (spriteMode ? 1 : 0)) - 1;
+        int size = (optScale << (spriteMode ? spriteMagnification : 0)) - 1;
         g.drawRect(x * optScale, y * optScale, size, size);
     }
 
@@ -656,7 +667,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         if (lookModeOn || cloneModeOn || !paintOn || image == null) {
             outlineCell(g, x, y, clrHigh);
         } else {
-            int size = optScale << (spriteMode ? 1 : 0);
+            int size = optScale << (spriteMode ? spriteMagnification : 0);
             g.drawImage(image, x * optScale, y * optScale, size, size, this);
         }
     }

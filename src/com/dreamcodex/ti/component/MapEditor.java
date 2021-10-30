@@ -480,6 +480,14 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         mpCanvas.setViewSpriteLayer(viewSpriteLayer);
     }
 
+    public boolean getMagnifySprites() {
+        return mpCanvas.getMagnifySprites();
+    }
+
+    public void setMagnifySprites(boolean magnifySprites) {
+        mpCanvas.setMagnifySprites(magnifySprites);
+    }
+
     public BufferedImage getBuffer() {
         return mpCanvas.getBuffer();
     }
