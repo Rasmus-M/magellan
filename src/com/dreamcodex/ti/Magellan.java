@@ -35,6 +35,7 @@ import static com.dreamcodex.ti.util.TIGlobals.*;
  * TI-99/4A graphical map editor
  *
  * @author Howard Kistler
+ * @author Rasmus Moustgaard
  */
 
 public class Magellan extends JFrame implements Runnable, WindowListener, ActionListener, MouseListener, MouseMotionListener, IconProvider, ScreenColorListener, UndoRedoListener, MapChangeListener {
