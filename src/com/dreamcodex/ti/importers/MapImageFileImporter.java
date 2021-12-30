@@ -193,11 +193,8 @@ public class MapImageFileImporter extends Importer {
 
     private void importGraphicsMode(ArrayList<Pattern> patterns) {
         // Divide into char/color sets
-        // Each charSet is stored as a pair
-        // The first element is an integer key composed of the background and foreground colors
-        // The second element is a list of indexes of characters that are members of the character set
         ArrayList<CharSet> charSets = new ArrayList<>();
-        int[][][] charGrids = new int[maxIndex][8][8];
+        int[][][] charGrids = new int[maxIndex + 1][8][8];
         for (int i = 0; i < patterns.size() && i <= maxIndex; i++) {
             // Build a palette of the pattern grid
             // Each entry in the palette consists of a RGB color and a count
@@ -230,13 +227,13 @@ public class MapImageFileImporter extends Importer {
                     int otherForeColorIndex = otherKey % 16;
                     boolean otherMono = otherBackColorIndex == otherForeColorIndex;
                     // Match to key of existing character color set
-                    // if monochrome it's enough that one of the colors (background or foreground) matches
+                    // if monochrome, it's enough that one of the colors (background or foreground) matches
                     if (
-                            otherKey == key
-                                    ||
-                                    (mono || otherMono) && (otherBackColorIndex == backColorIndex || otherForeColorIndex == foreColorIndex)
-                                    ||
-                                    otherBackColorIndex == foreColorIndex && otherForeColorIndex == backColorIndex
+                        otherKey == key
+                            ||
+                            (mono || otherMono) && (otherBackColorIndex == backColorIndex || otherForeColorIndex == foreColorIndex)
+                            ||
+                            otherBackColorIndex == foreColorIndex && otherForeColorIndex == backColorIndex
                     ) {
                         charIndexes = charSet.getCharIndexes();
                         if (charIndexes.size() < 8) {
