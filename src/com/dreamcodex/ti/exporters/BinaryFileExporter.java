@@ -17,7 +17,7 @@ public class BinaryFileExporter extends Exporter {
         super(mapEditor, dataSet, preferences);
     }
 
-    public void writeBinaryFile(File mapDataFile, byte chunkFlags, int startChar, int endChar, boolean currMapOnly) throws IOException {
+    public void writeBinaryFile(File mapDataFile, byte chunkFlags, int startChar, int endChar, int startSprite, int endSprite, boolean currMapOnly) throws IOException {
         // store working map first
         mapEditor.storeCurrentMap();
         // get file output buffer
@@ -52,6 +52,15 @@ public class BinaryFileExporter extends Exporter {
             fos.write(charCount);
             for (int bc = startChar; bc <= endChar; bc++) {
                 fos.write(getCharBytes(bc));
+            }
+        }
+
+        // write Sprite Chunk (if present)
+        if ((chunkFlags & BIN_CHUNK_SPRITES) == BIN_CHUNK_SPRITES) {
+            byte spriteCount = (byte) ((endSprite - startSprite) + 1);
+            fos.write(spriteCount);
+            for (int bc = startSprite; bc <= endSprite; bc++) {
+                fos.write(getSpriteBytes(bc));
             }
         }
 
@@ -112,11 +121,6 @@ public class BinaryFileExporter extends Exporter {
                         fos.write(mapToSave[y][x]);
                     }
                 }
-
-                // write Sprite Chunk (if present)
-                if ((chunkFlags & BIN_CHUNK_SPRITES) == BIN_CHUNK_SPRITES) {
-                    // not yet implemented
-                }
             }
         }
 
@@ -139,34 +143,34 @@ public class BinaryFileExporter extends Exporter {
         byte[] charbytes = new byte[8];
         int[][] chararray = charGrids.get(charnum);
         if (chararray != null) {
-            int bcount = 0;
-            byte byteval = (byte) 0;
-            int bytepos = 0;
-            boolean goHigh = true;
-            for (int y = 0; y < 8; y++) {
-                bytepos = 0;
-                for (int x = 0; x < 8; x++) {
-                    if (chararray[y][x] > 0) {
-                        byteval = (byte) (byteval | (bytepos == 0 ? 8 : (bytepos == 1 ? 4 : (bytepos == 2 ? 2 : 1))));
-                    }
-                    bytepos++;
-                    if (bytepos > 3) {
-                        charbytes[bcount] = (byte) (charbytes[bcount] | (goHigh ? byteval << 4 : byteval));
-                        if (!goHigh) {
-                            bcount++;
-                        }
-                        goHigh = !goHigh;
-                        byteval = (byte) 0;
-                        bytepos = 0;
-                    }
-                }
-            }
-        }
-        else {
-            for (int i = 0; i < charbytes.length; i++) {
-                charbytes[i] = (byte) 0;
-            }
+            writeCharBytes(chararray, 0, 0, charbytes, 0);
         }
         return charbytes;
+    }
+
+    protected byte[] getSpriteBytes(int spritenum) {
+        byte[] spritebytes = new byte[32];
+        int[][] spritearray = spriteGrids.get(spritenum);
+        if (spritearray != null) {
+            writeCharBytes(spritearray, 0, 0, spritebytes, 0);
+            writeCharBytes(spritearray, 0, 8, spritebytes, 8);
+            writeCharBytes(spritearray, 8, 0, spritebytes, 16);
+            writeCharBytes(spritearray, 8, 8, spritebytes, 24);
+        }
+        return spritebytes;
+    }
+
+    protected void writeCharBytes(int[][] grid, int x0, int y0, byte[] result, int i) {
+        for (int y = y0; y < y0 + 8; y++) {
+            int bit = 0x80;
+            int b = 0;
+            for (int x = x0; x < x0 + 8; x++) {
+                if (grid[y][x] != 0) {
+                    b |= bit;
+                }
+                bit >>= 1;
+            }
+            result[i++] = (byte) b;
+        }
     }
 }

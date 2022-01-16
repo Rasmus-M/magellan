@@ -213,7 +213,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         if (type == TYPE_ASM || type == TYPE_SCROLL) {
             objForm[objCount++] = jchkIncludeCharNumbers;
         }
-        if (type == TYPE_ASM) {
+        if (type == TYPE_ASM || type == TYPE_BINARY) {
             objForm[objCount++] = jchkIncludeSpritedata;
             objForm[objCount++] = new JLabel("From Sprite #");
             objForm[objCount++] = jcmbStartSprite;

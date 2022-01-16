@@ -38,16 +38,20 @@ public class ExportBinaryFileAction extends FileAction {
                 }
                 int sChar = exporter.getStartChar();
                 int eChar = exporter.getEndChar();
+                int sSprite = exporter.getStartSprite();
+                int eSprite = exporter.getEndSprite();
                 boolean bIncludeColorsets = exporter.includeColorsets();
                 boolean bIncludeChardata = exporter.includeChardata();
                 boolean bIncludeSpritedata = exporter.includeSpritedata();
-                byte chunkByte = (byte) (0 | (bIncludeColorsets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeChardata ? Exporter.BIN_CHUNK_CHARS : 0) | (bIncludeSpritedata ? Exporter.BIN_CHUNK_SPRITES : 0));
+                byte chunkByte = (byte) ((bIncludeColorsets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeChardata ? Exporter.BIN_CHUNK_CHARS : 0) | (bIncludeSpritedata ? Exporter.BIN_CHUNK_SPRITES : 0));
                 preferences.setCurrentMapOnly(exporter.currentMapOnly());
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
+                preferences.setDefStartSprite(Math.min(sSprite, eSprite));
+                preferences.setDefEndSprite(Math.max(sSprite, eSprite));
                 BinaryFileExporter magIO = new BinaryFileExporter(mapEditor, dataSet, preferences);
                 try {
-                    magIO.writeBinaryFile(file, chunkByte, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.isCurrentMapOnly());
+                    magIO.writeBinaryFile(file, chunkByte, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.isCurrentMapOnly());
                 } catch (IOException ioException) {
                     showError("Export failed", ioException.getMessage());
                 }
