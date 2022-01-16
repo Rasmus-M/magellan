@@ -9,6 +9,7 @@ STRUCTURE
 <FILE HEADER>
 	<COLORSET CHUNK (optional)>
 	<CHARDATA CHUNK (optional)>
+	<SPRITEDATA CHUNK (optional)>
 	<MAP 0 - MAP HEADER>
 		<MAP 0 - MAP DATA>
 		<MAP SPRITE HEADER (optional)>
@@ -45,30 +46,24 @@ byte 2-9        8b: Character data ***
    .
    .
 
-D) MAP HEADER
+D) SPRITEDATA CHUNK
+=================
+byte 0          1b: Number of sprite definitions
+byte 1-32      32b: Sprite pattern data
+   .
+   .
+
+E) MAP HEADER
 =================
 byte  0-3       4b: Magellan option flags for map [reserved for future expansion, such as RLE support]
-byte  4-11      8b: Size of (E) in bytes ****
+byte  4-11      8b: Size of (F) in bytes ****
 byte 12-13      2b: Number of columns in map
 byte 14-15      2b: Number of rows in map
 byte 16         1b: Screen background color
 
-E) MAP DATA
+F) MAP DATA
 =================
 byte 0-xxxx     Tile character values (0-255) [later may be RLE encoded data]
-   .
-   .
-
-F) MAP SPRITE HEADER
-====================
-
-byte  0-3       4b: Magellan option flags for sprites in current map  
-byte  4-11      8b: Size of (G) in bytes 
-byte  12-xx     Some Specific stuff for sprites
-
-G) MAP SPRITE DATA
-==================
-byte 0-xxxx     Sprite data
    .
    .
 
@@ -77,7 +72,7 @@ byte 0-xxxx     Sprite data
 
 	1 = Colorset Chunk Is Present
 	2 = Character Data Chunk Is Present
-	4 = Sprite Chunks Are Present For Maps
+	4 = Sprite Chunk Is Present
 
 	Multiple flags can be specified by OR'ing them together.
 	For example, a file with both Colorset and Character Data chunks would have a chunk header flag of 3.
