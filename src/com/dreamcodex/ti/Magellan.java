@@ -2311,6 +2311,26 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             return;
         }
         // Generate icon image
+        Image image = generateIconImage(charNum, screenColor);
+        // Save image
+        dataSet.getCharImages().put(charNum, image);
+        mapdMain.setCharImage(charNum, image);
+        // Display a question mark if image is empty (only some modes)
+        if (image == null) {
+            jbtnChar[charNum].setIcon(null);
+            jbtnChar[charNum].setText(((charNum - TIGlobals.CHARMAPSTART) >= 0 && (charNum - TIGlobals.CHARMAPSTART) < TIGlobals.CHARMAP.length) ? "" + TIGlobals.CHARMAP[charNum - TIGlobals.CHARMAPSTART] : "?");
+        }
+        else {
+            jbtnChar[charNum].setIcon(new ImageIcon(image));
+            jbtnChar[charNum].setText("");
+        }
+        // Redraw map as requested
+        if (redrawMap) {
+            mapdMain.redrawCanvas();
+        }
+    }
+
+    private Image generateIconImage(int charNum, Color screenColor) {
         int imageScale = 2;
         Image image = this.createImage(gcChar.getGridData().length * imageScale, gcChar.getGridData()[0].length * imageScale);
         Graphics g = image.getGraphics();
@@ -2346,22 +2366,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
         g.dispose();
         boolean empty = Globals.isGridEmpty(charGrid) && (colorMode == COLOR_MODE_GRAPHICS_1 && dataSet.getClrSets()[cset][Globals.INDEX_CLR_BACK] == 0 || colorMode == COLOR_MODE_BITMAP && Globals.isColorGridEmpty(charColors));
-        // Save image
-        dataSet.getCharImages().put(charNum, image);
-        mapdMain.setCharImage(charNum, image);
-        // Display a question mark if image is empty (only some modes)
-        if (empty) {
-            jbtnChar[charNum].setIcon(null);
-            jbtnChar[charNum].setText(((charNum - TIGlobals.CHARMAPSTART) >= 0 && (charNum - TIGlobals.CHARMAPSTART) < TIGlobals.CHARMAP.length) ? "" + TIGlobals.CHARMAP[charNum - TIGlobals.CHARMAPSTART] : "?");
-        }
-        else {
-            jbtnChar[charNum].setIcon(new ImageIcon(image));
-            jbtnChar[charNum].setText("");
-        }
-        // Redraw map as requested
-        if (redrawMap) {
-            mapdMain.redrawCanvas();
-        }
+        return !empty ? image : null;
     }
 
     public void updateSpriteButtons() {
