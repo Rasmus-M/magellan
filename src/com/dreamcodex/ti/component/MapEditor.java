@@ -15,6 +15,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class MapEditor extends JPanel implements ItemListener, ActionListener, KeyListener, UndoRedoListener, FocusListener {
@@ -26,9 +27,9 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 
     protected MapCanvas mpCanvas;
     protected JScrollPane jsclCanvas;
-    protected JComboBox jcmbScreen;
-    protected JComboBox jcmbMagnif;
-    protected JComboBox jcmbGridScale;
+    protected JComboBox<Integer> jcmbScreen;
+    protected JComboBox<String> jcmbMagnif;
+    protected JComboBox<Integer> jcmbGridScale;
     protected JButton jbtnToggleGrid;
     protected JButton jbtnFloodFillMode;
     protected JButton jbtnPrevMap;
@@ -47,15 +48,15 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 
 // Variables -------------------------------------------------------------------------------/
 
-    protected ArrayList<int[][]> arMaps = new ArrayList<int[][]>();
-    protected ArrayList<Integer> arClrs = new ArrayList<Integer>();
-    protected ArrayList<HashMap<Point, ArrayList<Integer>>> spriteMaps = new ArrayList<HashMap<Point, ArrayList<Integer>>>();
+    protected ArrayList<int[][]> arMaps = new ArrayList<>();
+    protected ArrayList<Integer> arClrs = new ArrayList<>();
+    protected ArrayList<HashMap<Point, ArrayList<Integer>>> spriteMaps = new ArrayList<>();
     protected int currMap = 0;
     protected boolean showPositionIndicator = true;
     protected boolean base0forPosition = false;
-    protected ArrayList<ScreenColorListener> screenColorListeners = new ArrayList<ScreenColorListener>();
-    protected ArrayList<MapChangeListener> mapChangeListeners = new ArrayList<MapChangeListener>();
-    protected ArrayList<MapSelectListener> mapSelectListeners = new ArrayList<MapSelectListener>();
+    protected ArrayList<ScreenColorListener> screenColorListeners = new ArrayList<>();
+    protected ArrayList<MapChangeListener> mapChangeListeners = new ArrayList<>();
+    protected ArrayList<MapSelectListener> mapSelectListeners = new ArrayList<>();
     protected NotifyingUndoManager undoManager;
 
 // Constructors ----------------------------------------------------------------------------/
@@ -75,17 +76,17 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         arClrs.add(mpCanvas.getColorScreen());
         spriteMaps.add(mpCanvas.getSpriteMap());
 
-        jcmbScreen = new JComboBox(TIGlobals.TI_PALETTE_SELECT_VALUES);
+        jcmbScreen = new JComboBox<>(TIGlobals.TI_PALETTE_SELECT_VALUES);
         jcmbScreen.addItemListener(this);
         jcmbScreen.setSelectedIndex(mpCanvas.getColorScreen());
         jcmbScreen.setRenderer(new ColorComboRenderer());
 
-        jcmbMagnif = new JComboBox(MAGNIFICATIONS);
+        jcmbMagnif = new JComboBox<>(MAGNIFICATIONS);
         jcmbMagnif.addItemListener(this);
         jcmbMagnif.setSelectedIndex(0);
         jcmbMagnif.setToolTipText("Magnification");
 
-        jcmbGridScale = new JComboBox(new Integer[] {1, 2, 4, 8, 12, 16, 24});
+        jcmbGridScale = new JComboBox<>(new Integer[] {1, 2, 4, 8, 12, 16, 24});
         jcmbGridScale.addItemListener(this);
         jcmbGridScale.setToolTipText("Grid Size");
 
@@ -190,18 +191,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         return mpCanvas.getColorGrid();
     }
 
-    public Color getColorHigh() {
-        return mpCanvas.getColorHigh();
-    }
-
-    public boolean isPaintOn() {
-        return mpCanvas.isPaintOn();
-    }
-
-    public int getActiveChar() {
-        return mpCanvas.getActiveChar();
-    }
-
     public int getViewScale() {
         return mpCanvas.getViewScale();
     }
@@ -238,16 +227,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         return mpCanvas.getHotCell();
     }
 
-    public Point getTypeCell() {
-        return mpCanvas.getTypeCell();
-    }
-
     public boolean showTypeCell() {
         return mpCanvas.showTypeCell();
-    }
-
-    public Color getBkgrndColor() {
-        return this.getBackground();
     }
 
     public int getMapCount() {
@@ -294,20 +275,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         return getScreenColor(i) + 1;
     }
 
-    public void setGridData(int[][] gd) {
-        mpCanvas.setGridData(gd);
-    }
-
     public void setColorGrid(Color clr) {
         mpCanvas.setColorGrid(clr);
-    }
-
-    public void setColorHigh(Color clr) {
-        mpCanvas.setColorHigh(clr);
-    }
-
-    public void setPaintOn(boolean b) {
-        mpCanvas.setPaintOn(b);
     }
 
     public void setActiveChar(int i) {
@@ -349,18 +318,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         mpCanvas.toggleCloneMode();
     }
 
-    public void setLookChar(int i) {
-        mpCanvas.setLookChar(i);
-    }
-
-    public void setHotCell(Point pt) {
-        mpCanvas.setHotCell(pt);
-    }
-
-    public void setTypeCell(Point pt) {
-        mpCanvas.setTypeCell(pt);
-    }
-
     public void setTypeCellOn(boolean b) {
         mpCanvas.setTypeCellOn(b);
     }
@@ -394,18 +351,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         setBase0Position(!base0forPosition);
     }
 
-    public void addMapData(int[][] m, int c, HashMap<Point, ArrayList<Integer>> s) {
-        addMap(m, c, s);
-    }
-
-    public void setMapData(int i, int[][] m, int c, HashMap<Point, ArrayList<Integer>> s) {
-        storeMap(i, m, c, s);
-    }
-
-    public void setScreenColor(int i, int c) {
-        arClrs.set(i, new Integer(c));
-    }
-
     public int getGridWidth() {
         return mpCanvas.getGridWidth();
     }
@@ -430,16 +375,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         mpCanvas.removeAllHighlights();
     }
 
-    public int getGridAt(int x, int y) {
-        return mpCanvas.getGridAt(x, y);
-    }
-
     public void setGridAt(int x, int y, int v) {
         mpCanvas.setGridAt(x, y, v);
-    }
-
-    public void setGridAt(Point pt, int v) {
-        mpCanvas.setGridAt(pt, v);
     }
 
     public void setCharImage(int charnum, Image img) {
@@ -458,10 +395,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         }
         mpCanvas.setSpriteMode(enabled);
         updateComponents();
-    }
-
-    public boolean isSpriteMode() {
-        return mpCanvas.isSpriteMode();
     }
 
     public boolean getViewCharLayer() {
@@ -492,10 +425,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         return mpCanvas.getBuffer();
     }
 
-    public void advanceTypeCell() {
-        mpCanvas.advanceTypeCell();
-    }
-
     public void redrawCanvas() {
         mpCanvas.redrawCanvas();
     }
@@ -508,16 +437,16 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 
     public void addBlankMap(int w, int h) {
         int[][] newMap = new int[h][w];
-        for (int y = 0; y < newMap.length; y++) {
-            for (int x = 0; x < newMap[y].length; x++) {
-                newMap[y][x] = TIGlobals.SPACECHAR;
-            }
+        for (int[] ints : newMap) {
+            Arrays.fill(ints, TIGlobals.SPACECHAR);
         }
         arMaps.add(newMap);
         arClrs.add((mpCanvas != null ? getColorScreen() : 15));
-        HashMap<Point, ArrayList<Integer>> spriteMap = new HashMap<Point, ArrayList<Integer>>();
+        HashMap<Point, ArrayList<Integer>> spriteMap = new HashMap<>();
         spriteMaps.add(spriteMap);
-        mpCanvas.setSpriteMap(spriteMap);
+        if (mpCanvas != null) {
+            mpCanvas.setSpriteMap(spriteMap);
+        }
     }
 
     public void addBlankMap() {
@@ -579,14 +508,10 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     }
 
     public HashMap<Point, ArrayList<Integer>> cloneSpriteMap(HashMap<Point, ArrayList<Integer>> spriteMap) {
-        HashMap<Point, ArrayList<Integer>> cloneSpriteMap = new HashMap<Point, ArrayList<Integer>>();
+        HashMap<Point, ArrayList<Integer>> cloneSpriteMap = new HashMap<>();
         for (Point p : spriteMap.keySet()) {
-            ArrayList<Integer> cloneSpriteList = new ArrayList<Integer>();
-            for (Integer i : spriteMap.get(p)) {
-                cloneSpriteList.add(i);
-            }
+            ArrayList<Integer> cloneSpriteList = new ArrayList<>(spriteMap.get(p));
             cloneSpriteMap.put(new HashPoint(p), cloneSpriteList);
-
         }
         return cloneSpriteMap;
     }
@@ -609,7 +534,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     public void swapMaps(int mapA, int mapB) {
         if (mapA != mapB) {
             int[][] tmpMap = getMapData(mapA);
-            Integer tmpClr = getScreenColor(mapA);
+            int tmpClr = getScreenColor(mapA);
             HashMap<Point, ArrayList<Integer>> tmpSpr = getSpriteMap(mapA);
             storeMap(mapA, getMapData(mapB), getScreenColor(mapB), getSpriteMap(mapB));
             storeMap(mapB, tmpMap, tmpClr, tmpSpr);
@@ -782,10 +707,6 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         mapSelectListeners.add(mappSelectListener);
     }
 
-    public void removeMapSelectListener(MapSelectListener mapSelectListener) {
-        mapSelectListeners.remove(mapSelectListener);
-    }
-
     private void notifyMapSelectListeners() {
         for (MapSelectListener mapSelectListener : mapSelectListeners) {
             mapSelectListener.mapSelected();
@@ -811,7 +732,10 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             mpCanvas.revalidate();
             jsclCanvas.revalidate();
         } else if (ie.getSource().equals(jcmbGridScale)) {
-            mpCanvas.setGridScale((Integer) jcmbGridScale.getSelectedItem());
+            Integer selectedScale = (Integer) jcmbGridScale.getSelectedItem();
+            if (selectedScale != null) {
+                mpCanvas.setGridScale(selectedScale);
+            }
             mpCanvas.redrawCanvas();
             mpCanvas.revalidate();
             jsclCanvas.revalidate();

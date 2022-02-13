@@ -14,15 +14,12 @@ import com.dreamcodex.ti.iface.UndoRedoListener;
 import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.*;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
@@ -72,7 +69,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     private static final String APPTITLE = "Magellan v" + VERSION_NUMBER + " : TI-99/4A Map Editor";
 
-    private static final int FONT_ROWS = 32;
     private static final int FONT_COLS = 8;
 
     private static final int SPRITE_COLS = 4;
@@ -110,7 +106,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     // Character editor
     private GridCanvas gcChar;
     private JTextField jtxtChar;
-    private JButton jbtnUpdateChar;
     private JButton jbtnLook;
     private JButton jbtnCharUndo;
     private JButton jbtnCharRedo;
@@ -126,7 +121,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     // Sprite editor
     private GridCanvas gcSprite;
     private JTextField jtxtSprite;
-    private JButton jbtnUpdateSprite;
     private JButton jbtnSpriteUndo;
     private JButton jbtnSpriteRedo;
     private JLabel jlblSpriteInt;
@@ -186,10 +180,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     public void run() {
 
-        try {
-            setIconImage(new ImageIcon(getClass().getResource("images/icon64.png")).getImage());
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
+        URL icon = getClass().getResource("images/icon64.png");
+        if (icon != null) {
+            setIconImage(new ImageIcon(icon).getImage());
         }
 
         // Create map editor panel (needs to initialise early for the listeners)
@@ -204,17 +197,17 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         // Initialize data structures
 
         // Default characters
-        defaultChars = new HashMap<Integer, int[][]>();
+        defaultChars = new HashMap<>();
         for (int ch = TIGlobals.CHARMAPSTART; ch <= TIGlobals.CHARMAPEND; ch++) {
             defaultChars.put(ch, Globals.getIntGrid(TIGlobals.DEFAULT_TI_CHARS[ch - TIGlobals.CHARMAPSTART], 8));
         }
 
         // Character structures
-        dataSet.setCharGrids(new HashMap<Integer, int[][]>());
+        dataSet.setCharGrids(new HashMap<>());
         if (colorMode == COLOR_MODE_BITMAP) {
-            dataSet.setCharColors(new HashMap<Integer, int[][]>());
+            dataSet.setCharColors(new HashMap<>());
         }
-        dataSet.setCharImages(new HashMap<Integer, Image>());
+        dataSet.setCharImages(new HashMap<>());
         int[][] clrSets = dataSet.getClrSets();
         HashMap<Integer, int[][]> charGrids = dataSet.getCharGrids();
         HashMap<Integer, int[][]> charColors = dataSet.getCharColors();
@@ -244,9 +237,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
 
         // Sprite structures
-        HashMap<Integer, int[][]> spriteGrids = new HashMap<Integer, int[][]>();
+        HashMap<Integer, int[][]> spriteGrids = new HashMap<>();
         dataSet.setSpriteGrids(spriteGrids);
-        HashMap<Integer, Image> spriteImages = new HashMap<Integer, Image>();
+        HashMap<Integer, Image> spriteImages = new HashMap<>();
         dataSet.setSpriteImages(spriteImages);
         int[] spriteColors = dataSet.getSpriteColors();
         for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
@@ -277,13 +270,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         gcSprite.addUndoRedoListener(this);
         mapdMain.addMapChangeListener(this);
         mapdMain.addScreenColorListener(this);
-        jtbpEdit.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                boolean spriteMode = jtbpEdit.getSelectedIndex() == 1;
-                mapdMain.setSpriteMode(spriteMode);
-                if (spriteMode) {
-                    jbtnLook.setBackground(Globals.CLR_BUTTON_NORMAL);
-                }
+        jtbpEdit.addChangeListener(e -> {
+            boolean spriteMode = jtbpEdit.getSelectedIndex() == 1;
+            mapdMain.setSpriteMode(spriteMode);
+            if (spriteMode) {
+                jbtnLook.setBackground(Globals.CLR_BUTTON_NORMAL);
             }
         });
 
@@ -291,13 +282,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         updateCharButtons();
 
         SwingUtilities.invokeLater(
-            new Runnable() {
-                public void run() {
-                    editDefault();
-                    // Open command line file
-                    if (openFilePath != null) {
-                        new OpenDataFileAction("", openFilePath, Magellan.this, mapdMain, dataSet, preferences).actionPerformed(null);
-                    }
+            () -> {
+                editDefault();
+                // Open command line file
+                if (openFilePath != null) {
+                    new OpenDataFileAction("", openFilePath, Magellan.this, mapdMain, dataSet, preferences).actionPerformed(null);
                 }
             }
         );
@@ -581,7 +570,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jtxtChar = new JTextField();
         jpnlCharTool.add(jtxtChar, BorderLayout.CENTER);
         JPanel jpnlCharToolbar = getPanel(new GridLayout(1, 3));
-        jbtnUpdateChar = getToolButton(Globals.CMD_UPDATE_CHR, "Set Char");
+        JButton jbtnUpdateChar = getToolButton(Globals.CMD_UPDATE_CHR, "Set Char");
         jbtnUpdateChar.addActionListener(this);
         jpnlCharToolbar.add(jbtnUpdateChar);
 
@@ -675,7 +664,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         jtxtSprite = new JTextField();
         jpnlSpriteTool.add(jtxtSprite, BorderLayout.CENTER);
         JPanel jpnlSpriteToolbar = getPanel(new GridLayout(1, 3));
-        jbtnUpdateSprite = getToolButton(Globals.CMD_UPDATE_SPR, "Set Sprite");
+        JButton jbtnUpdateSprite = getToolButton(Globals.CMD_UPDATE_SPR, "Set Sprite");
         jbtnUpdateSprite.addActionListener(this);
         jpnlSpriteToolbar.add(jbtnUpdateSprite);
 
@@ -934,7 +923,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected JButton getToolButton(Action action, String tooltip) {
-        JButton jbtnTool = getToolButton((ImageIcon) null, tooltip, CLR_BUTTON_NORMAL);
+        JButton jbtnTool = getToolButton((ImageIcon) null, CLR_BUTTON_NORMAL);
         jbtnTool.setAction(action);
         jbtnTool.setToolTipText(tooltip);
         return jbtnTool;
@@ -945,14 +934,14 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
     protected JButton getToolButton(String buttonKey, String tooltip, Color bgcolor) {
-        JButton jbtnTool = getToolButton(getIcon(buttonKey), tooltip, bgcolor);
+        JButton jbtnTool = getToolButton(getIcon(buttonKey), bgcolor);
         jbtnTool.setToolTipText(tooltip);
         jbtnTool.setActionCommand(buttonKey);
         jbtnTool.addActionListener(this);
         return jbtnTool;
     }
 
-    private JButton getToolButton(ImageIcon imageIcon, String tooltip, Color bgcolor) {
+    private JButton getToolButton(ImageIcon imageIcon, Color bgcolor) {
         JButton jbtnTool = new JButton(imageIcon);
         jbtnTool.setMargin(new Insets(0, 0, 0, 0));
         jbtnTool.setBackground(bgcolor);
@@ -1417,21 +1406,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 }
             } else if (command.startsWith(Globals.CMD_CLRBACK_SPR)) {
                 int index = Integer.parseInt(command.substring(Globals.CMD_CLRBACK_SPR.length()));
-                if (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) {
-                    // Mark the selected background color
-                    /*
-                    for (DualClickButton colorButton : spriteColorDockButtons) {
-                        if ("B".equals(colorButton.getText())) {
-                            colorButton.setText("");
-                        }
-                    }
-                    spriteColorDockButtons[index].setText("B");
-                    updateSpriteButton(activeSprite);
-                    gcSprite.setColorBack(index);
-                    gcSprite.redrawCanvas();
-                    */
-                }
-                else {
+                if (colorMode != COLOR_MODE_GRAPHICS_1 && colorMode != COLOR_MODE_BITMAP) {
                     if ((ae.getModifiers() & (ActionEvent.SHIFT_MASK | KeyEvent.CTRL_MASK)) == 0) {
                         gcSprite.setColorBack(index);
                     }
@@ -1760,7 +1735,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         preferences.setColorMode(colorMode);
         buildColorDocks();
         // Characters
-        HashMap<Integer, int[][]> charColors = new HashMap<Integer, int[][]>();
+        HashMap<Integer, int[][]> charColors = new HashMap<>();
         dataSet.setCharColors(charColors);
         for (int ch = TIGlobals.MIN_CHAR; ch <= TIGlobals.MAX_CHAR; ch++) {
             int[][] emptyColors = new int[8][2];
@@ -2135,7 +2110,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 }
             }
         });
-        JOptionPane.showMessageDialog(this, jEditorPane, title, JOptionPane.INFORMATION_MESSAGE, new ImageIcon(getClass().getResource("images/logo.png")));
+        URL logo = getClass().getResource("images/logo.png");
+        JOptionPane.showMessageDialog(this, jEditorPane, title, JOptionPane.INFORMATION_MESSAGE, logo != null ? new ImageIcon(logo) : null);
     }
 
     public void showError(String title, String message) {

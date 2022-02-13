@@ -63,21 +63,20 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     protected MouseListener parentMouseListener;
     protected MouseMotionListener parentMouseMotionListener;
-    protected ArrayList<MapChangeListener> mapChangeListeners = new ArrayList<MapChangeListener>();
+    protected ArrayList<MapChangeListener> mapChangeListeners = new ArrayList<>();
     protected UndoManager undoManager;
     protected CompoundEdit strokeEdit;
 
 // Convenience Variables -------------------------------------------------------------------/
 
-    private Rectangle currBounds = (Rectangle) null;
     private int gridOffsetX = 0;
     private int gridOffsetY = 0;
-    private int optScale = 8;
-    private Point hotCell = new Point(PT_OFFGRID);
-    private Point typeCell = new Point(PT_OFFGRID);
-    private Point cloneCell = new Point(PT_OFFGRID);
-    private Rectangle rectClone = (Rectangle) null;
-    private Point ptLastGrid = new Point(PT_OFFGRID);
+    private final int optScale;
+    private final Point hotCell = new Point(PT_OFFGRID);
+    private final Point typeCell = new Point(PT_OFFGRID);
+    private final Point cloneCell = new Point(PT_OFFGRID);
+    private Rectangle rectClone = null;
+    private final Point ptLastGrid = new Point(PT_OFFGRID);
     private boolean isTyping = false;
 
 // Constructors ----------------------------------------------------------------------------/
@@ -95,7 +94,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 gridData[y][x] = TIGlobals.SPACECHAR;
             }
         }
-        spriteMap = new HashMap<Point, ArrayList<Integer>>();
+        spriteMap = new HashMap<>();
         optScale = cellSize;
         clrGrid = new Color(128, 128, 128);
         clrHigh = Globals.CLR_HIGHLIGHT;
@@ -103,8 +102,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
         bufferDraw = getImageBuffer(gridWidth * optScale, gridHeight * optScale);
 
-        hmCharImages = new HashMap<Integer, Image>();
-        hmSpriteImages = new HashMap<Integer, Image>();
+        hmCharImages = new HashMap<>();
+        hmSpriteImages = new HashMap<>();
 
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
@@ -130,18 +129,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         return spriteMap;
     }
 
-    public Color getColorHigh() {
-        return clrHigh;
-    }
-
-    public Color getColorType() {
-        return clrType;
-    }
-
-    public boolean isPaintOn() {
-        return paintOn;
-    }
-
     public int getActiveChar() {
         return activeChar;
     }
@@ -156,10 +143,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public int getColorScreen() {
         return colorScreen;
-    }
-
-    public int getColorScreenTI() {
-        return colorScreen + 1;
     }
 
     public boolean isShowGrid() {
@@ -178,24 +161,12 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         return floodFillModeOn;
     }
 
-    public int[][] getCloneArray() {
-        return cloneArray;
-    }
-
     public int getLookChar() {
         return lookChar;
     }
 
     public Point getHotCell() {
         return hotCell;
-    }
-
-    public Point getCloneCell() {
-        return cloneCell;
-    }
-
-    public Point getTypeCell() {
-        return typeCell;
     }
 
     public boolean showTypeCell() {
@@ -215,18 +186,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         clrGrid = clr;
     }
 
-    public void setColorHigh(Color clr) {
-        clrHigh = clr;
-    }
-
-    public void setColorType(Color clr) {
-        clrType = clr;
-    }
-
-    public void setPaintOn(boolean b) {
-        paintOn = b;
-    }
-
     public void setActiveChar(int i) {
         activeChar = i;
     }
@@ -243,10 +202,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setColorScreen(int i) {
         colorScreen = i;
-    }
-
-    public void setColorScreenTI(int i) {
-        colorScreen = i - 1;
     }
 
     public void setShowGrid(boolean b) {
@@ -269,24 +224,12 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         this.floodFillModeOn = floodFillMode;
     }
 
-    public void setCloneArray(int[][] ar) {
-        cloneArray = ar;
-    }
-
-    public void setLookChar(int i) {
-        lookChar = i;
-    }
-
     public void setHotCell(Point pt) {
         hotCell.setLocation(pt);
     }
 
     public void setCloneCell(Point pt) {
         cloneCell.setLocation(pt);
-    }
-
-    public void setTypeCell(Point pt) {
-        typeCell.setLocation(pt);
     }
 
     public void setTypeCellOn(boolean b) {
@@ -432,11 +375,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public int setSprite(Point p, int spriteNum) {
         HashPoint hp = new HashPoint(p);
-        ArrayList<Integer> spriteList = spriteMap.get(hp);
-        if (spriteList == null) {
-            spriteList = new ArrayList<Integer>();
-            spriteMap.put(hp, spriteList);
-        }
+        ArrayList<Integer> spriteList = spriteMap.computeIfAbsent(hp, k -> new ArrayList<>());
         if (!spriteList.contains(spriteNum) && hmSpriteImages.containsKey(spriteNum)) {
             if (spriteList.add(spriteNum)) {
                 return spriteNum;
@@ -471,7 +410,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void clearSpriteMap() {
-        spriteMap = new HashMap<Point, ArrayList<Integer>>();
+        spriteMap = new HashMap<>();
     }
 
     public boolean getViewCharLayer() {
@@ -632,7 +571,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         try {
             int size = optScale * viewScale;
             this.setPreferredSize(new Dimension(gridData[0].length * size, gridData.length * size));
-            currBounds = this.getBounds();
+            Rectangle currBounds = this.getBounds();
             gridOffsetX = (currBounds.width - (size * gridData[0].length)) / 2;
             gridOffsetY = (currBounds.height - (size * gridData.length)) / 2;
             g.drawRect(gridOffsetX - 1, gridOffsetY - 1, (size * gridData[0].length) + 1, (size * gridData.length) + 1);
@@ -678,17 +617,11 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private void setAllGrid(int v) {
         int[][] oldValue = getGridDataCopy();
-        for (int y = 0; y < gridData.length; y++) {
-            for (int x = 0; x < gridData[y].length; x++) {
-                gridData[y][x] = v;
-            }
+        for (int[] gridDatum : gridData) {
+            Arrays.fill(gridDatum, v);
         }
         redrawCanvas();
         undoManager.undoableEditHappened(new UndoableEditEvent(this, new AllMapEdit(oldValue)));
-    }
-
-    public void wipeGrid() {
-        setAllGrid(NOCHAR);
     }
 
     public void clearGrid() {
@@ -758,15 +691,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     protected BufferedImage getImageBuffer(int width, int height) {
-        BufferedImage bimgNew = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        while (bimgNew == null) {
-            bimgNew = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ie) {
-            }
-        }
-        return bimgNew;
+        return new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     }
 
 // Class Methods ---------------------------------------------------------------------------/
@@ -914,9 +839,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                     rectClone = getCloneRectangle(clickCell);
                     cloneArray = new int[rectClone.height - rectClone.y][rectClone.width - rectClone.x];
                     for (int y = 0; y < cloneArray.length; y++) {
-                        for (int x = 0; x < cloneArray[y].length; x++) {
-                            cloneArray[y][x] = gridData[rectClone.y + y][rectClone.x + x];
-                        }
+                        System.arraycopy(gridData[rectClone.y + y], rectClone.x, cloneArray[y], 0, cloneArray[y].length);
                     }
                     setCloneCell(PT_OFFGRID);
                 } else {
@@ -1143,7 +1066,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private class RotationEdit extends AbstractUndoableEdit {
 
-        private boolean left;
+        private final boolean left;
 
         public RotationEdit(boolean left) {
             this.left = left;
