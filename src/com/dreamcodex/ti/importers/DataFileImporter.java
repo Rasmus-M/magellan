@@ -46,6 +46,7 @@ public class DataFileImporter extends Importer {
         int spriteRead2 = TIGlobals.MIN_SPRITE;
         int spritePalNo = 0;
         int spriteColNo = 0;
+        int spriteCoordinateScale = 8;
         do {
             lineIn = br.readLine();
             if (lineIn == null) {
@@ -182,11 +183,15 @@ public class DataFileImporter extends Importer {
                     mapX = 0;
                     mapY++;
                 }
+                else if (lineIn.startsWith(Globals.KEY_SPRITE_LOCATION_PIXELS)) {
+                    lineIn = lineIn.substring(Globals.KEY_MAPDATA.length());
+                    spriteCoordinateScale = Integer.parseInt(lineIn) == 1 ? 1 : 8;
+                }
                 else if (lineIn.startsWith(Globals.KEY_SPRITE_LOCATION)) {
                     lineIn = lineIn.substring(Globals.KEY_MAPDATA.length());
                     String[] lineParts = lineIn.split("\\|");
                     if (lineParts.length == 3) {
-                        HashPoint p = new HashPoint(Integer.parseInt(lineParts[0]), Integer.parseInt(lineParts[1]));
+                        HashPoint p = new HashPoint(spriteCoordinateScale * Integer.parseInt(lineParts[0]), spriteCoordinateScale * Integer.parseInt(lineParts[1]));
                         int spriteNum = Integer.parseInt(lineParts[2]);
                         HashMap<Point, ArrayList<Integer>> spriteMap = mapEditor.getSpriteMap();
                         ArrayList<Integer> spriteList = spriteMap.get(p);

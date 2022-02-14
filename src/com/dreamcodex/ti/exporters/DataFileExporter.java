@@ -167,6 +167,8 @@ public class DataFileExporter extends Exporter {
             }
             bw.write("* SPRITE LOCATIONS");
             bw.newLine();
+            bw.write(Globals.KEY_SPRITE_LOCATION_PIXELS + "1");
+            bw.newLine();
             HashMap<Point, ArrayList<Integer>> spriteMap = mapEditor.getSpriteMap(m);
             for (Point p : spriteMap.keySet()) {
                 ArrayList<Integer> spriteList = spriteMap.get(p);

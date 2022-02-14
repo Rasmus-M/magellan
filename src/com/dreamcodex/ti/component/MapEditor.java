@@ -25,7 +25,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 
 // Components ------------------------------------------------------------------------------/
 
-    protected MapCanvas mpCanvas;
+    protected MapCanvas mapCanvas;
     protected JScrollPane jsclCanvas;
     protected JComboBox<Integer> jcmbScreen;
     protected JComboBox<String> jcmbMagnif;
@@ -70,15 +70,15 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         undoManager = new NotifyingUndoManager();
         undoManager.addUndoRedoListener(this);
 
-        mpCanvas = new MapCanvas(gridWidth, gridHeight, cellSize, mlParent, mmlParent, undoManager);
+        mapCanvas = new MapCanvas(gridWidth, gridHeight, cellSize, mlParent, mmlParent, undoManager);
 
-        arMaps.add(mpCanvas.getGridData());
-        arClrs.add(mpCanvas.getColorScreen());
-        spriteMaps.add(mpCanvas.getSpriteMap());
+        arMaps.add(mapCanvas.getGridData());
+        arClrs.add(mapCanvas.getColorScreen());
+        spriteMaps.add(mapCanvas.getSpriteMap());
 
         jcmbScreen = new JComboBox<>(TIGlobals.TI_PALETTE_SELECT_VALUES);
         jcmbScreen.addItemListener(this);
-        jcmbScreen.setSelectedIndex(mpCanvas.getColorScreen());
+        jcmbScreen.setSelectedIndex(mapCanvas.getColorScreen());
         jcmbScreen.setRenderer(new ColorComboRenderer());
 
         jcmbMagnif = new JComboBox<>(MAGNIFICATIONS);
@@ -113,7 +113,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         jbtnRedo = getToolButton(Globals.CMD_REDO_CHR, "Redo Edit");
         jbtnRedo.setEnabled(false);
 
-        jbtnTextCursor.setBackground(mpCanvas.showTypeCell() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL);
+        jbtnTextCursor.setBackground(mapCanvas.showTypeCell() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL);
         jlblMapNum = getLabel("", JLabel.CENTER);
         jtxtWidth = getTextField("" + gridWidth);
         jtxtHeight = getTextField("" + gridHeight);
@@ -167,68 +167,68 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         jpnlStatus.add(jlblPosLabel);
         jpnlStatus.add(jlblPosIndic);
 
-        jsclCanvas = new JScrollPane(mpCanvas);
+        jsclCanvas = new JScrollPane(mapCanvas);
         jsclCanvas.setBorder(BorderFactory.createLineBorder(new Color(64, 64, 64), 1));
 
         this.add(jsclCanvas, BorderLayout.CENTER);
         this.add(jpnlToolsContainer, BorderLayout.NORTH);
         this.add(jpnlStatus, BorderLayout.SOUTH);
 
-        mpCanvas.requestFocus();
+        mapCanvas.requestFocus();
     }
 
 // Accessors -------------------------------------------------------------------------------/
 
     public int[][] getGridData() {
-        return mpCanvas.getGridData();
+        return mapCanvas.getGridData();
     }
 
     public HashMap<Point, ArrayList<Integer>> getSpriteMap() {
-        return mpCanvas.getSpriteMap();
+        return mapCanvas.getSpriteMap();
     }
 
     public Color getColorGrid() {
-        return mpCanvas.getColorGrid();
+        return mapCanvas.getColorGrid();
     }
 
     public int getViewScale() {
-        return mpCanvas.getViewScale();
+        return mapCanvas.getViewScale();
     }
 
     public int getColorScreen() {
-        return mpCanvas.getColorScreen();
+        return mapCanvas.getColorScreen();
     }
 
     public boolean isShowGrid() {
-        return mpCanvas.isShowGrid();
+        return mapCanvas.isShowGrid();
     }
 
     public boolean isFloodFillModeOn() {
-        return mpCanvas.isFloodFillModeOn();
+        return mapCanvas.isFloodFillModeOn();
     }
 
     public int getGridScale() {
-        return mpCanvas.getGridScale();
+        return mapCanvas.getGridScale();
     }
 
     public boolean isLookModeOn() {
-        return mpCanvas.isLookModeOn();
+        return mapCanvas.isLookModeOn();
     }
 
     public boolean isCloneModeOn() {
-        return mpCanvas.isCloneModeOn();
+        return mapCanvas.isCloneModeOn();
     }
 
     public int getLookChar() {
-        return mpCanvas.getLookChar();
+        return mapCanvas.getLookChar();
     }
 
     public Point getHotCell() {
-        return mpCanvas.getHotCell();
+        return mapCanvas.getHotCell();
     }
 
     public boolean showTypeCell() {
-        return mpCanvas.showTypeCell();
+        return mapCanvas.showTypeCell();
     }
 
     public int getMapCount() {
@@ -276,55 +276,55 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     }
 
     public void setColorGrid(Color clr) {
-        mpCanvas.setColorGrid(clr);
+        mapCanvas.setColorGrid(clr);
     }
 
     public void setActiveChar(int i) {
-        mpCanvas.setActiveChar(i);
+        mapCanvas.setActiveChar(i);
     }
 
     public void setActiveSprite(int i) {
-        mpCanvas.setActiveSprite(i);
+        mapCanvas.setActiveSprite(i);
     }
 
     public void setViewScale(int i) {
-        mpCanvas.setViewScale(i);
+        mapCanvas.setViewScale(i);
         jcmbMagnif.setSelectedIndex(i - 1);
     }
 
     public void setGridScale(int i) {
-        mpCanvas.setGridScale(i);
+        mapCanvas.setGridScale(i);
         jcmbGridScale.setSelectedItem(i);
     }
 
     public void setColorScreen(int i) {
-        mpCanvas.setColorScreen(i);
+        mapCanvas.setColorScreen(i);
         jcmbScreen.setSelectedIndex(i);
     }
 
     public void setShowGrid(boolean b) {
-        mpCanvas.setShowGrid(b);
+        mapCanvas.setShowGrid(b);
     }
 
     public void setLookModeOn(boolean b) {
-        mpCanvas.setLookModeOn(b);
+        mapCanvas.setLookModeOn(b);
     }
 
     public void setCloneModeOn(boolean b) {
-        mpCanvas.setCloneModeOn(b);
+        mapCanvas.setCloneModeOn(b);
     }
 
     public void toggleCloneMode() {
-        mpCanvas.toggleCloneMode();
+        mapCanvas.toggleCloneMode();
     }
 
     public void setTypeCellOn(boolean b) {
-        mpCanvas.setTypeCellOn(b);
+        mapCanvas.setTypeCellOn(b);
     }
 
     public void setBkgrndColor(Color clr) {
         this.setBackground(clr);
-        mpCanvas.setBackground(clr);
+        mapCanvas.setBackground(clr);
     }
 
     public void setCurrentMapId(int i) {
@@ -352,39 +352,39 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     }
 
     public int getGridWidth() {
-        return mpCanvas.getGridWidth();
+        return mapCanvas.getGridWidth();
     }
 
     public int getGridHeight() {
-        return mpCanvas.getGridHeight();
+        return mapCanvas.getGridHeight();
     }
 
     public void setGridWidth(int i) {
-        mpCanvas.setGridWidth(i);
+        mapCanvas.setGridWidth(i);
     }
 
     public void setGridHeight(int i) {
-        mpCanvas.setGridHeight(i);
+        mapCanvas.setGridHeight(i);
     }
 
     public void highlightCell(int x, int y) {
-        mpCanvas.highlightCell(x, y);
+        mapCanvas.highlightCell(x, y);
     }
 
     public void removeAllHighlights() {
-        mpCanvas.removeAllHighlights();
+        mapCanvas.removeAllHighlights();
     }
 
     public void setGridAt(int x, int y, int v) {
-        mpCanvas.setGridAt(x, y, v);
+        mapCanvas.setGridAt(x, y, v);
     }
 
     public void setCharImage(int charnum, Image img) {
-        mpCanvas.setCharImage(charnum, img);
+        mapCanvas.setCharImage(charnum, img);
     }
 
     public void setSpriteImage(int spritenum, Image img) {
-        mpCanvas.setSpriteImage(spritenum, img);
+        mapCanvas.setSpriteImage(spritenum, img);
     }
 
     public void setSpriteMode(boolean enabled) {
@@ -393,40 +393,48 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             setCloneModeOn(false);
             setTypeCellOn(false);
         }
-        mpCanvas.setSpriteMode(enabled);
+        mapCanvas.setSpriteMode(enabled);
         updateComponents();
     }
 
     public boolean getViewCharLayer() {
-        return mpCanvas.getViewCharLayer();
+        return mapCanvas.getViewCharLayer();
     }
 
     public void setViewCharLayer(boolean viewCharLayer) {
-        mpCanvas.setViewCharLayer(viewCharLayer);
+        mapCanvas.setViewCharLayer(viewCharLayer);
     }
 
     public boolean getViewSpriteLayer() {
-        return mpCanvas.getViewSpriteLayer();
+        return mapCanvas.getViewSpriteLayer();
     }
 
     public void setViewSpriteLayer(boolean viewSpriteLayer) {
-        mpCanvas.setViewSpriteLayer(viewSpriteLayer);
+        mapCanvas.setViewSpriteLayer(viewSpriteLayer);
     }
 
     public boolean getMagnifySprites() {
-        return mpCanvas.getMagnifySprites();
+        return mapCanvas.getMagnifySprites();
     }
 
     public void setMagnifySprites(boolean magnifySprites) {
-        mpCanvas.setMagnifySprites(magnifySprites);
+        mapCanvas.setMagnifySprites(magnifySprites);
+    }
+
+    public boolean getSnapSpritesToGrid() {
+        return mapCanvas.getSnapSpritesToGrid();
+    }
+
+    public void setSnapSpritesToGrid(boolean snapSpritesToGrid) {
+        mapCanvas.setSnapSpritesToGrid(snapSpritesToGrid);
     }
 
     public BufferedImage getBuffer() {
-        return mpCanvas.getBuffer();
+        return mapCanvas.getBuffer();
     }
 
     public void redrawCanvas() {
-        mpCanvas.redrawCanvas();
+        mapCanvas.redrawCanvas();
     }
 
     public void addMap(int[][] mapdata, int scrclr, HashMap<Point, ArrayList<Integer>> spriteMap) {
@@ -441,11 +449,11 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             Arrays.fill(ints, TIGlobals.SPACECHAR);
         }
         arMaps.add(newMap);
-        arClrs.add((mpCanvas != null ? getColorScreen() : 15));
+        arClrs.add((mapCanvas != null ? getColorScreen() : 15));
         HashMap<Point, ArrayList<Integer>> spriteMap = new HashMap<>();
         spriteMaps.add(spriteMap);
-        if (mpCanvas != null) {
-            mpCanvas.setSpriteMap(spriteMap);
+        if (mapCanvas != null) {
+            mapCanvas.setSpriteMap(spriteMap);
         }
     }
 
@@ -490,13 +498,13 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     }
 
     public void storeCurrentMap() {
-        storeMap(currMap, mpCanvas.getGridData(), mpCanvas.getColorScreen(), mpCanvas.getSpriteMap());
+        storeMap(currMap, mapCanvas.getGridData(), mapCanvas.getColorScreen(), mapCanvas.getSpriteMap());
     }
 
     public void updateState(int index) {
-        mpCanvas.setGridData(arMaps.get(index));
-        mpCanvas.setColorScreen(arClrs.get(index));
-        mpCanvas.setSpriteMap(spriteMaps.get(index));
+        mapCanvas.setGridData(arMaps.get(index));
+        mapCanvas.setColorScreen(arClrs.get(index));
+        mapCanvas.setSpriteMap(spriteMaps.get(index));
     }
 
     public int[][] cloneMapArray(int[][] mapsrc) {
@@ -622,15 +630,15 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 // Rendering Methods -----------------------------------------------------------------------/
 
     public void clearGrid() {
-        mpCanvas.clearGrid();
+        mapCanvas.clearGrid();
     }
 
     public void fillGrid(int v) {
-        mpCanvas.fillGrid(v);
+        mapCanvas.fillGrid(v);
     }
 
     public void clearSpriteMap() {
-        mpCanvas.clearSpriteMap();
+        mapCanvas.clearSpriteMap();
     }
 
     public void updateComponents() {
@@ -646,12 +654,12 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             jbtnBackMap.setEnabled(false);
             jbtnForwMap.setEnabled(false);
         }
-        jcmbScreen.setSelectedIndex(mpCanvas.getColorScreen());
+        jcmbScreen.setSelectedIndex(mapCanvas.getColorScreen());
         jsclCanvas.revalidate();
         jlblMapNum.setText((currMap + 1) + " / " + getMapCount());
-        jtxtWidth.setText("" + mpCanvas.getGridWidth());
-        jtxtHeight.setText("" + mpCanvas.getGridHeight());
-        jbtnTextCursor.setBackground(mpCanvas.showTypeCell() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL);
+        jtxtWidth.setText("" + mapCanvas.getGridWidth());
+        jtxtHeight.setText("" + mapCanvas.getGridHeight());
+        jbtnTextCursor.setBackground(mapCanvas.showTypeCell() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL);
         jbtnClone.setBackground(isCloneModeOn() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL);
         jbtnToggleGrid.setBackground(isShowGrid() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL);
         jbtnFloodFillMode.setBackground(isFloodFillModeOn() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL);
@@ -663,10 +671,18 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             if (getHotCell().equals(MapCanvas.PT_OFFGRID)) {
                 jlblPosIndic.setText("(X, Y) = ( - , - ) = ( - , - )    (PX, PY) = ( - , - ) = ( - , - )");
             } else {
-                int posx = (int) getHotCell().getX();
-                int posy = (int) getHotCell().getY();
-                int pixx = posx * 8;
-                int pixy = posy * 8;
+                int posx, posy, pixx, pixy;
+                if (mapCanvas.isSpriteMode()) {
+                    pixx = (int) getHotCell().getX();
+                    pixy = (int) getHotCell().getY();
+                    posx = pixx / 8;
+                    posy = pixy / 8;
+                } else {
+                    posx = (int) getHotCell().getX();
+                    posy = (int) getHotCell().getY();
+                    pixx = posx * 8;
+                    pixy = posy * 8;
+                }
                 if (!base0forPosition) {
                     posx++;
                     posy++;
@@ -689,12 +705,12 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
 
     public void addMapChangeListener(MapChangeListener mapChangeListener) {
         mapChangeListeners.add(mapChangeListener);
-        mpCanvas.addMapChangeListener(mapChangeListener);
+        mapCanvas.addMapChangeListener(mapChangeListener);
     }
 
     public void removeMapChangeListener(MapChangeListener mapChangeListener) {
         mapChangeListeners.remove(mapChangeListener);
-        mpCanvas.removeMapChangeListener(mapChangeListener);
+        mapCanvas.removeMapChangeListener(mapChangeListener);
     }
 
     private void notifyMapChangedListeners() {
@@ -717,27 +733,27 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     public void itemStateChanged(ItemEvent ie) {
         if (ie.getSource().equals(jcmbScreen)) {
             boolean modified = false;
-            if (jcmbScreen.getSelectedIndex() != mpCanvas.getColorScreen()) {
-                mpCanvas.setColorScreen(jcmbScreen.getSelectedIndex());
+            if (jcmbScreen.getSelectedIndex() != mapCanvas.getColorScreen()) {
+                mapCanvas.setColorScreen(jcmbScreen.getSelectedIndex());
                 modified = true;
             }
-            mpCanvas.redrawCanvas();
+            mapCanvas.redrawCanvas();
             // Notify listeners
             for (ScreenColorListener screenColorListener : screenColorListeners) {
                 screenColorListener.screenColorChanged(getColorScreen(), modified);
             }
         } else if (ie.getSource().equals(jcmbMagnif)) {
-            mpCanvas.setViewScale(jcmbMagnif.getSelectedIndex() + 1);
-            mpCanvas.redrawCanvas();
-            mpCanvas.revalidate();
+            mapCanvas.setViewScale(jcmbMagnif.getSelectedIndex() + 1);
+            mapCanvas.redrawCanvas();
+            mapCanvas.revalidate();
             jsclCanvas.revalidate();
         } else if (ie.getSource().equals(jcmbGridScale)) {
             Integer selectedScale = (Integer) jcmbGridScale.getSelectedItem();
             if (selectedScale != null) {
-                mpCanvas.setGridScale(selectedScale);
+                mapCanvas.setGridScale(selectedScale);
             }
-            mpCanvas.redrawCanvas();
-            mpCanvas.revalidate();
+            mapCanvas.redrawCanvas();
+            mapCanvas.revalidate();
             jsclCanvas.revalidate();
         }
     }
@@ -745,7 +761,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     /* ActionListener methods */
     public void actionPerformed(ActionEvent ae) {
         try {
-            mpCanvas.requestFocus();
+            mapCanvas.requestFocus();
             if (ae.getSource().equals(jtxtWidth)) {
                 updateWidth();
             } else if (ae.getSource().equals(jtxtHeight)) {
@@ -759,35 +775,35 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     }
                 } else if (command.equals(Globals.CMD_FILL_CHR)) {
                     if (confirmationAction("Confirm Fill", "Are you sure you want to fill the map with the active character?") == JOptionPane.YES_OPTION) {
-                        fillGrid(mpCanvas.getActiveChar());
+                        fillGrid(mapCanvas.getActiveChar());
                         updateComponents();
                     }
                 } else if (command.equals(Globals.CMD_FLOOD_FILL)) {
-                    mpCanvas.toggleFloodFillMode();
+                    mapCanvas.toggleFloodFillMode();
                     updateComponents();
                 } else if (command.equals(Globals.CMD_ROTATEL_MAP)) {
-                    mpCanvas.rotateLeft(true);
+                    mapCanvas.rotateLeft(true);
                     jsclCanvas.revalidate();
                     updateComponents();
                 } else if (command.equals(Globals.CMD_ROTATER_MAP)) {
-                    mpCanvas.rotateRight(true);
+                    mapCanvas.rotateRight(true);
                     jsclCanvas.revalidate();
                     updateComponents();
                 } else if (command.equals(Globals.CMD_FLIPH_MAP)) {
-                    mpCanvas.flipHorizontal();
+                    mapCanvas.flipHorizontal();
                     updateComponents();
                     return;
                 } else if (command.equals(Globals.CMD_FLIPV_MAP)) {
-                    mpCanvas.flipVertical();
+                    mapCanvas.flipVertical();
                     updateComponents();
                     return;
                 } else if (command.equals(Globals.CMD_GRID_CHR)) {
-                    mpCanvas.toggleGrid();
+                    mapCanvas.toggleGrid();
                     updateComponents();
                     return;
                 } else if (command.equals(Globals.CMD_TCURSOR)) {
-                    if (!mpCanvas.isSpriteMode()) {
-                        mpCanvas.toggleTextCursor();
+                    if (!mapCanvas.isSpriteMode()) {
+                        mapCanvas.toggleTextCursor();
                         updateComponents();
                     }
                     return;
@@ -801,7 +817,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     storeCurrentMap();
                     clearGrid();
                     clearSpriteMap();
-                    addMap(mpCanvas.getGridData(), mpCanvas.getColorScreen(), mpCanvas.getSpriteMap());
+                    addMap(mapCanvas.getGridData(), mapCanvas.getColorScreen(), mapCanvas.getSpriteMap());
                     currMap = (arMaps.size() - 1);
                     updateComponents();
                     undoManager.discardAllEdits();
@@ -820,8 +836,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     }
                     updateState(currMap);
                     updateComponents();
-                    mpCanvas.redrawCanvas();
-                    mpCanvas.revalidate();
+                    mapCanvas.redrawCanvas();
+                    mapCanvas.revalidate();
                     jsclCanvas.revalidate();
                     undoManager.discardAllEdits();
                     notifyMapSelectListeners();
@@ -834,8 +850,8 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     }
                     updateState(currMap);
                     updateComponents();
-                    mpCanvas.redrawCanvas();
-                    mpCanvas.revalidate();
+                    mapCanvas.redrawCanvas();
+                    mapCanvas.revalidate();
                     jsclCanvas.revalidate();
                     undoManager.discardAllEdits();
                     notifyMapSelectListeners();
@@ -877,42 +893,42 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     private void updateWidth() {
         try {
             int newWidth = Integer.parseInt(jtxtWidth.getText());
-            int oldWidth = mpCanvas.getWidth();
-            mpCanvas.setGridWidth(newWidth);
+            int oldWidth = mapCanvas.getWidth();
+            mapCanvas.setGridWidth(newWidth);
             jsclCanvas.revalidate();
             if (newWidth < oldWidth) {
                 undoManager.discardAllEdits();
             }
         } catch (NumberFormatException nfe) {
-            jtxtWidth.setText("" + mpCanvas.getGridWidth());
+            jtxtWidth.setText("" + mapCanvas.getGridWidth());
         }
     }
 
     private void updateHeight() {
         try {
             int newHeight = Integer.parseInt(jtxtHeight.getText());
-            int oldHeight = mpCanvas.getHeight();
-            mpCanvas.setGridHeight(newHeight);
+            int oldHeight = mapCanvas.getHeight();
+            mapCanvas.setGridHeight(newHeight);
             jsclCanvas.revalidate();
             if (newHeight < oldHeight) {
                 undoManager.discardAllEdits();
             }
         } catch (NumberFormatException nfe) {
-            jtxtHeight.setText("" + mpCanvas.getGridHeight());
+            jtxtHeight.setText("" + mapCanvas.getGridHeight());
         }
     }
 
     /* KeyListener methods */
     public void keyTyped(KeyEvent ke) {
-        mpCanvas.keyTyped(ke);
+        mapCanvas.keyTyped(ke);
     }
 
     public void keyPressed(KeyEvent ke) {
-        mpCanvas.keyPressed(ke);
+        mapCanvas.keyPressed(ke);
     }
 
     public void keyReleased(KeyEvent ke) {
-        mpCanvas.keyReleased(ke);
+        mapCanvas.keyReleased(ke);
     }
 
     public void undoRedoStateChanged(boolean canUndo, boolean canRedo, Object source) {

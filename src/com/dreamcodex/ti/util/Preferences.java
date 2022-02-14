@@ -22,6 +22,10 @@ public class Preferences {
     private int gridScale = 1;
     private boolean showPosition = true;
     private boolean base0Position = true;
+    private boolean viewCharLayer = true;
+    private boolean viewSpriteLayer = true;
+    private boolean magnifySprites = false;
+    private boolean snapSpritesToGrid = false;
     protected boolean exportComments = true;
     protected boolean includeCharNumbers = true;
     protected boolean currentMapOnly = false;
@@ -96,6 +100,38 @@ public class Preferences {
 
     public void setBase0Position(boolean base0Position) {
         this.base0Position = base0Position;
+    }
+
+    public boolean isViewCharLayer() {
+        return viewCharLayer;
+    }
+
+    public void setViewCharLayer(boolean viewCharLayer) {
+        this.viewCharLayer = viewCharLayer;
+    }
+
+    public boolean isViewSpriteLayer() {
+        return viewSpriteLayer;
+    }
+
+    public void setViewSpriteLayer(boolean viewSpriteLayer) {
+        this.viewSpriteLayer = viewSpriteLayer;
+    }
+
+    public boolean isMagnifySprites() {
+        return magnifySprites;
+    }
+
+    public void setMagnifySprites(boolean magnifySprites) {
+        this.magnifySprites = magnifySprites;
+    }
+
+    public boolean isSnapSpritesToGrid() {
+        return snapSpritesToGrid;
+    }
+
+    public void setSnapSpritesToGrid(boolean snapSpritesToGrid) {
+        this.snapSpritesToGrid = snapSpritesToGrid;
     }
 
     public boolean isExportComments() {
@@ -296,6 +332,18 @@ public class Preferences {
         if (appProperties.getProperty("base0Position") != null) {
             base0Position = appProperties.getProperty("base0Position").equalsIgnoreCase("true");
         }
+        if (appProperties.getProperty("viewCharLayer") != null) {
+            viewCharLayer = appProperties.getProperty("viewCharLayer").equalsIgnoreCase("true");
+        }
+        if (appProperties.getProperty("viewSpriteLayer") != null) {
+            viewSpriteLayer = appProperties.getProperty("viewSpriteLayer").equalsIgnoreCase("true");
+        }
+        if (appProperties.getProperty("magnifySprites") != null) {
+            magnifySprites = appProperties.getProperty("magnifySprites").equalsIgnoreCase("true");
+        }
+        if (appProperties.getProperty("snapSpritesToGrid") != null) {
+            snapSpritesToGrid = appProperties.getProperty("snapSpritesToGrid").equalsIgnoreCase("true");
+        }
         if (appProperties.getProperty("exportComments") != null) {
             exportComments = appProperties.getProperty("exportComments").equalsIgnoreCase("true");
         }
@@ -372,6 +420,10 @@ public class Preferences {
         appProperties.setProperty("gridScale", Integer.toString(gridScale));
         appProperties.setProperty("showPosition", showPosition ? "true" : "false");
         appProperties.setProperty("base0Position", base0Position ? "true" : "false");
+        appProperties.setProperty("viewCharLayer", viewCharLayer ? "true" : "false");
+        appProperties.setProperty("viewSpriteLayer", viewSpriteLayer ? "true" : "false");
+        appProperties.setProperty("magnifySprites", magnifySprites ? "true" : "false");
+        appProperties.setProperty("snapSpritesToGrid", snapSpritesToGrid ? "true" : "false");
         appProperties.setProperty("defStartChar", "" + defStartChar);
         appProperties.setProperty("defEndChar", "" + defEndChar);
         appProperties.setProperty("defStartSprite", "" + defStartSprite);

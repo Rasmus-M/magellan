@@ -1,15 +1,11 @@
 package com.dreamcodex.ti.util;
 
-import com.dreamcodex.ti.Magellan;
-
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.List;
 import java.awt.image.ImageFilter;
 import java.awt.image.RGBImageFilter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Globals {
     public static final String CMD_NEW = "new";
@@ -115,6 +111,7 @@ public class Globals {
     public static final String CMD_VIEW_CHAR_LAYER = "viewchars";
     public static final String CMD_VIEW_SPRITE_LAYER = "viewsprites";
     public static final String CMD_MAGNIFY_SPRITES = "magnifysprites";
+    public static final String CMD_SNAP_SPRITES_TO_GRID = "snapspritestogrid";
 
     public static final String KEY_SCRBACK = "SB:"; // phasing out
     public static final String KEY_COLOR_MODE = "CM:";
@@ -137,6 +134,7 @@ public class Globals {
     public static final String KEY_SPRITE_PATTERN2 = "S2:";
     public static final String KEY_SPRITE_COLOR = "SC:";
     public static final String KEY_SPRITE_LOCATION = "SL:";
+    public static final String KEY_SPRITE_LOCATION_PIXELS = "SX:";
     public static final String KEY_MAPEND = "M-";
 
     public static final Color CLR_COMPONENTBACK = new Color(255, 255, 255);

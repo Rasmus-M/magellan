@@ -564,7 +564,7 @@ public class AssemblyDataFileExporter extends Exporter {
                             for (Integer spriteNum : spriteList) {
                                 int color = (colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP) ? spriteColors[spriteNum] : paletteMap.get(ecmSpritePalettes[spriteNum]) * (colorMode == COLOR_MODE_ECM_3 ? 2 : 1);
                                 printPaddedLine(bw, (first ? "SL" + m + (m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))) : "      ") +
-                                        (smallMap ? " BYTE " + ((p.y * 8 - 1) & 0xFF) : " DATA " + (p.y * 8)) + "," + (p.x * 8) + "," + spriteNum * 4 + "," + color, includeComments ? (first ? "y, x, pattern#, color#" : "") : null);
+                                        (smallMap ? " BYTE " + ((p.y - 1) & 0xFF) : " DATA " + p.y) + "," + p.x + "," + spriteNum * 4 + "," + color, includeComments ? (first ? "y, x, pattern#, color#" : "") : null);
                                 first = false;
                             }
                         }
