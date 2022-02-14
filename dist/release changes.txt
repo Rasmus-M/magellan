@@ -1,3 +1,18 @@
+Magellan V4.3.0
+---------------
+Allow sprites to be placed at any position
+
+Magellan V4.2.0
+---------------
+Export sprites to binary format
+Sprite magnify
+Fix to swapping sprites
+
+Magellan V4.1.0
+---------------
+Keyboard shortcurs for copy/paste
+Major refactoring of code
+
 Magellan V3.3.2
 ---------------
 * Bug fixes
