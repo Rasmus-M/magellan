@@ -307,90 +307,41 @@ public class Preferences {
     }
 
     public void readPreferences() throws IOException {
-        // Read application properties (if exist)
         File prefsFile = new File(System.getProperty("user.home") + "/Magellan.prefs");
         if (prefsFile.exists()) {
             FileInputStream fis = new FileInputStream(prefsFile);
             appProperties.load(fis);
             fis.close();
         }
-        if (appProperties.getProperty("magnif") != null) {
-            viewScale = Integer.parseInt(appProperties.getProperty("magnif"));
-        }
-        if (appProperties.getProperty("textCursor") != null) {
-            textCursor = appProperties.getProperty("textCursor").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("showGrid") != null) {
-            showGrid = appProperties.getProperty("showGrid").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("gridScale") != null) {
-            gridScale = Integer.parseInt(appProperties.getProperty("gridScale"));
-        }
-        if (appProperties.getProperty("showPosition") != null) {
-            showPosition = appProperties.getProperty("showPosition").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("base0Position") != null) {
-            base0Position = appProperties.getProperty("base0Position").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("viewCharLayer") != null) {
-            viewCharLayer = appProperties.getProperty("viewCharLayer").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("viewSpriteLayer") != null) {
-            viewSpriteLayer = appProperties.getProperty("viewSpriteLayer").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("magnifySprites") != null) {
-            magnifySprites = appProperties.getProperty("magnifySprites").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("snapSpritesToGrid") != null) {
-            snapSpritesToGrid = appProperties.getProperty("snapSpritesToGrid").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("exportComments") != null) {
-            exportComments = appProperties.getProperty("exportComments").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("includeCharNumbers") != null) {
-            includeCharNumbers = appProperties.getProperty("includeCharNumbers").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("currentMapOnly") != null) {
-            currentMapOnly = appProperties.getProperty("currentMapOnly").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("wrap") != null) {
-            wrap = appProperties.getProperty("wrap").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("includeSpriteData") != null) {
-            includeSpriteData = appProperties.getProperty("includeSpriteData").equalsIgnoreCase("true");
-        }
-        if (appProperties.getProperty("excludeBlank") != null) {
-            excludeBlank = appProperties.getProperty("excludeBlank").equalsIgnoreCase("true");
-        }
+        viewScale = getIntegerProperty("magnif", viewScale);
+        textCursor = getBooleanProperty("textCursor", textCursor);
+        showGrid = getBooleanProperty("showGrid", showGrid);
+        gridScale = getIntegerProperty("gridScale", gridScale);
+        showPosition = getBooleanProperty("showPosition", showPosition);
+        base0Position = getBooleanProperty("base0Position", base0Position);
+        viewCharLayer = getBooleanProperty("viewCharLayer", viewCharLayer);
+        viewSpriteLayer = getBooleanProperty("viewSpriteLayer", viewSpriteLayer);
+        magnifySprites = getBooleanProperty("magnifySprites", magnifySprites);
+        snapSpritesToGrid = getBooleanProperty("snapSpritesToGrid", snapSpritesToGrid);
+        exportComments = getBooleanProperty("exportComments", exportComments);
+        includeCharNumbers = getBooleanProperty("includeCharNumbers", includeCharNumbers);
+        currentMapOnly = getBooleanProperty("currentMapOnly", currentMapOnly);
+        wrap = getBooleanProperty("wrap", wrap);
+        includeSpriteData = getBooleanProperty("includeSpriteData", includeSpriteData);
+        excludeBlank = getBooleanProperty("excludeBlank", excludeBlank);
         if (appProperties.getProperty("characterSetSize") != null) {
-            characterSetCapacity = Integer.parseInt(appProperties.getProperty("characterSetSize"));
+            characterSetCapacity = getIntegerProperty("characterSetSize", characterSetCapacity);
         } else if (appProperties.getProperty("expandCharacters") != null) {
             characterSetCapacity = appProperties.getProperty("expandCharacters").equalsIgnoreCase("true") ? CHARACTER_SET_EXPANDED : CHARACTER_SET_BASIC;
         }
-        if (appProperties.getProperty("colorMode") != null) {
-            colorMode = Integer.parseInt(appProperties.getProperty("colorMode"));
-        }
-        if (appProperties.getProperty("defStartChar") != null) {
-            defStartChar = Integer.parseInt(appProperties.getProperty("defStartChar"));
-        }
-        if (appProperties.getProperty("defEndChar") != null) {
-            defEndChar = Integer.parseInt(appProperties.getProperty("defEndChar"));
-        }
-        if (appProperties.getProperty("defStartSprite") != null) {
-            defStartSprite = Integer.parseInt(appProperties.getProperty("defStartSprite"));
-        }
-        if (appProperties.getProperty("defEndSprite") != null) {
-            defEndSprite = Integer.parseInt(appProperties.getProperty("defEndSprite"));
-        }
-        if (appProperties.getProperty("compression") != null) {
-            compression = Integer.parseInt(appProperties.getProperty("compression"));
-        }
-        if (appProperties.getProperty("scrollOrientation") != null) {
-            scrollOrientation = Integer.parseInt(appProperties.getProperty("scrollOrientation"));
-        }
-        if (appProperties.getProperty("scrollFrames") != null) {
-            scrollFrames = Integer.parseInt(appProperties.getProperty("scrollFrames"));
-        }
+        colorMode = getIntegerProperty("colorMode", colorMode);
+        defStartChar = getIntegerProperty("defStartChar", defStartChar);
+        defEndChar = getIntegerProperty("defEndChar", defEndChar);
+        defStartSprite = getIntegerProperty("defStartSprite", defStartSprite);
+        defEndSprite = getIntegerProperty("defEndSprite", defEndSprite);
+        compression = getIntegerProperty("compression", compression);
+        scrollOrientation = getIntegerProperty("scrollOrientation", scrollOrientation);
+        scrollFrames = getIntegerProperty("scrollFrames", scrollFrames);
         currentDirectory = appProperties.getProperty("filePath");
         if (currentDirectory == null || currentDirectory.length() == 0) {
             currentDirectory = ".";
@@ -452,6 +403,22 @@ public class Preferences {
         recentFiles.add(0, filePath);
         while (recentFiles.size() > 10) {
             recentFiles.remove(recentFiles.size() - 1);
+        }
+    }
+
+    private int getIntegerProperty(String propertyName, int defaultValue) {
+        if (appProperties.getProperty(propertyName) != null) {
+            return Integer.parseInt(appProperties.getProperty(propertyName));
+        } else {
+            return defaultValue;
+        }
+    }
+
+    private boolean getBooleanProperty(String propertyName, boolean defaultValue) {
+        if (appProperties.getProperty(propertyName) != null) {
+            return appProperties.getProperty(propertyName).equalsIgnoreCase("true");
+        } else {
+            return defaultValue;
         }
     }
 }

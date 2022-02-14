@@ -2322,7 +2322,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     private Image generateIconImage(int charNum, Color screenColor) {
         int imageScale = 2;
-        Image image = this.createImage(gcChar.getGridData().length * imageScale, gcChar.getGridData()[0].length * imageScale);
+        int[][] gridData = gcChar.getGridData();
+        Image image = this.createImage(gridData.length * imageScale, gridData[0].length * imageScale);
         Graphics g = image.getGraphics();
         Color[] palette = colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? TIGlobals.TI_PALETTE_OPAQUE : dataSet.getEcmCharPalettes()[charNum].getColors();
         int[][] charGrid = dataSet.getCharGrids().get(charNum);
@@ -2392,6 +2393,26 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             return;
         }
         // Generate icon image
+        Image image = generateSpriteImage(spriteNum);
+        // Save image
+        dataSet.getSpriteImages().put(spriteNum, image);
+        mapEditor.setSpriteImage(spriteNum, image);
+        // Display a default text if image is empty
+        if (image == null) {
+            jbtnSprite[spriteNum].setIcon(null);
+            jbtnSprite[spriteNum].setText(Integer.toString(spriteNum));
+        }
+        else {
+            jbtnSprite[spriteNum].setIcon(new ImageIcon(image));
+            jbtnSprite[spriteNum].setText("");
+        }
+        // Redraw map as requested
+        if (redrawMap) {
+            mapEditor.redrawCanvas();
+        }
+    }
+
+    private Image generateSpriteImage(int spriteNum) {
         int imageScale = 3;
         Image image = this.createImage(gcSprite.getGridData().length * imageScale, gcSprite.getGridData()[0].length * imageScale);
         Graphics g = image.getGraphics();
@@ -2417,23 +2438,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             }
         }
         g.dispose();
-        image = makeImageTransparent(image);
-        // Save image
-        dataSet.getSpriteImages().put(spriteNum, image);
-        mapEditor.setSpriteImage(spriteNum, image);
-        // Display a default text if image is empty
-        if (empty) {
-            jbtnSprite[spriteNum].setIcon(null);
-            jbtnSprite[spriteNum].setText(Integer.toString(spriteNum));
-        }
-        else {
-            jbtnSprite[spriteNum].setIcon(new ImageIcon(image));
-            jbtnSprite[spriteNum].setText("");
-        }
-        // Redraw map as requested
-        if (redrawMap) {
-            mapEditor.redrawCanvas();
-        }
+        return !empty ? makeImageTransparent(image) : null;
     }
 
     public Color[] getScreenColorPalette() {
