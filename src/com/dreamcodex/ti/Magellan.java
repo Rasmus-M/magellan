@@ -39,7 +39,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Constants -------------------------------------------------------------------------------/
 
-    public static final String VERSION_NUMBER = "4.3.0";
+    public static final String VERSION_NUMBER = "4.4.0";
 
     public static final int CHARACTER_SET_BASIC = 0;
     public static final int CHARACTER_SET_EXPANDED = 1;
@@ -335,6 +335,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         JMenuItem jmitImportVramDump = new JMenuItem();
         jmitImportVramDump.setAction(new ImportVRAMDumpAction("VRAM Dump", this, mapEditor, dataSet, preferences));
         jmenImport.add(jmitImportVramDump);
+        JMenuItem jmitImportBinaryMap = new JMenuItem();
+        jmitImportBinaryMap.setAction(new ImportBinaryMapAction("Binary Map", this, mapEditor, dataSet, preferences));
+        jmenImport.add(jmitImportBinaryMap);
         JMenuItem jmitImportMapImage = new JMenuItem();
         jmitImportMapImage.setAction(new ImportMapImageAction("Map Image", this, mapEditor, dataSet, preferences));
         jmenImport.add(jmitImportMapImage);
