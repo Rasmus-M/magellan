@@ -249,11 +249,17 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             TransChar transChar = (TransChar) value;
             if (from) {
                 setText(Integer.toString(transChar.getFromChar()));
-                setIcon(new ImageIcon(charImages.get(transChar.getFromChar())));
+                Image image = charImages.get(transChar.getFromChar());
+                if (image != null) {
+                    setIcon(new ImageIcon(image));
+                }
             }
             else {
                 setText(Lists.commaSeparatedList(transChar.getToChars()));
-                setIcon(new ImageIcon(charImages.get(transChar.getToChar())));
+                Image image = charImages.get(transChar.getToChar());
+                if (image != null) {
+                    setIcon(new ImageIcon(image));
+                }
             }
             return this;
         }

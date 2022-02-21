@@ -122,7 +122,10 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             Integer ch = (Integer) value;
             setText(Integer.toString(ch));
-            setIcon(new ImageIcon(charImages.get(ch)));
+            Image image = charImages.get(ch);
+            if (image != null) {
+                setIcon(new ImageIcon(image));
+            }
             return this;
         }
     }
