@@ -80,7 +80,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, false, 0, TransitionType.BOTTOM_TO_TOP, -1);
     }
 
-    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeSpriteData, int compression, TransitionType scrollOrientation, int scrollFrames) {
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeSpriteData, int compression, TransitionType transitionType, int scrollFrames) {
         super(parent, "Export Settings", true);
         minChar = minc;
         maxChar = maxc;
@@ -104,13 +104,14 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         jchkExcludeBlank = new JCheckBox("Exclude Blank Characters", excludeBlank);
 
         transitionTypeComboBox = new JComboBox(TransitionType.values());
+        transitionTypeComboBox.setSelectedItem(transitionType);
         transitionTypeComboBox.addActionListener(this);
 
         jchkWrap = new JCheckBox("Wrap Edges", wrap);
         compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Meta tiles", "4x4 Meta tiles", "Pack in nybbles (16 characters max)"});
         compressComboBox.setSelectedIndex(Math.min(compression, compressComboBox.getItemCount() - 1));
         frameComboBox = new JComboBox(new String[] {"0", "2", "4", "8"});
-        if (scrollOrientation == TransitionType.BOTTOM_TO_TOP) {
+        if (transitionType == TransitionType.BOTTOM_TO_TOP) {
             frameComboBox.addItem("2-character Strips");
         }
 
