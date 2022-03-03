@@ -22,16 +22,33 @@ public class ScrollFileExporter extends Exporter {
 
     public void writeScrollFile(File mapDataFile, int orientation, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
         boolean vertical = orientation == SCROLL_ORIENTATION_VERTICAL;
-        // store working map first
         mapEditor.storeCurrentMap();
-        BufferedWriter bw = null;
         ArrayList<int[][]> transMaps = new ArrayList<int[][]>();
         Map<String, TransChar> transChars = new HashMap<String, TransChar>();
         Map<Integer, ArrayList<TransChar>> colorSets = new TreeMap<Integer, ArrayList<TransChar>>();
         TransChar[] transCharSet = new TransChar[256];
         boolean[] usedChars = new boolean[256];
-        int startChar = 255;
-        int endChar = 0;
+        int[] startAndEndChar = {255, 0};
+        int imax = findCharacterTransitions(transMaps, transCharSet, transChars, usedChars, colorSets, startAndEndChar, currMapOnly, vertical, wrap);
+        int startChar = startAndEndChar[0];
+        int endChar = startAndEndChar[1];
+        ArrayList<Integer> remappedChars = new ArrayList<Integer>();
+        TransChar[] remappedTransCharSet = new TransChar[transCharSet.length];
+        remapOriginalCharacters(remappedChars, remappedTransCharSet, transCharSet, usedChars, startChar, endChar, animate);
+        // Write out result
+        BufferedWriter bw = new BufferedWriter(new FileWriter(mapDataFile));
+        writeOriginalCharacterPatterns(bw, remappedChars, includeCharNumbers, includeComments);
+        writeColors(bw, colorSets, usedChars, startChar, endChar, animate, includeCharNumbers, includeComments);
+        writeTransitionCharacters(bw, remappedTransCharSet, imax, includeComments);
+        writeInvertedCharacters(bw, transCharSet, imax, includeComments);
+        writeMap(bw, transMaps, compression, includeComments);
+        writeScrolledPatterns(bw, transCharSet, imax, vertical, includeComments, frames, animate);
+        writeScrolledColors(bw, transCharSet, imax, vertical, includeComments, frames, animate);
+        bw.flush();
+        bw.close();
+    }
+
+    private int findCharacterTransitions(ArrayList<int[][]> transMaps, TransChar[] transCharSet, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, boolean currMapOnly, boolean vertical, boolean wrap) throws Exception {
         int imax = 0;
         boolean allColorsOK = true;
         for (int m = 0; m < mapEditor.getMapCount(); m++) {
@@ -42,27 +59,26 @@ public class ScrollFileExporter extends Exporter {
                     for (int y = (vertical && !wrap ? 1 : 0); y < mapData.length; y++) {
                         for (int x = 0; x < mapData[0].length - (vertical || wrap ? 0 : 1); x++) {
                             int fromChar = mapData[y][x];
-                            if (fromChar < startChar) {
-                                startChar = fromChar;
+                            if (fromChar < startAndEndChar[0]) {
+                                startAndEndChar[0] = fromChar;
                             }
-                            if (fromChar > endChar) {
-                                endChar = fromChar;
+                            if (fromChar > startAndEndChar[1]) {
+                                startAndEndChar[1] = fromChar;
                             }
                             usedChars[fromChar] = true;
                             int toChar = vertical ? mapData[y > 0 ? y - 1 : mapData.length - 1][x] : mapData[y][x < mapData[0].length - 1 ? x + 1 : 0];
-                            if (toChar < startChar) {
-                                startChar = toChar;
+                            if (toChar < startAndEndChar[0]) {
+                                startAndEndChar[0] = toChar;
                             }
-                            if (toChar > endChar) {
-                                endChar = toChar;
+                            if (toChar > startAndEndChar[1]) {
+                                startAndEndChar[1] = toChar;
                             }
                             usedChars[toChar] = true;
                             String key = fromChar + "-" + toChar;
                             TransChar transChar = transChars.get(key);
                             if (transChar != null) {
                                 transChar.incCount();
-                            }
-                            else {
+                            } else {
                                 boolean colorsOK = true;
                                 boolean invert = false;
                                 if (colorMode == COLOR_MODE_BITMAP) {
@@ -78,14 +94,11 @@ public class ScrollFileExporter extends Exporter {
                                             int toForeColor = toColorRow[Globals.INDEX_CLR_FORE] != 0 ? toColorRow[Globals.INDEX_CLR_FORE] : screenColor;
                                             if (fromForeColor == toForeColor) {
                                                 charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                                            }
-                                            else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
+                                            } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
                                                 charColors[r][Globals.INDEX_CLR_FORE] = toForeColor;
-                                            }
-                                            else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
+                                            } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
                                                 charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                                            }
-                                            else {
+                                            } else {
                                                 charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
                                                 colorsOK = false;
                                                 allColorsOK = false;
@@ -94,14 +107,11 @@ public class ScrollFileExporter extends Exporter {
                                             int toBackColor = toColorRow[Globals.INDEX_CLR_BACK] != 0 ? toColorRow[Globals.INDEX_CLR_BACK] : screenColor;
                                             if (fromBackColor == toBackColor) {
                                                 charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                                            }
-                                            else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
+                                            } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
                                                 charColors[r][Globals.INDEX_CLR_BACK] = toBackColor;
-                                            }
-                                            else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
+                                            } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
                                                 charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                                            }
-                                            else {
+                                            } else {
                                                 charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
                                                 colorsOK = false;
                                                 allColorsOK = false;
@@ -115,8 +125,7 @@ public class ScrollFileExporter extends Exporter {
                                     if (imax > 255) {
                                         throw new Exception("Character Set Full: Scrolling this map requires more than 256 characters.");
                                     }
-                                }
-                                else {
+                                } else {
                                     int screenColor = mapEditor.getColorScreen();
                                     int[] fromClrSet = clrSets[fromChar / 8];
                                     int[] toClrSet = clrSets[toChar / 8];
@@ -126,14 +135,11 @@ public class ScrollFileExporter extends Exporter {
                                     int toForeColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
                                     if (fromForeColor == toForeColor) {
                                         foreColor = fromForeColor;
-                                    }
-                                    else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
+                                    } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
                                         foreColor = toForeColor;
-                                    }
-                                    else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+                                    } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
                                         foreColor = fromForeColor;
-                                    }
-                                    else {
+                                    } else {
                                         foreColor = fromForeColor;
                                         colorsOK = false;
                                         // allColorsOK = false;
@@ -143,14 +149,11 @@ public class ScrollFileExporter extends Exporter {
                                     int toBackColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
                                     if (fromBackColor == toBackColor) {
                                         backColor = fromBackColor;
-                                    }
-                                    else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
+                                    } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
                                         backColor = toBackColor;
-                                    }
-                                    else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+                                    } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
                                         backColor = fromBackColor;
-                                    }
-                                    else {
+                                    } else {
                                         backColor = fromBackColor;
                                         colorsOK = false;
                                         // allColorsOK = false;
@@ -162,14 +165,11 @@ public class ScrollFileExporter extends Exporter {
                                         toForeColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
                                         if (fromForeColor == toForeColor) {
                                             foreColor = fromForeColor;
-                                        }
-                                        else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
+                                        } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
                                             foreColor = toForeColor;
-                                        }
-                                        else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+                                        } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
                                             foreColor = fromForeColor;
-                                        }
-                                        else {
+                                        } else {
                                             foreColor = fromForeColor;
                                             colorsOK = false;
                                             allColorsOK = false;
@@ -177,14 +177,11 @@ public class ScrollFileExporter extends Exporter {
                                         toBackColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
                                         if (fromBackColor == toBackColor) {
                                             backColor = fromBackColor;
-                                        }
-                                        else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
+                                        } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
                                             backColor = toBackColor;
-                                        }
-                                        else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+                                        } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
                                             backColor = fromBackColor;
-                                        }
-                                        else {
+                                        } else {
                                             backColor = fromBackColor;
                                             colorsOK = false;
                                             allColorsOK = false;
@@ -246,9 +243,10 @@ public class ScrollFileExporter extends Exporter {
         if (!allColorsOK) {
             JOptionPane.showMessageDialog(null, "Warning - Some character transitions have incompatible colors. This may cause color spills when the map is scrolled.", "Invalid Color Transitions", JOptionPane.INFORMATION_MESSAGE);
         }
-        // Remap original characters
-        ArrayList<Integer> remappedChars = new ArrayList<Integer>();
-        TransChar[] remappedTransCharSet = new TransChar[transCharSet.length];
+        return imax;
+    }
+
+    private void remapOriginalCharacters(ArrayList<Integer> remappedChars, TransChar[] remappedTransCharSet, TransChar[] transCharSet, boolean[] usedChars, int startChar, int endChar, boolean animate) {
         for (int i = 0; i < transCharSet.length; i++) {
             TransChar transChar = transCharSet[i];
             remappedTransCharSet[i] = transChar != null ? new TransChar(transChar) : null;
@@ -271,8 +269,9 @@ public class ScrollFileExporter extends Exporter {
                 mapTo++;
             }
         }
-        // Write out result
-        bw = new BufferedWriter(new FileWriter(mapDataFile));
+    }
+
+    private void writeOriginalCharacterPatterns(BufferedWriter bw, ArrayList<Integer> remappedChars, boolean includeCharNumbers, boolean includeComments) throws Exception {
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
             printPaddedLine(bw, "* Original Character Patterns", false);
@@ -295,6 +294,9 @@ public class ScrollFileExporter extends Exporter {
             sbLine.append(">").append(hexstr.substring(12, 16));
             printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(j, 2) + (i != j ? " (" + Globals.toHexString(i, 2) + ")" : "") : null);
         }
+    }
+
+    private void writeColors(BufferedWriter bw, Map<Integer, ArrayList<TransChar>> colorSets, boolean[] usedChars, int startChar, int endChar, boolean animate, boolean includeCharNumbers, boolean includeComments) throws Exception {
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
             printPaddedLine(bw, "* Colorset Definitions", false);
@@ -324,8 +326,7 @@ public class ScrollFileExporter extends Exporter {
                     printPaddedLine(bw, sbLine.toString(), includeComments ? (usedChars[i] ? "" : "unused") : null);
                 }
             }
-        }
-        else {
+        } else {
             int nColorSets = 0;
             for (int ckey : colorSets.keySet()) {
                 int size = colorSets.get(ckey).size();
@@ -342,8 +343,7 @@ public class ScrollFileExporter extends Exporter {
                         if (first) {
                             sbLine.append("CLRSET BYTE ");
                             first = false;
-                        }
-                        else {
+                        } else {
                             sbLine.append("       BYTE ");
                         }
                     }
@@ -364,6 +364,9 @@ public class ScrollFileExporter extends Exporter {
                 printPaddedLine(bw, sbLine.toString(), includeComments);
             }
         }
+    }
+
+    private void writeTransitionCharacters(BufferedWriter bw, TransChar[] remappedTransCharSet, int imax, boolean includeComments) throws Exception {
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
             printPaddedLine(bw, "* Transition Character Pairs (from, to) ", false);
@@ -381,11 +384,13 @@ public class ScrollFileExporter extends Exporter {
                                         (transChar.isInvert() ? " invert" : "") +
                                         (transChar.isColorsOK() ? "" : " ERROR")
                 );
-            }
-            else {
+            } else {
                 printPaddedLine(bw, (i == 0 ? "TCHARS" : "      ") + " BYTE >FF,>FF", !includeComments ? null : "#" + Globals.toHexString(i, 2) + " unused");
             }
         }
+    }
+
+    private void writeInvertedCharacters(BufferedWriter bw, TransChar[] transCharSet, int imax, boolean includeComments) throws Exception {
         if (colorMode == COLOR_MODE_GRAPHICS_1) {
             boolean found = false;
             for (int i = 0; i <= imax && !found; i++) {
@@ -413,6 +418,9 @@ public class ScrollFileExporter extends Exporter {
                 }
             }
         }
+    }
+
+    private void writeMap(BufferedWriter bw, ArrayList<int[][]> transMaps, int compression, boolean includeComments) throws Exception {
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
             printPaddedLine(bw, "* Transition Map Data", false);
@@ -440,8 +448,7 @@ public class ScrollFileExporter extends Exporter {
                     for (int cl = 0; cl < Math.ceil((double) mapToSave[y].length / 8); cl++) {
                         if (y == 0 && cl == 0) {
                             sbLine.append("MD").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" DATA ");
-                        }
-                        else {
+                        } else {
                             sbLine.append("       DATA ");
                         }
                         for (int colpos = (cl * 8); colpos < Math.min((cl + 1) * 8, mapToSave[y].length); colpos++) {
@@ -475,8 +482,7 @@ public class ScrollFileExporter extends Exporter {
                     }
                 }
                 // System.out.println("Unique rows: " + uniqueRows.size());
-            }
-            else if (compression == MagellanExportDialog.COMPRESSION_RLE_BYTE) {
+            } else if (compression == MagellanExportDialog.COMPRESSION_RLE_BYTE) {
                 // RLE compression (byte)
                 // We assume all characters are < 128. If msb is set, the next byte determines
                 // how many times (2 - 256) the current byte (with msb cleared) should be repeated.
@@ -494,15 +500,13 @@ public class ScrollFileExporter extends Exporter {
                             if (current == last && count < 255) {
                                 // Same byte, increment count
                                 count++;
-                            }
-                            else if (count > 0) {
+                            } else if (count > 0) {
                                 // End of run of bytes
                                 i = printByte(bw, sbLine, i, last | 128);
                                 i = printByte(bw, sbLine, i, count);
                                 count = 0;
                                 n += 2;
-                            }
-                            else {
+                            } else {
                                 // Different byte
                                 i = printByte(bw, sbLine, i, last);
                                 n++;
@@ -515,8 +519,7 @@ public class ScrollFileExporter extends Exporter {
                     i = printByte(bw, sbLine, i, last | 128);
                     i = printByte(bw, sbLine, i, count);
                     n += 2;
-                }
-                else {
+                } else {
                     // Different byte
                     i = printByte(bw, sbLine, i, last);
                     n++;
@@ -528,8 +531,7 @@ public class ScrollFileExporter extends Exporter {
                 printPaddedLine(bw, sbLine.toString(), false);
                 n += i;
                 // System.out.println("Compressed size: " + n);
-            }
-            else if (compression == MagellanExportDialog.COMPRESSION_RLE_WORD) {
+            } else if (compression == MagellanExportDialog.COMPRESSION_RLE_WORD) {
                 // RLE compression (word)
                 // We assume all characters are < 128. If msb of the MSB is set, the byte following the
                 // current word determines how many times (2 - 256) the current word (with msb cleared)
@@ -547,16 +549,14 @@ public class ScrollFileExporter extends Exporter {
                             if (current == last && count < 255) {
                                 // Same word, increment count
                                 count++;
-                            }
-                            else if (count > 0) {
+                            } else if (count > 0) {
                                 // End of run of words
                                 i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8 | 128);
                                 i = printByte(bw, sbLine, i, last & 0x00FF);
                                 i = printByte(bw, sbLine, i, count);
                                 count = 0;
                                 n += 3;
-                            }
-                            else {
+                            } else {
                                 // Different byte
                                 i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8);
                                 i = printByte(bw, sbLine, i, last & 0x00FF);
@@ -571,8 +571,7 @@ public class ScrollFileExporter extends Exporter {
                     i = printByte(bw, sbLine, i, last & 0x00FF);
                     i = printByte(bw, sbLine, i, count);
                     n += 2;
-                }
-                else {
+                } else {
                     // Different byte
                     i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8);
                     i = printByte(bw, sbLine, i, last & 0x00FF);
@@ -586,11 +585,13 @@ public class ScrollFileExporter extends Exporter {
                 printPaddedLine(bw, sbLine.toString(), false);
                 n += i;
                 // System.out.println("Compressed size: " + n);
-            }
-            else {
+            } else {
                 throw new RuntimeException("Compression mode not yet supported.");
             }
         }
+    }
+
+    private void writeScrolledPatterns(BufferedWriter bw, TransChar[] transCharSet, int imax, boolean vertical, boolean includeComments, int frames, boolean animate) throws Exception {
         if (frames > 0 || vertical && frames == -1) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
@@ -688,6 +689,9 @@ public class ScrollFileExporter extends Exporter {
                 }
             }
         }
+    }
+
+    private void writeScrolledColors(BufferedWriter bw, TransChar[] transCharSet, int imax, boolean vertical, boolean includeComments, int frames, boolean animate) throws Exception {
         if ((frames > 0 || vertical && frames == -1) && colorMode == COLOR_MODE_BITMAP) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
@@ -800,7 +804,5 @@ public class ScrollFileExporter extends Exporter {
                 }
             }
         }
-        bw.flush();
-        bw.close();
     }
 }
