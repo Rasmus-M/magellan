@@ -21,7 +21,7 @@ public class ExportScrollFileAction extends FileAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, parent, parent, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getScrollOrientation(), preferences.getScrollFrames());
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, parent, parent, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank(), preferences.isIncludeCharNumbers(), preferences.isWrap(), preferences.isIncludeSpriteData(), preferences.getCompression(), preferences.getTransitionType(), preferences.getScrollFrames());
         if (exporter.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -43,11 +43,11 @@ public class ExportScrollFileAction extends FileAction {
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
                 preferences.setCompression(exporter.getCompression());
-                preferences.setScrollOrientation(exporter.getScrollOrientation());
+                preferences.setTransitionType(exporter.getScrollOrientation());
                 preferences.setScrollFrames(exporter.getFrames());
                 ScrollFileExporter magIO = new ScrollFileExporter(mapEditor, dataSet, preferences);
                 try {
-                    magIO.writeScrollFile(file, preferences.getScrollOrientation(), preferences.isWrap(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.getScrollFrames(), false);
+                    magIO.writeScrollFile(file, preferences.getTransitionType(), preferences.isWrap(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.getScrollFrames(), false);
                 } catch (Exception ee) {
                     showError("Export failed", ee.getMessage());
                 }

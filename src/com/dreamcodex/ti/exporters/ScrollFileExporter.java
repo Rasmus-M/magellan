@@ -20,8 +20,8 @@ public class ScrollFileExporter extends Exporter {
         super(mapEditor, dataSet, preferences);
     }
 
-    public void writeScrollFile(File mapDataFile, int orientation, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
-        boolean vertical = orientation == SCROLL_ORIENTATION_VERTICAL;
+    public void writeScrollFile(File mapDataFile, TransitionType transitionType, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
+        boolean vertical = transitionType == TransitionType.BOTTOM_TO_TOP;
         mapEditor.storeCurrentMap();
         ArrayList<int[][]> transMaps = new ArrayList<int[][]>();
         Map<String, TransChar> transChars = new HashMap<String, TransChar>();

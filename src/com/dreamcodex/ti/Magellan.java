@@ -61,10 +61,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         "Enhanced Color Mode - 3 bpp"
     };
 
-    public static final int SCROLL_ORIENTATION_VERTICAL = 0;
-    public static final int SCROLL_ORIENTATION_HORIZONTAL = 1;
-    public static final int SCROLL_ORIENTATION_ISOMETRIC = 2;
-
 // Local Constants -------------------------------------------------------------------------/
 
     private static final String APPTITLE = "Magellan v" + VERSION_NUMBER + " : TI-99/4A Map Editor";

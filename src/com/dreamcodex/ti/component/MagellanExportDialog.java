@@ -1,10 +1,10 @@
 package com.dreamcodex.ti.component;
 
-import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.NamedIcon;
 import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
+import com.dreamcodex.ti.util.TransitionType;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -44,9 +44,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     private JCheckBox jchkIncludeCharNumbers;
     private JCheckBox jchkCurrentMapOnly;
     private JCheckBox jchkExcludeBlank;
-    private JPanel orientationRadioButtonPanel;
-    private JRadioButton verticalButton;
-    private JRadioButton horizontalButton;
+    private JComboBox transitionTypeComboBox;
     private JCheckBox jchkWrap;
     private JComboBox frameComboBox;
     private JComboBox compressComboBox;
@@ -73,16 +71,16 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
                 preferences.isWrap(),
                 preferences.isIncludeSpriteData(),
                 preferences.getCompression(),
-                preferences.getScrollOrientation(),
+                preferences.getTransitionType(),
                 preferences.getScrollFrames()
         );
     }
 
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int maxSprite, boolean currentMapOnly, boolean excludeBlank) {
-        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, false, 0, 0, -1);
+        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, false, 0, TransitionType.BOTTOM_TO_TOP, -1);
     }
 
-    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeSpriteData, int compression, int scrollOrientation, int scrollFrames) {
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeSpriteData, int compression, TransitionType scrollOrientation, int scrollFrames) {
         super(parent, "Export Settings", true);
         minChar = minc;
         maxChar = maxc;
@@ -105,28 +103,14 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         jchkCurrentMapOnly = new JCheckBox("Current Map Only", currentMapOnly);
         jchkExcludeBlank = new JCheckBox("Exclude Blank Characters", excludeBlank);
 
-        verticalButton = new JRadioButton("Bottom to Top", true);
-        verticalButton.addActionListener(this);
-        horizontalButton = new JRadioButton("Left to Right");
-        horizontalButton.addActionListener(this);
-        ButtonGroup radioButtonGroup = new ButtonGroup();
-        radioButtonGroup.add(verticalButton);
-        radioButtonGroup.add(horizontalButton);
-        orientationRadioButtonPanel = new JPanel();
-        orientationRadioButtonPanel.add(verticalButton);
-        if (scrollOrientation == Magellan.SCROLL_ORIENTATION_VERTICAL) {
-            verticalButton.setSelected(true);
-        }
-        orientationRadioButtonPanel.add(horizontalButton);
-        if (scrollOrientation == Magellan.SCROLL_ORIENTATION_HORIZONTAL) {
-            horizontalButton.setSelected(true);
-        }
+        transitionTypeComboBox = new JComboBox(TransitionType.values());
+        transitionTypeComboBox.addActionListener(this);
 
         jchkWrap = new JCheckBox("Wrap Edges", wrap);
         compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Meta tiles", "4x4 Meta tiles", "Pack in nybbles (16 characters max)"});
         compressComboBox.setSelectedIndex(Math.min(compression, compressComboBox.getItemCount() - 1));
         frameComboBox = new JComboBox(new String[] {"0", "2", "4", "8"});
-        if (scrollOrientation == Magellan.SCROLL_ORIENTATION_VERTICAL) {
+        if (scrollOrientation == TransitionType.BOTTOM_TO_TOP) {
             frameComboBox.addItem("2-character Strips");
         }
 
@@ -197,7 +181,8 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
             objForm[objCount++] = compressComboBox;
         }
         if (type == TYPE_SCROLL) {
-            objForm[objCount++] = orientationRadioButtonPanel;
+            objForm[objCount++] = new JLabel("Transition Type");
+            objForm[objCount++] = transitionTypeComboBox;
             objForm[objCount++] = jchkWrap;
             objForm[objCount++] = new JLabel("Map Compression");
             objForm[objCount++] = compressComboBox;
@@ -293,8 +278,8 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         return jchkExcludeBlank.isSelected();
     }
 
-    public int getScrollOrientation() {
-        return verticalButton.isSelected() ? Magellan.SCROLL_ORIENTATION_VERTICAL : (horizontalButton.isSelected() ? Magellan.SCROLL_ORIENTATION_HORIZONTAL : Magellan.SCROLL_ORIENTATION_ISOMETRIC);
+    public TransitionType getScrollOrientation() {
+        return (TransitionType) transitionTypeComboBox.getSelectedItem();
     }
 
     public boolean isWrap() {
@@ -333,11 +318,14 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == verticalButton) {
-            frameComboBox.addItem("2-character Strips");
-        }
-        else if (e.getSource() == horizontalButton) {
-            frameComboBox.removeItemAt(4);
+        if (e.getSource() == transitionTypeComboBox) {
+            TransitionType transitionType = (TransitionType) transitionTypeComboBox.getSelectedItem();
+            if (transitionType == TransitionType.BOTTOM_TO_TOP) {
+                frameComboBox.addItem("2-character Strips");
+            }
+            else if (transitionType == TransitionType.LEFT_TO_RIGHT) {
+                frameComboBox.removeItemAt(4);
+            }
         }
         else if (e.getSource() == jchkIncludeSpritedata) {
             jcmbStartSprite.setEnabled(jchkIncludeSpritedata.isSelected());

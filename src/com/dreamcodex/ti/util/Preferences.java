@@ -41,7 +41,7 @@ public class Preferences {
     protected int defStartSprite = TIGlobals.MIN_SPRITE;
     protected int defEndSprite = TIGlobals.MAX_SPRITE;
     protected int compression = MagellanExportDialog.COMPRESSION_NONE;
-    protected int scrollOrientation = SCROLL_ORIENTATION_VERTICAL;
+    protected TransitionType transitionType = TransitionType.BOTTOM_TO_TOP;
     protected int scrollFrames = 0;
     protected ArrayList<String> recentFiles = new ArrayList<String>();
     protected String currentDirectory;
@@ -254,12 +254,12 @@ public class Preferences {
         this.compression = compression;
     }
 
-    public int getScrollOrientation() {
-        return scrollOrientation;
+    public TransitionType getTransitionType() {
+        return transitionType;
     }
 
-    public void setScrollOrientation(int scrollOrientation) {
-        this.scrollOrientation = scrollOrientation;
+    public void setTransitionType(TransitionType transitionType) {
+        this.transitionType = transitionType;
     }
 
     public int getScrollFrames() {
@@ -340,7 +340,7 @@ public class Preferences {
         defStartSprite = getIntegerProperty("defStartSprite", defStartSprite);
         defEndSprite = getIntegerProperty("defEndSprite", defEndSprite);
         compression = getIntegerProperty("compression", compression);
-        scrollOrientation = getIntegerProperty("scrollOrientation", scrollOrientation);
+        transitionType = TransitionType.valueOf(appProperties.getProperty("transitionType", TransitionType.BOTTOM_TO_TOP.name()));
         scrollFrames = getIntegerProperty("scrollFrames", scrollFrames);
         currentDirectory = appProperties.getProperty("filePath");
         if (currentDirectory == null || currentDirectory.length() == 0) {
@@ -380,7 +380,7 @@ public class Preferences {
         appProperties.setProperty("defStartSprite", "" + defStartSprite);
         appProperties.setProperty("defEndSprite", "" + defEndSprite);
         appProperties.setProperty("compression", "" + compression);
-        appProperties.setProperty("scrollOrientation", "" + scrollOrientation);
+        appProperties.setProperty("transitionType", transitionType.name());
         appProperties.setProperty("scrollFrames", "" + scrollFrames);
         appProperties.setProperty("filePath", currentDirectory != null ? currentDirectory : ".");
         StringBuilder recentFileList = new StringBuilder();

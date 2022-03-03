@@ -35,9 +35,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     private final int screenColor;
     private static TransitionType transitionType = TransitionType.BOTTOM_TO_TOP;
     private static boolean wrap = false;
-    private final JRadioButton verticalButton;
-    private final JRadioButton horizontalButton;
-    private final JRadioButton twoDimensionalButton;
+    private final JComboBox transitionTypeComboBox;
     private final JCheckBox wrapCheckbox;
     private final JTable jTable;
     private final CharTransTableModel tableModel;
@@ -283,19 +281,10 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         this.colorMode = colorMode;
         screenColor = mapEditor.getColorScreen();
         setLayout(new BorderLayout());
-        verticalButton = new JRadioButton("From Bottom to Top", transitionType == TransitionType.BOTTOM_TO_TOP);
-        horizontalButton = new JRadioButton("From Left to Right", transitionType == TransitionType.LEFT_TO_RIGHT);
-        twoDimensionalButton = new JRadioButton("2-dimensional", transitionType == TransitionType.TWO_DIMENSIONAL);
-        ButtonGroup radioButtonGroup = new ButtonGroup();
-        radioButtonGroup.add(verticalButton);
-        radioButtonGroup.add(horizontalButton);
-        JPanel radioButtonPanel = new JPanel();
-        radioButtonPanel.add(verticalButton);
-        radioButtonPanel.add(horizontalButton);
-        radioButtonPanel.add(twoDimensionalButton);
+        transitionTypeComboBox = new JComboBox(TransitionType.values());
         wrapCheckbox = new JCheckBox("Wrap Edges", wrap);
-        JPanel optionsPanel = new JPanel();
-        optionsPanel.add(radioButtonPanel);
+        JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        optionsPanel.add(transitionTypeComboBox);
         optionsPanel.add(wrapCheckbox);
         add(optionsPanel, BorderLayout.NORTH);
         jTable = new JTable();
@@ -326,9 +315,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         setSize(400, 500);
         setVisible(true);
         addWindowListener(this);
-        verticalButton.addActionListener(this);
-        horizontalButton.addActionListener(this);
-        twoDimensionalButton.addActionListener(this);
+        transitionTypeComboBox.addActionListener(this);
         wrapCheckbox.addActionListener(this);
         refreshButton.addActionListener(this);
         closeButton.addActionListener(this);
@@ -340,16 +327,8 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == verticalButton) {
-            transitionType = TransitionType.BOTTOM_TO_TOP;
-            tableModel.refresh();
-        }
-        else if (e.getSource() == horizontalButton) {
-            transitionType = TransitionType.LEFT_TO_RIGHT;
-            tableModel.refresh();
-        }
-        else if (e.getSource() == twoDimensionalButton) {
-            transitionType = TransitionType.TWO_DIMENSIONAL;
+        if (e.getSource() == transitionTypeComboBox) {
+            transitionType = (TransitionType) transitionTypeComboBox.getSelectedItem();
             tableModel.refresh();
         }
         else if (e.getSource() == wrapCheckbox) {
