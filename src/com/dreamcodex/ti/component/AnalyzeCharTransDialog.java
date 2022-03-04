@@ -35,7 +35,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     private final int[][] clrSets;
     private final int colorMode;
     private final int screenColor;
-    private static TransitionType transitionType = TransitionType.BOTTOM_TO_TOP;
+    private static TransitionType transitionType = TransitionType.TOP_TO_BOTTOM;
     private static boolean wrap = false;
     private final JComboBox transitionTypeComboBox;
     private final JCheckBox wrapCheckbox;

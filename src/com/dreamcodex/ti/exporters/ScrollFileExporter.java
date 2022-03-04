@@ -32,9 +32,11 @@ public class ScrollFileExporter extends Exporter {
         TransChar[] transCharSet = new TransChar[256];
         boolean[] usedChars = new boolean[256];
         int[] startAndEndChar = {255, 0};
+        // Find transitions
         int imax = findCharacterTransitions(transMaps, transCharSet, transChars, usedChars, colorSets, startAndEndChar, currMapOnly, transitionType, wrap);
         int startChar = startAndEndChar[0];
         int endChar = startAndEndChar[1];
+        // Remap
         ArrayList<Integer> remappedChars = new ArrayList<>();
         TransChar[] remappedTransCharSet = new TransChar[transCharSet.length];
         remapOriginalCharacters(remappedChars, remappedTransCharSet, transCharSet, usedChars, startChar, endChar, animate);
@@ -43,10 +45,10 @@ public class ScrollFileExporter extends Exporter {
         writeOriginalCharacterPatterns(bw, remappedChars, includeCharNumbers, includeComments);
         writeColors(bw, colorSets, usedChars, startChar, endChar, animate, includeCharNumbers, includeComments);
         writeTransitionCharacters(bw, remappedTransCharSet, imax, includeComments);
-        writeInvertedCharacters(bw, transCharSet, imax, includeComments);
+        writeInvertedCharacters(bw, remappedTransCharSet, imax, includeComments);
         writeMap(bw, transMaps, compression, includeComments);
-        writeScrolledPatterns(bw, transCharSet, imax, transitionType, includeComments, frames, animate);
-        writeScrolledColors(bw, transCharSet, imax, transitionType, includeComments, frames, animate);
+        writeScrolledPatterns(bw, remappedChars, remappedTransCharSet, imax, transitionType, includeComments, frames, animate);
+        writeScrolledColors(bw, remappedChars, remappedTransCharSet, imax, transitionType, includeComments, frames, animate);
         bw.flush();
         bw.close();
     }
@@ -597,7 +599,7 @@ public class ScrollFileExporter extends Exporter {
         }
     }
 
-    private void writeScrolledPatterns(BufferedWriter bw, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
+    private void writeScrolledPatterns(BufferedWriter bw, ArrayList<Integer> charMap, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
         if (frames > 0 || transitionType.getyOffset() != 0 && frames == -1) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
@@ -619,8 +621,8 @@ public class ScrollFileExporter extends Exporter {
                         String hexstr;
                         TransChar transChar = transCharSet[i];
                         if (transChar != null) {
-                            int[][] fromGrid = charGrids.get(transChar.getFromChar() + (animate ? f * 32 : 0));
-                            int[][] toGrid = charGrids.get(transChar.getToChar() + (animate ? f * 32 : 0));
+                            int[][] fromGrid = charGrids.get(charMap.get(transChar.getFromChar()) + (animate ? f * 32 : 0));
+                            int[][] toGrid = charGrids.get(charMap.get(transChar.getToChar()) + (animate ? f * 32 : 0));
                             if (transChar.isInvert()) {
                                 toGrid = Globals.cloneGrid(toGrid);
                                 Globals.invertGrid(toGrid, 1);
@@ -698,8 +700,8 @@ public class ScrollFileExporter extends Exporter {
                     TransChar transChar = transCharSet[i];
                     if (transChar != null) {
                         hexstr =
-                                Globals.getHexString(charGrids.get(transChar.getToChar())).toUpperCase() +
-                                        Globals.getHexString(charGrids.get(transChar.getFromChar())).toUpperCase();
+                            Globals.getHexString(charGrids.get(charMap.get(transChar.getToChar()))).toUpperCase() +
+                            Globals.getHexString(charGrids.get(charMap.get(transChar.getFromChar()))).toUpperCase();
                     }
                     else {
                         hexstr = Globals.BLANKCHAR + Globals.BLANKCHAR;
@@ -723,7 +725,7 @@ public class ScrollFileExporter extends Exporter {
         }
     }
 
-    private void writeScrolledColors(BufferedWriter bw, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
+    private void writeScrolledColors(BufferedWriter bw, ArrayList<Integer> charMap, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
         boolean vertical = transitionType.getyOffset() != 0;
         if ((frames > 0 || vertical && frames == -1) && colorMode == COLOR_MODE_BITMAP) {
             if (includeComments) {
@@ -746,8 +748,8 @@ public class ScrollFileExporter extends Exporter {
                         String hexstr;
                         TransChar transChar = transCharSet[i];
                         if (transChar != null) {
-                            int[][] fromGrid = charColors.get(transChar.getFromChar() + (animate ? f * 32 : 0));
-                            int[][] toGrid = charColors.get(transChar.getToChar() + (animate ? f * 32 : 0));
+                            int[][] fromGrid = charColors.get(charMap.get(transChar.getFromChar()) + (animate ? f * 32 : 0));
+                            int[][] toGrid = charColors.get(charMap.get(transChar.getToChar()) + (animate ? f * 32 : 0));
                             hexstr = "";
                             if (vertical) {
                                 for (int y = 8 - offset; y < 8; y++) {
@@ -768,10 +770,10 @@ public class ScrollFileExporter extends Exporter {
                                     if (fromForeColor == toForeColor) {
                                         foreColor = fromForeColor;
                                     }
-                                    else if (!Globals.arrayContains(charGrids.get(transChar.getFromChar())[y], Globals.INDEX_CLR_FORE)) {
+                                    else if (!Globals.arrayContains(charGrids.get(charMap.get(transChar.getFromChar()))[y], Globals.INDEX_CLR_FORE)) {
                                         foreColor = toForeColor;
                                     }
-                                    else if (!Globals.arrayContains(charGrids.get(transChar.getToChar())[y], Globals.INDEX_CLR_FORE)) {
+                                    else if (!Globals.arrayContains(charGrids.get(charMap.get(transChar.getToChar()))[y], Globals.INDEX_CLR_FORE)) {
                                         foreColor = fromForeColor;
                                     }
                                     int fromBackColor = fromGrid[y][Globals.INDEX_CLR_BACK] != 0 ? fromGrid[y][Globals.INDEX_CLR_BACK] : mapEditor.getColorScreen();
@@ -779,10 +781,10 @@ public class ScrollFileExporter extends Exporter {
                                     if (fromBackColor == toBackColor) {
                                         backColor = fromBackColor;
                                     }
-                                    else if (!Globals.arrayContains(charGrids.get(transChar.getFromChar())[y], Globals.INDEX_CLR_BACK)) {
+                                    else if (!Globals.arrayContains(charGrids.get(charMap.get(transChar.getFromChar()))[y], Globals.INDEX_CLR_BACK)) {
                                         backColor = toBackColor;
                                     }
-                                    else if (!Globals.arrayContains(charGrids.get(transChar.getToChar())[y], Globals.INDEX_CLR_BACK)) {
+                                    else if (!Globals.arrayContains(charGrids.get(charMap.get(transChar.getToChar()))[y], Globals.INDEX_CLR_BACK)) {
                                         backColor = fromBackColor;
                                     }
                                     hexstr += Integer.toHexString(foreColor).toUpperCase();
@@ -807,11 +809,11 @@ public class ScrollFileExporter extends Exporter {
                     String hexstr = "";
                     TransChar transChar = transCharSet[i];
                     if (transChar != null) {
-                        int[][] toColors = charColors.get(transChar.getToChar());
+                        int[][] toColors = charColors.get(charMap.get(transChar.getToChar()));
                         for (int row = 0; row < 8; row++) {
                             hexstr += Integer.toHexString(toColors[row][1]) + Integer.toHexString(toColors[row][0]);
                         }
-                        int[][] fromColors = charColors.get(transChar.getFromChar());
+                        int[][] fromColors = charColors.get(charMap.get(transChar.getFromChar()));
                         for (int row = 0; row < 8; row++) {
                             hexstr += Integer.toHexString(fromColors[row][1]) + Integer.toHexString(fromColors[row][0]);
                         }
