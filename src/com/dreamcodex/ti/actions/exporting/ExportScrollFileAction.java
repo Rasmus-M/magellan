@@ -49,6 +49,7 @@ public class ExportScrollFileAction extends FileAction {
                 try {
                     magIO.writeScrollFile(file, preferences.getTransitionType(), preferences.isWrap(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.getScrollFrames(), false);
                 } catch (Exception ee) {
+                    ee.printStackTrace();
                     showError("Export failed", ee.getMessage());
                 }
             }

@@ -2300,17 +2300,17 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             return;
         }
         // Generate icon image
-        Image image = generateIconImage(charNum, screenColor);
+        IconImage iconImage = generateIconImage(charNum, screenColor);
         // Save image
-        dataSet.getCharImages().put(charNum, image);
-        mapEditor.setCharImage(charNum, image);
+        dataSet.getCharImages().put(charNum, iconImage.getImage());
+        mapEditor.setCharImage(charNum, iconImage.getImage());
         // Display a question mark if image is empty (only some modes)
-        if (image == null) {
+        if (iconImage.isEmpty()) {
             jbtnChar[charNum].setIcon(null);
             jbtnChar[charNum].setText(((charNum - TIGlobals.CHARMAPSTART) >= 0 && (charNum - TIGlobals.CHARMAPSTART) < TIGlobals.CHARMAP.length) ? "" + TIGlobals.CHARMAP[charNum - TIGlobals.CHARMAPSTART] : "?");
         }
         else {
-            jbtnChar[charNum].setIcon(new ImageIcon(image));
+            jbtnChar[charNum].setIcon(new ImageIcon(iconImage.getImage()));
             jbtnChar[charNum].setText("");
         }
         // Redraw map as requested
@@ -2319,7 +2319,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    private Image generateIconImage(int charNum, Color screenColor) {
+    private IconImage generateIconImage(int charNum, Color screenColor) {
         int imageScale = 2;
         int[][] gridData = gcChar.getGridData();
         Image image = this.createImage(gridData.length * imageScale, gridData[0].length * imageScale);
@@ -2356,7 +2356,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
         g.dispose();
         boolean empty = Globals.isGridEmpty(charGrid) && (colorMode == COLOR_MODE_GRAPHICS_1 && dataSet.getClrSets()[cset][Globals.INDEX_CLR_BACK] == 0 || colorMode == COLOR_MODE_BITMAP && Globals.isColorGridEmpty(charColors));
-        return !empty ? image : null;
+        return new IconImage(image, empty);
     }
 
     public void updateSpriteButtons() {

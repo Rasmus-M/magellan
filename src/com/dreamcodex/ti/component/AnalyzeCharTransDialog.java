@@ -18,6 +18,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
+import static java.lang.Math.floorMod;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Rasmus
@@ -65,20 +67,18 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             int width = mapData[0].length;
             if (width > 1 && height > 1) {
                 switch (transitionType) {
+                    case TOP_TO_BOTTOM:
                     case BOTTOM_TO_TOP:
-                        for (int y = wrap ? 0 : 1; y < height; y++) {
-                            for (int x = 0; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toChar = mapData[y > 0 ? y - 1 : height - 1][x];
-                                addTransCharToMap(new TransChar(fromChar, toChar));
-                            }
-                        }
-                        break;
                     case LEFT_TO_RIGHT:
-                        for (int y = 0; y < height; y++) {
-                            for (int x = 0; x < width - (wrap ? 0 : 1); x++) {
+                    case RIGHT_TO_LEFT:
+                        int yStart = transitionType.getyOffset() < 0 && !wrap ? 1 : 0;
+                        int yEnd = height - (transitionType.getyOffset() > 0 && !wrap ? 1 : 0);
+                        int xStart = transitionType.getxOffset() < 0 && !wrap ? 1 : 0;
+                        int xEnd = width - (transitionType.getxOffset() > 0 && !wrap ? 1 : 0);
+                        for (int y = yStart; y < yEnd; y++) {
+                            for (int x = xStart; x < xEnd; x++) {
                                 int fromChar = mapData[y][x];
-                                int toChar = mapData[y][x < width - 1 ? x + 1 : 0];
+                                int toChar = mapData[floorMod(y + transitionType.getyOffset(), height)][floorMod(x + transitionType.getxOffset(), width)];
                                 addTransCharToMap(new TransChar(fromChar, toChar));
                             }
                         }
@@ -354,26 +354,23 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             int width = mapData[0].length;
             if (height > 1 && width > 1) {
                 switch (transitionType) {
+                    case TOP_TO_BOTTOM:
                     case BOTTOM_TO_TOP:
-                        for (int y = 1; y < height; y++) {
-                            for (int x = 0; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toChar = mapData[y - 1][x];
-                                if (fromChar == transChar.getFromChar() && toChar == transChar.getToChar()) {
-                                    mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(x, y - 1);
-                                }
-                            }
-                        }
-                        break;
                     case LEFT_TO_RIGHT:
-                        for (int y = 0; y < height; y++) {
-                            for (int x = 0; x < width - 1; x++) {
+                    case RIGHT_TO_LEFT:
+                        int yStart = transitionType.getyOffset() < 0 && !wrap ? 1 : 0;
+                        int yEnd = height - (transitionType.getyOffset() > 0 && !wrap ? 1 : 0);
+                        int xStart = transitionType.getxOffset() < 0 && !wrap ? 1 : 0;
+                        int xEnd = width - (transitionType.getxOffset() > 0 && !wrap ? 1 : 0);
+                        for (int y = yStart; y < yEnd; y++) {
+                            for (int x = xStart; x < xEnd; x++) {
                                 int fromChar = mapData[y][x];
-                                int toChar = mapData[y][x + 1];
+                                int toY = floorMod(y + transitionType.getyOffset(), height);
+                                int toX = floorMod(x + transitionType.getxOffset(), width);
+                                int toChar = mapData[toY][toX];
                                 if (fromChar == transChar.getFromChar() && toChar == transChar.getToChar()) {
                                     mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(x + 1, y);
+                                    mapEditor.highlightCell(toX, toY);
                                 }
                             }
                         }
