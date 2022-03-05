@@ -128,4 +128,12 @@ public abstract class Exporter {
         }
         return i;
     }
+
+    protected String rightPad(int n, int width) {
+        StringBuilder sb = new StringBuilder(Integer.toString(n));
+        while (sb.length() < width) {
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
 }
