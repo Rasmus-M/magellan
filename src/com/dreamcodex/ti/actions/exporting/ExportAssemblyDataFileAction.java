@@ -42,7 +42,10 @@ public class ExportAssemblyDataFileAction extends FileAction {
                 preferences.setCurrentMapOnly(exportDialog.currentMapOnly());
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
-                preferences.setIncludeSpriteData(exportDialog.includeSpritedata());
+                preferences.setIncludeCharData(exportDialog.includeCharData());
+                preferences.setIncludeSpriteData(exportDialog.includeSpriteData());
+                preferences.setIncludeColorData(exportDialog.includeColorData());
+                preferences.setIncludeMapData(exportDialog.includeMapData());
                 preferences.setDefStartSprite(Math.min(sSprite, eSprite));
                 preferences.setDefEndSprite(Math.max(sSprite, eSprite));
                 preferences.setCompression(exportDialog.getCompression());

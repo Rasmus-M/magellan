@@ -23,7 +23,19 @@ public class ExportBinaryFileAction extends FileAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY, parent, parent, preferences.isExportComments(), preferences.getDefStartChar(), preferences.getDefEndChar(), TIGlobals.MIN_CHAR, preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), preferences.isCurrentMapOnly(), preferences.isExcludeBlank());
+        MagellanExportDialog exporter = new MagellanExportDialog(
+            MagellanExportDialog.TYPE_BINARY,
+            parent,
+            parent,
+            preferences.isExportComments(),
+            preferences.getDefStartChar(),
+            preferences.getDefEndChar(),
+            TIGlobals.MIN_CHAR,
+            preferences.getCharacterSetEnd(),
+            preferences.getSpriteSetEnd(),
+            preferences.isCurrentMapOnly(),
+            preferences.isExcludeBlank()
+        );
         if (exporter.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
             if (file != null) {
@@ -40,10 +52,10 @@ public class ExportBinaryFileAction extends FileAction {
                 int eChar = exporter.getEndChar();
                 int sSprite = exporter.getStartSprite();
                 int eSprite = exporter.getEndSprite();
-                boolean bIncludeColorsets = exporter.includeColorsets();
-                boolean bIncludeChardata = exporter.includeChardata();
-                boolean bIncludeSpritedata = exporter.includeSpritedata();
-                byte chunkByte = (byte) ((bIncludeColorsets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeChardata ? Exporter.BIN_CHUNK_CHARS : 0) | (bIncludeSpritedata ? Exporter.BIN_CHUNK_SPRITES : 0));
+                boolean bIncludeColorSets = exporter.includeColorData();
+                boolean bIncludeCharData = exporter.includeCharData();
+                boolean includeSpriteData = exporter.includeSpriteData();
+                byte chunkByte = (byte) ((bIncludeColorSets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeCharData ? Exporter.BIN_CHUNK_CHARS : 0) | (includeSpriteData ? Exporter.BIN_CHUNK_SPRITES : 0));
                 preferences.setCurrentMapOnly(exporter.currentMapOnly());
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));

@@ -22,10 +22,10 @@ public class AssemblyDataFileExporter extends Exporter {
     }
 
     public void writeAssemblyDataFile(File mapDataFile, Preferences preferences) throws Exception{
-        writeAssemblyDataFile(mapDataFile, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.isIncludeSpriteData());
+        writeAssemblyDataFile(mapDataFile, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.getCompression(), preferences.isExportComments(), preferences.isCurrentMapOnly(), preferences.isIncludeCharNumbers(), preferences.isIncludeCharData(), preferences.isIncludeSpriteData(), preferences.isIncludeColorData(), preferences.isIncludeMapData());
     }
 
-    public void writeAssemblyDataFile(File mapDataFile, int startChar, int endChar, int startSprite, int endSprite, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, boolean includeSpriteData) throws Exception {
+    public void writeAssemblyDataFile(File mapDataFile, int startChar, int endChar, int startSprite, int endSprite, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, boolean includeCharData, boolean includeSpriteData, boolean includeColorData, boolean includeMapData) throws Exception {
         if ((compression == MagellanExportDialog.COMPRESSION_RLE_BYTE || compression == MagellanExportDialog.COMPRESSION_RLE_WORD) && endChar > 127) {
             throw new Exception("RLE Compression not supported for characters > 127.");
         }
@@ -33,10 +33,18 @@ public class AssemblyDataFileExporter extends Exporter {
         Map<ECMPalette, Integer> paletteMap = buildECMPaletteMap();
         BufferedWriter bw = new BufferedWriter(new FileWriter(mapDataFile));
         StringBuilder sbLine = new StringBuilder();
-        writeColors(startChar, endChar, includeComments, includeCharNumbers, paletteMap, sbLine, bw);
-        writeCharacterPatterns(startChar, endChar, includeComments, includeCharNumbers, sbLine, bw);
-        writeSpriteData(startSprite, endSprite, includeComments, includeSpriteData, sbLine, bw);
-        writeMapData(compression, includeComments, currMapOnly, includeSpriteData, paletteMap, sbLine, bw);
+        if (includeColorData) {
+            writeColors(startChar, endChar, includeComments, includeCharNumbers, paletteMap, sbLine, bw);
+        }
+        if (includeCharData) {
+            writeCharacterPatterns(startChar, endChar, includeComments, includeCharNumbers, sbLine, bw);
+        }
+        if (includeSpriteData) {
+            writeSpriteData(startSprite, endSprite, includeComments, includeSpriteData, sbLine, bw);
+        }
+        if (includeMapData) {
+            writeMapData(compression, includeComments, currMapOnly, includeSpriteData, paletteMap, sbLine, bw);
+        }
         bw.flush();
         bw.close();
     }
@@ -220,73 +228,71 @@ public class AssemblyDataFileExporter extends Exporter {
     }
 
     private void writeSpriteData(int startSprite, int endSprite, boolean includeComments, boolean includeSpriteData, StringBuilder sbLine, BufferedWriter bw) throws IOException {
-        if (includeSpriteData) {
+        if (includeComments) {
+            printPaddedLine(bw, "****************************************", false);
+            printPaddedLine(bw, "* Sprite Patterns" + (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? " Plane 0" : ""), false);
+            printPaddedLine(bw, "****************************************", false);
+        }
+        sbLine.delete(0, sbLine.length());
+        for (int i = startSprite; i <= endSprite; i++) {
+            if (spriteGrids.get(i) != null) {
+                String hexstr = Globals.getSpriteHexString(spriteGrids.get(i)).toUpperCase();
+                sbLine.append(colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? "SPR" : "S0_").append(rightPad(i, 3)).append(" DATA ");
+                for (int pos = 0; pos < 64; pos += 4) {
+                    if (pos > 0 && pos % 16 == 0) {
+                        sbLine.append("       DATA ");
+                    }
+                    sbLine.append(">").append(hexstr, pos, pos + 4).append(pos % 16 != 12 ? "," : "");
+                    if (pos % 16 == 12) {
+                        printPaddedLine(bw, sbLine.toString(), includeComments ? (pos == 12 ? "Color " + spriteColors[i] : "") : null);
+                        sbLine.delete(0, sbLine.length());
+                    }
+                }
+            }
+        }
+        if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
-                printPaddedLine(bw, "* Sprite Patterns" + (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? " Plane 0" : ""), false);
+                printPaddedLine(bw, "* Sprite Patterns Plane 1", false);
                 printPaddedLine(bw, "****************************************", false);
             }
             sbLine.delete(0, sbLine.length());
             for (int i = startSprite; i <= endSprite; i++) {
                 if (spriteGrids.get(i) != null) {
-                    String hexstr = Globals.getSpriteHexString(spriteGrids.get(i)).toUpperCase();
-                    sbLine.append(colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? "SPR" : "S0_").append(rightPad(i, 3)).append(" DATA ");
+                    String hexstr = Globals.getSpriteHexString(spriteGrids.get(i), 2).toUpperCase();
+                    sbLine.append("S1_").append(rightPad(i, 3)).append(" DATA ");
                     for (int pos = 0; pos < 64; pos += 4) {
                         if (pos > 0 && pos % 16 == 0) {
                             sbLine.append("       DATA ");
                         }
                         sbLine.append(">").append(hexstr, pos, pos + 4).append(pos % 16 != 12 ? "," : "");
                         if (pos % 16 == 12) {
-                            printPaddedLine(bw, sbLine.toString(), includeComments ? (pos == 12 ? "Color " + spriteColors[i] : "") : null);
+                            printPaddedLine(bw, sbLine.toString(), includeComments);
                             sbLine.delete(0, sbLine.length());
                         }
                     }
                 }
             }
-            if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
-                if (includeComments) {
-                    printPaddedLine(bw, "****************************************", false);
-                    printPaddedLine(bw, "* Sprite Patterns Plane 1", false);
-                    printPaddedLine(bw, "****************************************", false);
-                }
-                sbLine.delete(0, sbLine.length());
-                for (int i = startSprite; i <= endSprite; i++) {
-                    if (spriteGrids.get(i) != null) {
-                        String hexstr = Globals.getSpriteHexString(spriteGrids.get(i), 2).toUpperCase();
-                        sbLine.append("S1_").append(rightPad(i, 3)).append(" DATA ");
-                        for (int pos = 0; pos < 64; pos += 4) {
-                            if (pos > 0 && pos % 16 == 0) {
-                                sbLine.append("       DATA ");
-                            }
-                            sbLine.append(">").append(hexstr, pos, pos + 4).append(pos % 16 != 12 ? "," : "");
-                            if (pos % 16 == 12) {
-                                printPaddedLine(bw, sbLine.toString(), includeComments);
-                                sbLine.delete(0, sbLine.length());
-                            }
-                        }
-                    }
-                }
+        }
+        if (colorMode == COLOR_MODE_ECM_3) {
+            if (includeComments) {
+                printPaddedLine(bw, "****************************************", false);
+                printPaddedLine(bw, "* Sprite Patterns Plane 2", false);
+                printPaddedLine(bw, "****************************************", false);
             }
-            if (colorMode == COLOR_MODE_ECM_3) {
-                if (includeComments) {
-                    printPaddedLine(bw, "****************************************", false);
-                    printPaddedLine(bw, "* Sprite Patterns Plane 2", false);
-                    printPaddedLine(bw, "****************************************", false);
-                }
-                sbLine.delete(0, sbLine.length());
-                for (int i = startSprite; i <= endSprite; i++) {
-                    if (spriteGrids.get(i) != null) {
-                        String hexstr = Globals.getSpriteHexString(spriteGrids.get(i), 4).toUpperCase();
-                        sbLine.append("S2_").append(rightPad(i, 3)).append(" DATA ");
-                        for (int pos = 0; pos < 64; pos += 4) {
-                            if (pos > 0 && pos % 16 == 0) {
-                                sbLine.append("       DATA ");
-                            }
-                            sbLine.append(">").append(hexstr, pos, pos + 4).append(pos % 16 != 12 ? "," : "");
-                            if (pos % 16 == 12) {
-                                printPaddedLine(bw, sbLine.toString(), includeComments);
-                                sbLine.delete(0, sbLine.length());
-                            }
+            sbLine.delete(0, sbLine.length());
+            for (int i = startSprite; i <= endSprite; i++) {
+                if (spriteGrids.get(i) != null) {
+                    String hexstr = Globals.getSpriteHexString(spriteGrids.get(i), 4).toUpperCase();
+                    sbLine.append("S2_").append(rightPad(i, 3)).append(" DATA ");
+                    for (int pos = 0; pos < 64; pos += 4) {
+                        if (pos > 0 && pos % 16 == 0) {
+                            sbLine.append("       DATA ");
+                        }
+                        sbLine.append(">").append(hexstr, pos, pos + 4).append(pos % 16 != 12 ? "," : "");
+                        if (pos % 16 == 12) {
+                            printPaddedLine(bw, sbLine.toString(), includeComments);
+                            sbLine.delete(0, sbLine.length());
                         }
                     }
                 }

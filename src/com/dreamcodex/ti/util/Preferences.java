@@ -33,7 +33,10 @@ public class Preferences {
     protected boolean swapImages = true;
     protected boolean allMaps = true;
     protected boolean wrap = false;
+    protected boolean includeCharData = true;
     protected boolean includeSpriteData = false;
+    protected boolean includeColorData = true;
+    protected boolean includeMapData = true;
     protected boolean excludeBlank = false;
     protected int characterSetCapacity = CHARACTER_SET_BASIC;
     protected int defStartChar = TIGlobals.BASIC_FIRST_CHAR;
@@ -190,8 +193,32 @@ public class Preferences {
         this.wrap = wrap;
     }
 
+    public boolean isIncludeCharData() {
+        return includeCharData;
+    }
+
+    public void setIncludeCharData(boolean includeCharData) {
+        this.includeCharData = includeCharData;
+    }
+
     public boolean isIncludeSpriteData() {
         return includeSpriteData;
+    }
+
+    public boolean isIncludeColorData() {
+        return includeColorData;
+    }
+
+    public void setIncludeColorData(boolean includeColorData) {
+        this.includeColorData = includeColorData;
+    }
+
+    public boolean isIncludeMapData() {
+        return includeMapData;
+    }
+
+    public void setIncludeMapData(boolean includeMapData) {
+        this.includeMapData = includeMapData;
     }
 
     public void setIncludeSpriteData(boolean includeSpriteData) {
@@ -327,7 +354,10 @@ public class Preferences {
         includeCharNumbers = getBooleanProperty("includeCharNumbers", includeCharNumbers);
         currentMapOnly = getBooleanProperty("currentMapOnly", currentMapOnly);
         wrap = getBooleanProperty("wrap", wrap);
+        includeCharData = getBooleanProperty("includeCharData", includeCharData);
         includeSpriteData = getBooleanProperty("includeSpriteData", includeSpriteData);
+        includeColorData = getBooleanProperty("includeColorData", includeColorData);
+        includeMapData = getBooleanProperty("includeMapData", includeMapData);
         excludeBlank = getBooleanProperty("excludeBlank", excludeBlank);
         if (appProperties.getProperty("characterSetSize") != null) {
             characterSetCapacity = getIntegerProperty("characterSetSize", characterSetCapacity);
@@ -362,7 +392,10 @@ public class Preferences {
         appProperties.setProperty("exportComments", exportComments ? "true" : "false");
         appProperties.setProperty("includeCharNumbers", includeCharNumbers ? "true" : "false");
         appProperties.setProperty("currentMapOnly", currentMapOnly ? "true" : "false");
+        appProperties.setProperty("includeCharData", includeCharData ? "true" : "false");
         appProperties.setProperty("includeSpriteData", includeSpriteData ? "true" : "false");
+        appProperties.setProperty("includeColorData", includeColorData ? "true" : "false");
+        appProperties.setProperty("includeMapData", includeMapData ? "true" : "false");
         appProperties.setProperty("excludeBlank", excludeBlank ? "true" : "false");
         appProperties.setProperty("wrap", wrap ? "true" : "false");
         appProperties.setProperty("characterSetSize", Integer.toString(characterSetCapacity));
