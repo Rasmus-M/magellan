@@ -15,6 +15,7 @@ public class MapImageExporter extends Exporter {
     }
 
     public void writeMapImage(File imageOut) throws IOException {
-        ImageIO.write(mapEditor.getBuffer(), "png", imageOut);
+        String formatName = imageOut.getName().toLowerCase().endsWith("gif") ? "gif" : "png";
+        ImageIO.write(mapEditor.getBuffer(), formatName, imageOut);
     }
 }

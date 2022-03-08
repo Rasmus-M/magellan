@@ -109,6 +109,7 @@ public class CharacterImageExporter extends Exporter {
             }
         }
         gf.dispose();
-        ImageIO.write(bufferCharImage, "png", imageOut);
+        String formatName = imageOut.getName().toLowerCase().endsWith("gif") ? "gif" : "png";
+        ImageIO.write(bufferCharImage, formatName, imageOut);
     }
 }
