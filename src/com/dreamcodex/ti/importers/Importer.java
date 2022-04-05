@@ -1,6 +1,7 @@
 package com.dreamcodex.ti.importers;
 
 import com.dreamcodex.ti.component.MapEditor;
+import com.dreamcodex.ti.util.ColorMode;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.ECMPalette;
 import com.dreamcodex.ti.util.Preferences;
@@ -19,7 +20,7 @@ public abstract class Importer {
     protected HashMap<Integer, int[][]> spriteGrids;
     protected int[] spriteColors;
     protected ECMPalette[] ecmSpritePalettes;
-    protected int colorMode;
+    protected ColorMode colorMode;
 
     public Importer() {
     }
@@ -50,7 +51,7 @@ public abstract class Importer {
             HashMap<Integer, int[][]> spriteGrids,
             int[] spriteColors,
             ECMPalette[] ecmSpritePalettes,
-            int colorMode
+            ColorMode colorMode
     ) {
         this.mapEditor = mapEditor;
         this.clrSets = clrSets;

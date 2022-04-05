@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.dreamcodex.ti.Magellan.*;
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
+import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class DataFileExporter extends Exporter {
 

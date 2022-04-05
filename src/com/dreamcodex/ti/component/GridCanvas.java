@@ -3,6 +3,7 @@ package com.dreamcodex.ti.component;
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.ScreenColorListener;
 import com.dreamcodex.ti.iface.UndoRedoListener;
+import com.dreamcodex.ti.util.ColorMode;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.TIGlobals;
 
@@ -14,6 +15,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.util.ArrayList;
+
+import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class GridCanvas extends JPanel implements MouseListener, MouseMotionListener {
 
@@ -42,7 +45,7 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
     // Second index is 0 = background color, 1 = foreground color
     // E.g. gridColors[3][1] is row 3 foreground
     protected int[][] gridColors;
-    protected int colorMode;
+    protected ColorMode colorMode;
     protected boolean ecmTransparency;
     protected int mouseButton;
     protected ArrayList<int[][][]> undoList;
@@ -71,7 +74,7 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
 
 // Constructors ----------------------------------------------------------------------------/
 
-    public GridCanvas(Color[] palette, int gridWidth, int gridHeight, int cellSize, MouseListener mlParent, MouseMotionListener mmlParent, int colorMode) {
+    public GridCanvas(Color[] palette, int gridWidth, int gridHeight, int cellSize, MouseListener mlParent, MouseMotionListener mmlParent, ColorMode colorMode) {
         super(true);
         this.palette = palette;
         this.colorMode = colorMode;
@@ -92,7 +95,7 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
         clrGridDraw = new Color(240, 240, 240);
         clrGrup = new Color(164, 164, 255);
         clrHigh = Globals.CLR_HIGHLIGHT;
-        if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+        if (colorMode == COLOR_MODE_BITMAP) {
             gridColors = new int[gridHeight][2];
             for (int y = 0; y < gridHeight; y++) {
                 gridColors[y][0] = 0;
@@ -124,7 +127,7 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
     }
 
     public boolean useTransparency() {
-        return colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP || ecmTransparency;
+        return colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP || ecmTransparency;
     }
 
     public void setECMTransparency(boolean enabled) {
@@ -228,9 +231,9 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
         showGrid = b;
     }
 
-    public void setColorMode(int colorMode, Color[] palette) {
+    public void setColorMode(ColorMode colorMode, Color[] palette) {
         this.colorMode = colorMode;
-        if (colorMode == Magellan.COLOR_MODE_BITMAP && gridColors == null) {
+        if (colorMode == COLOR_MODE_BITMAP && gridColors == null) {
             gridColors = new int[gridData.length][2];
             for (int y = 0; y < gridData.length; y++) {
                 gridColors[y][0] = 0;
@@ -238,8 +241,8 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
             }
         }
         // Reduce bpp
-        if (colorMode != Magellan.COLOR_MODE_ECM_3)  {
-            int max = colorMode == Magellan.COLOR_MODE_ECM_2 ? 3 : 1;
+        if (colorMode != COLOR_MODE_ECM_3)  {
+            int max = colorMode == COLOR_MODE_ECM_2 ? 3 : 1;
             for (int y = 0; y < gridData.length; y++) {
                 for (int x = 0; x < gridData[0].length; x++) {
                     gridData[y][x] = gridData[y][x] > max ? max : gridData[y][x];
@@ -351,8 +354,8 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
                 undoGrid[y][x] = gridData[y][x];
             }
         }
-        int[][] undoColors = colorMode == Magellan.COLOR_MODE_BITMAP ? new int[gridColors.length][2] : null;
-        if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+        int[][] undoColors = colorMode == COLOR_MODE_BITMAP ? new int[gridColors.length][2] : null;
+        if (colorMode == COLOR_MODE_BITMAP) {
             for (int y = 0; y < gridColors.length; y++) {
                 for (int x = 0; x < gridColors[0].length; x++) {
                     if (oldState == null || oldState[1][y][x] != gridColors[y][x]) {
@@ -395,10 +398,10 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
                 for (int x = 0; x < gridData[0].length; x++) {
                     if (gridData[y][x] != NODATA) {
                         int c;
-                        if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1) {
+                        if (colorMode == COLOR_MODE_GRAPHICS_1) {
                             c = (gridData[y][x] == 1 ? clrDraw : clrBack);
                         }
-                        else if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+                        else if (colorMode == COLOR_MODE_BITMAP) {
                             c = gridColors[y][gridData[y][x]];
                         }
                         else {
@@ -436,7 +439,7 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
                     g.setColor(clrGrid);
                     for (int y = 0; y < gridData.length; y++) {
                         for (int x = 0; x < gridData[0].length; x++) {
-                            if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+                            if (colorMode == COLOR_MODE_BITMAP) {
                                 g.setColor(gridData[y][x] == 1 ? clrGridDraw : clrGrid);
                             }
                             g.drawRect(x * optScale * viewScale + gridOffsetX, y * optScale * viewScale + gridOffsetY, (optScale * viewScale) - 1, (optScale * viewScale) - 1);
@@ -484,15 +487,15 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
     }
 
     public void clearGrid() {
-        setAllGrid(colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP ? 0 : clrBack);
-        if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+        setAllGrid(colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? 0 : clrBack);
+        if (colorMode == COLOR_MODE_BITMAP) {
             setAllColors(clrBack, clrDraw);
         }
     }
 
     public void fillGrid() {
-        setAllGrid(colorMode == Magellan.COLOR_MODE_GRAPHICS_1 || colorMode == Magellan.COLOR_MODE_BITMAP ? 1 : clrDraw);
-        if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+        setAllGrid(colorMode == COLOR_MODE_GRAPHICS_1 || colorMode == COLOR_MODE_BITMAP ? 1 : clrDraw);
+        if (colorMode == COLOR_MODE_BITMAP) {
             setAllColors(clrBack, clrDraw);
         }
     }
@@ -533,10 +536,10 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
     public void processCellAtPoint(Point pt) {
         Point mouseCell = getMouseCell(pt);
         if (!mouseCell.equals(PT_OFFGRID)) {
-            if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1) {
+            if (colorMode == COLOR_MODE_GRAPHICS_1) {
                 gridData[(int) (mouseCell.getY())][(int) (mouseCell.getX())] = (paintOn ? 1 : 0);
             }
-            else if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+            else if (colorMode == COLOR_MODE_BITMAP) {
                 if (mouseButton == MouseEvent.BUTTON1) {
                     if (paintOn) {
                         gridData[(int) (mouseCell.getY())][(int) (mouseCell.getX())] = 1;

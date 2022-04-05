@@ -8,6 +8,7 @@ import static com.dreamcodex.ti.util.TIGlobals.N_CHARS;
 
 public class DataSet {
 
+    private ColorMode colorMode = ColorMode.COLOR_MODE_GRAPHICS_1;
     private int[][] clrSets = new int[COLOR_SETS][2];
 
     private HashMap<Integer, int[][]> charGrids;
@@ -22,6 +23,14 @@ public class DataSet {
     private HashMap<Integer, int[][]> spriteGrids;
     private HashMap<Integer, Image> spriteImages;
     private int[] spriteColors = new int[TIGlobals.MAX_SPRITE + 1];
+
+    public ColorMode getColorMode() {
+        return colorMode;
+    }
+
+    public void setColorMode(ColorMode colorMode) {
+        this.colorMode = colorMode;
+    }
 
     public int[][] getClrSets() {
         return clrSets;

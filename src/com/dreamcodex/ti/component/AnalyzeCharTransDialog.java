@@ -1,11 +1,7 @@
 package com.dreamcodex.ti.component;
 
-import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.MapChangeListener;
-import com.dreamcodex.ti.util.Globals;
-import com.dreamcodex.ti.util.Lists;
-import com.dreamcodex.ti.util.TransChar;
-import com.dreamcodex.ti.util.TransitionType;
+import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -18,14 +14,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_BITMAP;
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_GRAPHICS_1;
 import static java.lang.Math.floorMod;
 
-/**
- * Created with IntelliJ IDEA.
- * User: Rasmus
- * Date: 06-05-13
- * Time: 20:43
- */
 public class AnalyzeCharTransDialog extends JDialog implements ActionListener, MapChangeListener, WindowListener, ListSelectionListener {
 
     private final MapEditor mapEditor;
@@ -33,7 +25,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     private final HashMap<Integer, int[][]> charGrids;
     private final HashMap<Integer, int[][]> charColors;
     private final int[][] clrSets;
-    private final int colorMode;
+    private final ColorMode colorMode;
     private final int screenColor;
     private static TransitionType transitionType = TransitionType.TOP_TO_BOTTOM;
     private static boolean wrap = false;
@@ -117,7 +109,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
 
         private boolean areColorsOK(TransChar transChar) {
             boolean colorsOK;
-            if (colorMode == Magellan.COLOR_MODE_GRAPHICS_1 ) {
+            if (colorMode == COLOR_MODE_GRAPHICS_1 ) {
                 int[] fromClrSet = clrSets[transChar.getFromChar() / 8];
                 int[] toClrSet = clrSets[transChar.getToChar() / 8];
                 colorsOK = Globals.isColorTransitionOK(
@@ -130,7 +122,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                         charGrids.get(transChar.getToChar())
                 );
             }
-            else if (colorMode == Magellan.COLOR_MODE_BITMAP) {
+            else if (colorMode == COLOR_MODE_BITMAP) {
                 if (transitionType == TransitionType.BOTTOM_TO_TOP) {
                     colorsOK = true;
                 }
@@ -270,7 +262,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         HashMap<Integer, int[][]> charGrids,
         HashMap<Integer, int[][]> charColors,
         int[][] clrSets,
-        int colorMode
+        ColorMode colorMode
     ) {
         super(parent, "Analyze Character Transitions");
         this.mapEditor = mapEditor;

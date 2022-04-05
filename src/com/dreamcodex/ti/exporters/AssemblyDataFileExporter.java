@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.dreamcodex.ti.Magellan.*;
+import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class AssemblyDataFileExporter extends Exporter {
 

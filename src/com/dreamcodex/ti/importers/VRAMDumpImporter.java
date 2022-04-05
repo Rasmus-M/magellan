@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_BITMAP;
 
 public class VRAMDumpImporter extends Importer {
 

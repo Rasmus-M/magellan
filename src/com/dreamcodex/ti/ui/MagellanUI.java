@@ -6,6 +6,7 @@ import com.dreamcodex.ti.actions.importing.*;
 import com.dreamcodex.ti.actions.tools.OverlayImageAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.component.RecentMenu;
+import com.dreamcodex.ti.util.ColorMode;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.Preferences;
@@ -13,6 +14,7 @@ import com.dreamcodex.ti.util.Preferences;
 import javax.swing.*;
 
 import static com.dreamcodex.ti.Magellan.*;
+import static com.dreamcodex.ti.util.ColorMode.*;
 import static com.dreamcodex.ti.util.Globals.*;
 import static com.dreamcodex.ti.util.Globals.CMD_SNAP_SPRITES_TO_GRID;
 
@@ -21,7 +23,6 @@ public class MagellanUI {
     private final Magellan parent;
     private final MapEditor mapEditor;
     private final DataSet dataSet;
-    private final int colorMode;
     private final Preferences preferences;
 
     private ButtonGroup colorModeButtonGroup;
@@ -36,12 +37,11 @@ public class MagellanUI {
     JMenuItem jmitCharacterSetSuper;
 
 
-    public MagellanUI(Magellan parent, MapEditor mapEditor, DataSet dataSet, int colorMode, Preferences preferences) {
+    public MagellanUI(Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
 
         this.parent = parent;
         this.mapEditor = mapEditor;
         this.dataSet = dataSet;
-        this.colorMode = colorMode;
         this.preferences = preferences;
     }
 
@@ -201,22 +201,22 @@ public class MagellanUI {
         jmenOptions.addSeparator();
 
         colorModeButtonGroup = new ButtonGroup();
-        jmitGraphicsColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_GRAPHICS_1], colorMode == COLOR_MODE_GRAPHICS_1);
+        jmitGraphicsColorMode = new JRadioButtonMenuItem(COLOR_MODE_GRAPHICS_1.toString(), dataSet.getColorMode() == COLOR_MODE_GRAPHICS_1);
         colorModeButtonGroup.add(jmitGraphicsColorMode);
         jmitGraphicsColorMode.setActionCommand(Globals.CMD_GRAPHICSCOLORMODE);
         jmitGraphicsColorMode.addActionListener(parent);
         jmenOptions.add(jmitGraphicsColorMode);
-        jmitBitmapColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_BITMAP], colorMode == COLOR_MODE_BITMAP);
+        jmitBitmapColorMode = new JRadioButtonMenuItem(COLOR_MODE_BITMAP.toString(), dataSet.getColorMode() == COLOR_MODE_BITMAP);
         colorModeButtonGroup.add(jmitBitmapColorMode);
         jmitBitmapColorMode.setActionCommand(Globals.CMD_BITMAPCOLORMODE);
         jmitBitmapColorMode.addActionListener(parent);
         jmenOptions.add(jmitBitmapColorMode);
-        jmitECM2ColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_ECM_2], colorMode == COLOR_MODE_ECM_2);
+        jmitECM2ColorMode = new JRadioButtonMenuItem(COLOR_MODE_ECM_2.toString(), dataSet.getColorMode() == COLOR_MODE_ECM_2);
         colorModeButtonGroup.add(jmitECM2ColorMode);
         jmitECM2ColorMode.setActionCommand(Globals.CMD_ECM2COLORMODE);
         jmitECM2ColorMode.addActionListener(parent);
         jmenOptions.add(jmitECM2ColorMode);
-        jmitECM3ColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_ECM_3], colorMode == COLOR_MODE_ECM_3);
+        jmitECM3ColorMode = new JRadioButtonMenuItem(COLOR_MODE_ECM_3.toString(), dataSet.getColorMode() == COLOR_MODE_ECM_3);
         colorModeButtonGroup.add(jmitECM3ColorMode);
         jmitECM3ColorMode.setActionCommand(Globals.CMD_ECM3COLORMODE);
         jmitECM3ColorMode.addActionListener(parent);
@@ -258,7 +258,7 @@ public class MagellanUI {
         return jMenuBar;
     }
 
-    public void setColorModeOption(int colorMode) {
+    public void setColorModeOption(ColorMode colorMode) {
         switch (colorMode) {
             case COLOR_MODE_GRAPHICS_1:
                 colorModeButtonGroup.setSelected(jmitGraphicsColorMode.getModel(), true);

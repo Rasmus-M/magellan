@@ -11,8 +11,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
 
-import static com.dreamcodex.ti.Magellan.*;
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_BITMAP;
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_GRAPHICS_1;
 import static java.lang.Math.floorMod;
 
 public class ScrollFileExporter extends Exporter {

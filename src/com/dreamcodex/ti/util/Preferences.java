@@ -15,7 +15,7 @@ import static com.dreamcodex.ti.Magellan.*;
 public class Preferences {
 
     private final Properties appProperties = new Properties();
-    private int colorMode = COLOR_MODE_GRAPHICS_1;
+    private ColorMode colorMode = ColorMode.COLOR_MODE_GRAPHICS_1;
     private int viewScale = 3;
     private boolean textCursor = false;
     private boolean showGrid = true;
@@ -49,11 +49,11 @@ public class Preferences {
     protected ArrayList<String> recentFiles = new ArrayList<String>();
     protected String currentDirectory;
 
-    public int getColorMode() {
+    public ColorMode getColorMode() {
         return colorMode;
     }
 
-    public void setColorMode(int colorMode) {
+    public void setColorMode(ColorMode colorMode) {
         this.colorMode = colorMode;
     }
 
@@ -364,7 +364,7 @@ public class Preferences {
         } else if (appProperties.getProperty("expandCharacters") != null) {
             characterSetCapacity = appProperties.getProperty("expandCharacters").equalsIgnoreCase("true") ? CHARACTER_SET_EXPANDED : CHARACTER_SET_BASIC;
         }
-        colorMode = getIntegerProperty("colorMode", colorMode);
+        colorMode = ColorMode.values()[getIntegerProperty("colorMode", colorMode.ordinal())];
         defStartChar = getIntegerProperty("defStartChar", defStartChar);
         defEndChar = getIntegerProperty("defEndChar", defEndChar);
         defStartSprite = getIntegerProperty("defStartSprite", defStartSprite);
@@ -399,7 +399,7 @@ public class Preferences {
         appProperties.setProperty("excludeBlank", excludeBlank ? "true" : "false");
         appProperties.setProperty("wrap", wrap ? "true" : "false");
         appProperties.setProperty("characterSetSize", Integer.toString(characterSetCapacity));
-        appProperties.setProperty("colorMode", Integer.toString(colorMode));
+        appProperties.setProperty("colorMode", Integer.toString(colorMode.ordinal()));
         appProperties.setProperty("showGrid", showGrid ? "true" : "false");
         appProperties.setProperty("gridScale", Integer.toString(gridScale));
         appProperties.setProperty("showPosition", showPosition ? "true" : "false");

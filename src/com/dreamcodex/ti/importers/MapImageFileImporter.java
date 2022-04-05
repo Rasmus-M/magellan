@@ -9,8 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 
-import static com.dreamcodex.ti.Magellan.*;
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_ECM_2;
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_ECM_2;
 
 public class MapImageFileImporter extends Importer {
 

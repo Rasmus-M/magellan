@@ -2,7 +2,6 @@ package com.dreamcodex.ti.exporters;
 
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.util.DataSet;
-import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
 
@@ -12,8 +11,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_BITMAP;
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_GRAPHICS_1;
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_BITMAP;
+import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_GRAPHICS_1;
 import static com.dreamcodex.ti.util.Globals.isGridEmpty;
 
 public class SpriteImageExporter extends Exporter {

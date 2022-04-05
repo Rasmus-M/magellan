@@ -4,6 +4,7 @@ import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.importers.DataFileImporter;
+import com.dreamcodex.ti.util.ColorMode;
 import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.Preferences;
@@ -15,7 +16,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import static com.dreamcodex.ti.Magellan.*;
 import static com.dreamcodex.ti.util.TIGlobals.SUPER_LAST_CHAR;
 
 public class OpenDataFileAction extends FileAction {
@@ -67,9 +67,9 @@ public class OpenDataFileAction extends FileAction {
                 line = bufferedReader.readLine();
                 if (line != null) {
                     if (line.startsWith(Globals.KEY_COLOR_MODE)) {
-                        int fileColorMode = Integer.parseInt(line.substring(Globals.KEY_COLOR_MODE.length()));
+                        ColorMode fileColorMode = ColorMode.values()[Integer.parseInt(line.substring(Globals.KEY_COLOR_MODE.length()))];
                         if (fileColorMode != preferences.getColorMode()) {
-                            int reply = showConfirmation("Confirm Color Mode Change", "This file was saved in " + COLOR_MODES[fileColorMode] + ". Do you want to switch to that mode before loading the file?", true);
+                            int reply = showConfirmation("Confirm Color Mode Change", "This file was saved in " + fileColorMode + ". Do you want to switch to that mode before loading the file?", true);
                             if (reply == JOptionPane.YES_OPTION) {
                                 parent.setColorModeOption(fileColorMode);
                             }

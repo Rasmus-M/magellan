@@ -7,12 +7,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
-import static com.dreamcodex.ti.Magellan.*;
-import static com.dreamcodex.ti.Magellan.COLOR_MODE_ECM_3;
+import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class CharacterImageColorImporter extends Importer {
 
-    private Preferences preferences;
+    private final Preferences preferences;
 
     public CharacterImageColorImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);

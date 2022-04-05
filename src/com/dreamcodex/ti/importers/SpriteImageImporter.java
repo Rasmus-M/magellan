@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static com.dreamcodex.ti.Magellan.*;
+import static com.dreamcodex.ti.util.ColorMode.*;
 import static com.dreamcodex.ti.util.Globals.getECMSafeColor;
 import static com.dreamcodex.ti.util.Globals.toHexString;
 
