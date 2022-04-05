@@ -636,7 +636,7 @@ public class Globals {
 
     public static ImageFilter ifTrans = new RGBImageFilter() {
 
-        private int tagTrans = TIGlobals.TI_COLOR_TRANSOPAQUE.getRGB();
+        private final int tagTrans = TIGlobals.TI_COLOR_TRANSOPAQUE.getRGB();
 
         public final int filterRGB(int x, int y, int rgb) {
             if (rgb == tagTrans) {

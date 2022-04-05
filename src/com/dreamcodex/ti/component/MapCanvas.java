@@ -52,7 +52,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     protected boolean viewCharLayer = true;
     protected boolean viewSpriteLayer = true;
     protected boolean magnifySprites = false;
-    int spriteMagnification = 1;
+    protected int spriteMagnification = 1;
+    protected BufferedImage overlay;
 
 // Components ------------------------------------------------------------------------------/
 
@@ -499,6 +500,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         return copy;
     }
 
+    public void setOverlay(BufferedImage overlay) {
+        this.overlay = overlay;
+    }
+
 // Rendering Methods -----------------------------------------------------------------------/
 
     public void redrawCanvas() {
@@ -583,11 +588,13 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             int gridWidth = gridData[0].length;
             int gridHeight = gridData.length;
             int size = optScale * viewScale;
+            int width = size * gridWidth;
+            int height = size * gridHeight;
             this.setPreferredSize(new Dimension(gridWidth * size, gridHeight * size));
             Rectangle currBounds = this.getBounds();
-            gridOffsetX = (currBounds.width - (size * gridWidth)) / 2;
-            gridOffsetY = (currBounds.height - (size * gridHeight)) / 2;
-            g.drawRect(gridOffsetX - 1, gridOffsetY - 1, (size * gridWidth) + 1, (size * gridHeight) + 1);
+            gridOffsetX = (currBounds.width - width) / 2;
+            gridOffsetY = (currBounds.height - height) / 2;
+            g.drawRect(gridOffsetX - 1, gridOffsetY - 1, width + 1, height + 1);
             if (currBufferScaled != null) {
                 g.drawImage(currBufferScaled, gridOffsetX, gridOffsetY, this);
                 if (showGrid) {
@@ -598,6 +605,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                             g.drawRect(x * gridSize + gridOffsetX, y * gridSize + gridOffsetY, gridSize - 1, gridSize - 1);
                         }
                     }
+                }
+                if (overlay != null) {
+                    ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.33f));
+                    g.drawImage(overlay, gridOffsetX, gridOffsetY, width, height, this);
                 }
             }
             g.dispose();

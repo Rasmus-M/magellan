@@ -433,6 +433,10 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         return mapCanvas.getBuffer();
     }
 
+    public void setOverlay(BufferedImage overlay) {
+        this.mapCanvas.setOverlay(overlay);
+    }
+
     public void redrawCanvas() {
         mapCanvas.redrawCanvas();
     }

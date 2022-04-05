@@ -11,6 +11,7 @@ import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.iface.MapChangeListener;
 import com.dreamcodex.ti.iface.ScreenColorListener;
 import com.dreamcodex.ti.iface.UndoRedoListener;
+import com.dreamcodex.ti.ui.MagellanUI;
 import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
@@ -96,8 +97,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Components ------------------------------------------------------------------------------/
 
+    private MagellanUI ui;
+
     // Tabbed pane
-    JTabbedPane jtbpEdit;
+    private JTabbedPane jtbpEdit;
 
     // Character editor
     private GridCanvas gcChar;
@@ -126,15 +129,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     private ECMPaletteComboBox spriteECMPaletteComboBox;
     private JPanel jpnlSpriteDock;
     private JButton[] jbtnSprite;
-
-    // Menu items
-    JMenuItem jmitGraphicsColorMode;
-    private ButtonGroup colorModeButtonGroup;
-    private JMenuItem jmitBitmapColorMode;
-    private JMenuItem jmitECM2ColorMode;
-    private JMenuItem jmitECM3ColorMode;
-    private ButtonGroup characterSetSizeButtonGroup;
-    private JMenuItem jmitCharacterSetSuper;
 
     // Map editor
     private MapEditor mapEditor;
@@ -247,7 +241,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         buildECMPalettes();
 
         // Main UI components
-        JMenuBar jMenuBar = createMenu();
+        ui = new MagellanUI(this, mapEditor, dataSet, colorMode, preferences);
+        JMenuBar jMenuBar = ui.createMenu();
         JPanel jpnlMain = createUI();
 
         // Assemble the application
@@ -289,222 +284,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
 // UI Builder Methods ----------------------------------------------------------------------------/
-
-    protected JMenuBar createMenu() {
-        // Create the menus
-        JMenuBar jMenuBar = new JMenuBar();
-        JMenu jmenFile = new JMenu("File");
-        JMenuItem jmitNew = new JMenuItem("New Map Project");
-        jmitNew.setActionCommand(Globals.CMD_NEW);
-        jmitNew.addActionListener(this);
-        jmenFile.add(jmitNew);
-        JMenuItem jmitOpen = new JMenuItem();
-        jmitOpen.setAction(new OpenDataFileAction("Open Map Project", null, this, mapEditor, dataSet, preferences));
-        jmenFile.add(jmitOpen);
-        JMenu jmenuOpenRecent = new RecentMenu(preferences.getRecentFiles(), this, mapEditor, dataSet, preferences);
-        jmenFile.add(jmenuOpenRecent);
-        JMenuItem jmitSave = new JMenuItem();
-        jmitSave.setAction(new SaveDataFileAction("Save Map Project", this, mapEditor, dataSet, preferences));
-        jmenFile.add(jmitSave);
-        JMenuItem jmitSaveAs = new JMenuItem();
-        jmitSaveAs.setAction(new SaveDataFileAsAction("Save Map Project as...", this, mapEditor, dataSet, preferences));
-        jmenFile.add(jmitSaveAs);
-        jmenFile.addSeparator();
-        JMenuItem jmitAppend = new JMenuItem();
-        jmitAppend.setAction(new AppendDataFileAction("Append Maps", this, mapEditor, dataSet, preferences));
-        jmenFile.add(jmitAppend);
-        jmenFile.addSeparator();
-        JMenuItem jmitExit = new JMenuItem("Exit");
-        jmitExit.setActionCommand(Globals.CMD_EXIT);
-        jmitExit.addActionListener(this);
-        jmenFile.add(jmitExit);
-        // Add menu
-        jMenuBar.add(jmenFile);
-
-        JMenu jmenImport = new JMenu("Import");
-        JMenuItem jmitImportChrImgMono = new JMenuItem();
-        jmitImportChrImgMono.setAction(new ImportCharImageAction(false, "Character Image (Mono)", this, mapEditor, dataSet, preferences));
-        jmenImport.add(jmitImportChrImgMono);
-        JMenuItem jmitImportChrImgColor = new JMenuItem();
-        jmitImportChrImgColor.setAction(new ImportCharImageAction(true, "Character Image (Color)", this, mapEditor, dataSet, preferences));
-        jmenImport.add(jmitImportChrImgColor);
-        JMenuItem jmitImportVramDump = new JMenuItem();
-        jmitImportVramDump.setAction(new ImportVRAMDumpAction("VRAM Dump", this, mapEditor, dataSet, preferences));
-        jmenImport.add(jmitImportVramDump);
-        JMenuItem jmitImportBinaryMap = new JMenuItem();
-        jmitImportBinaryMap.setAction(new ImportBinaryMapAction("Binary Map", this, mapEditor, dataSet, preferences));
-        jmenImport.add(jmitImportBinaryMap);
-        JMenuItem jmitImportMapImage = new JMenuItem();
-        jmitImportMapImage.setAction(new ImportMapImageAction("Map Image", this, mapEditor, dataSet, preferences));
-        jmenImport.add(jmitImportMapImage);
-        JMenuItem jmitImportSpriteImage = new JMenuItem();
-        jmitImportSpriteImage.setAction(new ImportSpriteImageAction("Sprite Image", this, mapEditor, dataSet, preferences));
-        jmenImport.add(jmitImportSpriteImage);
-        // Add menu
-        jMenuBar.add(jmenImport);
-
-        JMenu jmenExport = new JMenu("Export");
-
-        JMenuItem jmitExportData = new JMenuItem();
-        jmitExportData.setAction(new ExportXBDataFileAction(BASIC_DATA, "BASIC Data", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportData);
-        JMenuItem jmitExportBasic = new JMenuItem();
-        jmitExportBasic.setAction(new ExportXBDataFileAction(BASIC_PROGRAM, "BASIC Program", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportBasic);
-        JMenuItem jmitExportExec = new JMenuItem();
-        jmitExportExec.setAction(new ExportXBDataFileAction(XB_PROGRAM, "XB Program", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportExec);
-        JMenuItem jmitExportXB256 = new JMenuItem();
-        jmitExportXB256.setAction(new ExportXBDataFileAction(XB256_PROGRAM, "XB 256 Program", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportXB256);
-        JMenuItem jmitExportXBDisMer = new JMenuItem();
-        jmitExportXBDisMer.setAction(new ExportXBDisplayMergeAction("XB Display Merge", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportXBDisMer);
-
-        jmenExport.addSeparator();
-
-        JMenuItem jmitExportAsm = new JMenuItem();
-        jmitExportAsm.setAction(new ExportAssemblyDataFileAction("Assembly Data", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportAsm);
-        JMenuItem jmitExportScrollMap = new JMenuItem();
-        jmitExportScrollMap.setAction(new ExportScrollFileAction("Assembly Scroll Data", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportScrollMap);
-
-        jmenExport.addSeparator();
-
-        JMenuItem jmitExportBin = new JMenuItem();
-        jmitExportBin.setAction(new ExportBinaryFileAction("Binary Data", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportBin);
-        JMenuItem jmitExportBinMap = new JMenuItem();
-        jmitExportBinMap.setAction(new ExportBinaryMapAction("Binary Map (current)", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportBinMap);
-
-        jmenExport.addSeparator();
-
-        JMenuItem jmitExportChrImgMono = new JMenuItem();
-        jmitExportChrImgMono.setAction(new ExportCharImageAction(false, "Character Image (Mono)", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportChrImgMono);
-        JMenuItem jmitExportChrImgColor = new JMenuItem();
-        jmitExportChrImgColor.setAction(new ExportCharImageAction(true, "Character Image (Color)", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportChrImgColor);
-        JMenuItem jmitExportSpriteImg = new JMenuItem();
-        jmitExportSpriteImg.setAction(new ExportSpriteImageAction(true, "Sprite Image", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportSpriteImg);
-        JMenuItem jmitExportMapImg = new JMenuItem();
-        jmitExportMapImg.setAction(new ExportMapImageAction("Map Image", this, mapEditor, dataSet, preferences));
-        jmenExport.add(jmitExportMapImg);
-
-        // Add menu
-        jMenuBar.add(jmenExport);
-
-        JMenu jmenTools = new JMenu("Tools");
-        JMenuItem jmitSwapChars = new JMenuItem("Replace Characters");
-        jmitSwapChars.setActionCommand(Globals.CMD_SWAPCHARS);
-        jmitSwapChars.addActionListener(this);
-        jmenTools.add(jmitSwapChars);
-        JMenuItem jmitAnalyzeCharUsage = new JMenuItem("Analyze Character Usage");
-        jmitAnalyzeCharUsage.setActionCommand(Globals.CMD_ANALYZECHARUSAGE);
-        jmitAnalyzeCharUsage.addActionListener(this);
-        jmenTools.add(jmitAnalyzeCharUsage);
-        JMenuItem jmitAnalyzeCharTrans = new JMenuItem("Analyze Character Transitions");
-        jmitAnalyzeCharTrans.setActionCommand(Globals.CMD_ANALYZECHARTRANS);
-        jmitAnalyzeCharTrans.addActionListener(this);
-        jmenTools.add(jmitAnalyzeCharTrans);
-
-        // Add menu
-        jMenuBar.add(jmenTools);
-
-        JMenu jmenOptions = new JMenu("Options");
-        JMenuItem jmitShowPos = new JCheckBoxMenuItem("Show Position", mapEditor.showPosIndic());
-        jmitShowPos.setActionCommand(Globals.CMD_SHOWPOS);
-        jmitShowPos.addActionListener(this);
-        jmenOptions.add(jmitShowPos);
-        JMenuItem jmitBase0Pos = new JCheckBoxMenuItem("Base 0 for Position", mapEditor.base0Position());
-        jmitBase0Pos.setActionCommand(Globals.CMD_BASE0POS);
-        jmitBase0Pos.addActionListener(this);
-        jmenOptions.add(jmitBase0Pos);
-
-        jmenOptions.addSeparator();
-
-        characterSetSizeButtonGroup = new ButtonGroup();
-
-        JRadioButtonMenuItem jmitCharacterSetBasic = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_BASIC], preferences.getCharacterSetCapacity() == CHARACTER_SET_BASIC);
-        characterSetSizeButtonGroup.add(jmitCharacterSetBasic);
-        jmitCharacterSetBasic.setActionCommand(Globals.CMD_BASICCHARSETSIZE);
-        jmitCharacterSetBasic.addActionListener(this);
-        jmenOptions.add(jmitCharacterSetBasic);
-
-        JRadioButtonMenuItem jmitCharacterSetExpanded = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_EXPANDED], preferences.getCharacterSetCapacity() == CHARACTER_SET_EXPANDED);
-        characterSetSizeButtonGroup.add(jmitCharacterSetExpanded);
-        jmitCharacterSetExpanded.setActionCommand(Globals.CMD_EXPANDEDCHARSETSIZE);
-        jmitCharacterSetExpanded.addActionListener(this);
-        jmenOptions.add(jmitCharacterSetExpanded);
-
-        jmitCharacterSetSuper = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_SUPER], preferences.getCharacterSetCapacity() == CHARACTER_SET_SUPER);
-        characterSetSizeButtonGroup.add(jmitCharacterSetSuper);
-        jmitCharacterSetSuper.setActionCommand(Globals.CMD_SUPERCHARSETSIZE);
-        jmitCharacterSetSuper.addActionListener(this);
-        jmenOptions.add(jmitCharacterSetSuper);
-
-        jmenOptions.addSeparator();
-
-        colorModeButtonGroup = new ButtonGroup();
-        jmitGraphicsColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_GRAPHICS_1], colorMode == COLOR_MODE_GRAPHICS_1);
-        colorModeButtonGroup.add(jmitGraphicsColorMode);
-        jmitGraphicsColorMode.setActionCommand(Globals.CMD_GRAPHICSCOLORMODE);
-        jmitGraphicsColorMode.addActionListener(this);
-        jmenOptions.add(jmitGraphicsColorMode);
-        jmitBitmapColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_BITMAP], colorMode == COLOR_MODE_BITMAP);
-        colorModeButtonGroup.add(jmitBitmapColorMode);
-        jmitBitmapColorMode.setActionCommand(Globals.CMD_BITMAPCOLORMODE);
-        jmitBitmapColorMode.addActionListener(this);
-        jmenOptions.add(jmitBitmapColorMode);
-        jmitECM2ColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_ECM_2], colorMode == COLOR_MODE_ECM_2);
-        colorModeButtonGroup.add(jmitECM2ColorMode);
-        jmitECM2ColorMode.setActionCommand(Globals.CMD_ECM2COLORMODE);
-        jmitECM2ColorMode.addActionListener(this);
-        jmenOptions.add(jmitECM2ColorMode);
-        jmitECM3ColorMode = new JRadioButtonMenuItem(COLOR_MODES[COLOR_MODE_ECM_3], colorMode == COLOR_MODE_ECM_3);
-        colorModeButtonGroup.add(jmitECM3ColorMode);
-        jmitECM3ColorMode.setActionCommand(Globals.CMD_ECM3COLORMODE);
-        jmitECM3ColorMode.addActionListener(this);
-        jmenOptions.add(jmitECM3ColorMode);
-
-        jmenOptions.addSeparator();
-
-        JMenuItem jmitViewCharLayer = new JCheckBoxMenuItem("View Character Layer", mapEditor.getViewCharLayer());
-        jmitViewCharLayer.setActionCommand(Globals.CMD_VIEW_CHAR_LAYER);
-        jmitViewCharLayer.addActionListener(this);
-        jmenOptions.add(jmitViewCharLayer);
-        JMenuItem jmitViewSpriteLayer = new JCheckBoxMenuItem("View Sprite Layer", mapEditor.getViewSpriteLayer());
-        jmitViewSpriteLayer.setActionCommand(Globals.CMD_VIEW_SPRITE_LAYER);
-        jmitViewSpriteLayer.addActionListener(this);
-        jmenOptions.add(jmitViewSpriteLayer);
-
-        jmenOptions.addSeparator();
-
-        JMenuItem jmitMagnifySprites = new JCheckBoxMenuItem("Magnify Sprites", mapEditor.getMagnifySprites());
-        jmitMagnifySprites.setActionCommand(CMD_MAGNIFY_SPRITES);
-        jmitMagnifySprites.addActionListener(this);
-        jmenOptions.add(jmitMagnifySprites);
-        JMenuItem jmitSnapSpritesToGrid = new JCheckBoxMenuItem("Snap Sprites to Grid", mapEditor.getSnapSpritesToGrid());
-        jmitSnapSpritesToGrid.setActionCommand(CMD_SNAP_SPRITES_TO_GRID);
-        jmitSnapSpritesToGrid.addActionListener(this);
-        jmenOptions.add(jmitSnapSpritesToGrid);
-
-        // Add menu
-        jMenuBar.add(jmenOptions);
-
-        JMenu jmenHelp = new JMenu("Help");
-        JMenuItem jmitHelpAbout = new JMenuItem("About Magellan");
-        jmitHelpAbout.setActionCommand(Globals.CMD_ABOUT);
-        jmitHelpAbout.addActionListener(this);
-        jmenHelp.add(jmitHelpAbout);
-        // Add menu
-        jMenuBar.add(jmenHelp);
-
-        return jMenuBar;
-    }
 
     protected JPanel createUI() {
 
@@ -1687,21 +1466,18 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         switch (colorMode) {
             case COLOR_MODE_GRAPHICS_1:
                 setGraphicsColorMode();
-                colorModeButtonGroup.setSelected(jmitGraphicsColorMode.getModel(), true);
                 break;
             case COLOR_MODE_BITMAP:
                 setBitmapColorMode();
-                colorModeButtonGroup.setSelected(jmitBitmapColorMode.getModel(), true);
                 break;
             case COLOR_MODE_ECM_2:
                 setECM2ColorMode();
-                colorModeButtonGroup.setSelected(jmitECM2ColorMode.getModel(), true);
                 break;
             case COLOR_MODE_ECM_3:
                 setECM3ColorMode();
-                colorModeButtonGroup.setSelected(jmitECM3ColorMode.getModel(), true);
                 break;
         }
+        ui.setColorModeOption(colorMode);
     }
 
     protected void setGraphicsColorMode() {
@@ -1832,7 +1608,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
     public void setSuperCharacterSetOption() {
         setCharacterSetSizeSuper();
-        characterSetSizeButtonGroup.setSelected(jmitCharacterSetSuper.getModel(), true);
+        ui.setSuperCharacterSetOption();
     }
 
     public void setCharacterSetSizeBasic() {
@@ -2172,7 +1948,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
         return -1;
     }
-
 
     protected Image makeImageTransparent(Image imgSrc) {
         ImageProducer ipTrans = new FilteredImageSource(imgSrc.getSource(), Globals.ifTrans);
