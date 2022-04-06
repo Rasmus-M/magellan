@@ -13,9 +13,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class OverlayImageAction extends FileAction {
+public class LoadOverlayImageAction extends FileAction {
 
-    public OverlayImageAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
+    public LoadOverlayImageAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(name, parent, mapEditor, dataSet, preferences);
     }
 

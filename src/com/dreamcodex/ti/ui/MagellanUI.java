@@ -3,7 +3,8 @@ package com.dreamcodex.ti.ui;
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.actions.exporting.*;
 import com.dreamcodex.ti.actions.importing.*;
-import com.dreamcodex.ti.actions.tools.OverlayImageAction;
+import com.dreamcodex.ti.actions.tools.ClearOverlayImageAction;
+import com.dreamcodex.ti.actions.tools.LoadOverlayImageAction;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.component.RecentMenu;
 import com.dreamcodex.ti.util.ColorMode;
@@ -159,10 +160,8 @@ public class MagellanUI {
         jmitAnalyzeCharTrans.addActionListener(parent);
         jmenTools.add(jmitAnalyzeCharTrans);
         jmenTools.addSeparator();
-        JMenuItem jmitOverlayImage = new JMenuItem();
-        jmitOverlayImage.setAction(new OverlayImageAction("Overlay Image", parent, mapEditor, dataSet, preferences));
-        jmitOverlayImage.addActionListener(parent);
-        jmenTools.add(jmitOverlayImage);
+        jmenTools.add(new LoadOverlayImageAction("Load Overlay Image", parent, mapEditor, dataSet, preferences));
+        jmenTools.add(new ClearOverlayImageAction("Clear Overlay Image", parent, mapEditor, dataSet, preferences));
         // Add menu
         jMenuBar.add(jmenTools);
 

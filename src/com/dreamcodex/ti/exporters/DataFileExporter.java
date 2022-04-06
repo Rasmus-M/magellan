@@ -35,7 +35,7 @@ public class DataFileExporter extends Exporter {
         // Color mode
         bw.write("* COLOR MODE");
         bw.newLine();
-        bw.write(Globals.KEY_COLOR_MODE + colorMode);
+        bw.write(Globals.KEY_COLOR_MODE + colorMode.ordinal());
         bw.newLine();
         // output overall character range (this is for backwards compatibility with earlier Magellan releases, will be phased out)
         bw.write("* CHARACTER RANGE");

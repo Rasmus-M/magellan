@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-import static com.dreamcodex.ti.Magellan.*;
 import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class DataFileImporter extends Importer {

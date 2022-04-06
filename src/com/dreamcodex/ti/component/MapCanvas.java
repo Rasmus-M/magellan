@@ -502,6 +502,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setOverlay(BufferedImage overlay) {
         this.overlay = overlay;
+        redrawCanvas();
     }
 
 // Rendering Methods -----------------------------------------------------------------------/
