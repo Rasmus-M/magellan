@@ -24,6 +24,15 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     public static Color CLR_COPY = new Color(255, 128, 128, 128);
     public static Color CLR_PASTE = new Color(128, 128, 255, 128);
 
+    private static Color[] SPRITE_PER_LINE_COLORS = new Color[] {
+        Color.WHITE,
+        Color.GREEN,
+        Color.YELLOW,
+        Color.ORANGE,
+        Color.RED,
+        Color.BLACK
+    };
+
 // Variables -------------------------------------------------------------------------------/
 
     protected int[][] gridData;
@@ -54,11 +63,13 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     protected boolean magnifySprites = false;
     protected int spriteMagnification = 1;
     protected BufferedImage overlay;
+    protected boolean showSpritesPerLine = false;
 
 // Components ------------------------------------------------------------------------------/
 
-    protected BufferedImage bufferDraw;
-    protected Image currBufferScaled;
+    protected BufferedImage gridImage;
+    protected Image gridImageScaled;
+    protected Image spritesPerLineImageScaled;
 
 // Listeners -------------------------------------------------------------------------------/
 
@@ -72,7 +83,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private int gridOffsetX = 0;
     private int gridOffsetY = 0;
-    private final int optScale;
+    private final int cellSize;
     private boolean snapSpritesToGrid = false;
     private final Point hotCell = new Point(PT_OFFGRID);
     private final Point typeCell = new Point(PT_OFFGRID);
@@ -97,12 +108,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         spriteMap = new HashMap<>();
-        optScale = cellSize;
+        this.cellSize = cellSize;
         clrGrid = new Color(128, 128, 128);
         clrHigh = Globals.CLR_HIGHLIGHT;
         clrType = new Color(164, 164, 255);
-
-        bufferDraw = getImageBuffer(gridWidth * optScale, gridHeight * optScale);
 
         hmCharImages = new HashMap<>();
         hmSpriteImages = new HashMap<>();
@@ -238,9 +247,9 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         typeCellOn = b;
     }
 
-    public BufferedImage getBuffer() {
+    public BufferedImage getGridImage() {
         redrawCanvas();
-        return bufferDraw;
+        return gridImage;
     }
 
     public int getGridWidth() {
@@ -263,7 +272,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
         highlightLayer = new boolean[getGridHeight()][i];
         redrawCanvas();
     }
@@ -280,7 +288,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
         highlightLayer = new boolean[i][getGridWidth()];
         redrawCanvas();
     }
@@ -293,7 +300,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
         highlightLayer = new boolean[getGridHeight()][getGridWidth()];
         redrawCanvas();
         if (withUndo) {
@@ -309,7 +315,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        bufferDraw = getImageBuffer(gridData[0].length * optScale, gridData.length * optScale);
         highlightLayer = new boolean[getGridHeight()][getGridWidth()];
         redrawCanvas();
         if (withUndo) {
@@ -505,82 +510,102 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         redrawCanvas();
     }
 
-// Rendering Methods -----------------------------------------------------------------------/
+    public boolean getShowSpritesPerLine() {
+        return showSpritesPerLine;
+    }
+
+    public void setShowSpritesPerLine(boolean showSpritesPerLine) {
+        this.showSpritesPerLine = showSpritesPerLine;
+        redrawCanvas();
+    }
+
+    // Rendering Methods -----------------------------------------------------------------------/
 
     public void redrawCanvas() {
-        if (this.getGraphics() != null && bufferDraw != null) {
-            int gridWidth = gridData[0].length;
-            int gridHeight = gridData.length;
-            if (bufferDraw.getWidth() != (gridWidth * optScale) || bufferDraw.getHeight() != (gridHeight * optScale)) {
-                bufferDraw = getImageBuffer(gridWidth * optScale, gridHeight * optScale);
-            }
-            Graphics g = bufferDraw.getGraphics();
-            g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
-            g.fillRect(0, 0, bufferDraw.getWidth(this), bufferDraw.getHeight(this));
-            if (viewCharLayer) {
-                boolean painted;
-                for (int y = 0; y < gridHeight; y++) {
-                    for (int x = 0; x < gridWidth; x++) {
-                        painted = false;
-                        if (gridData[y][x] != NOCHAR) {
-                            Image charImage = hmCharImages.get(gridData[y][x]);
-                            if (charImage != null) {
-                                g.drawImage(charImage, x * optScale, y * optScale, optScale, optScale, this);
-                                painted = true;
-                            }
-                        }
-                        if (!painted) {
-                            g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
-                            g.fillRect(x * optScale, y * optScale, optScale, optScale);
-                        }
-                        if (highlightLayer[y][x]) {
-                            g.setColor(CLR_COPY);
-                            g.fillRect(x * optScale, y * optScale, optScale, optScale);
+        int gridWidth = gridData[0].length;
+        int gridHeight = gridData.length;
+        int bufferWidth = gridWidth * cellSize;
+        int bufferHeight = gridHeight * cellSize;
+        gridImage = getImageBuffer(bufferWidth, bufferHeight);
+        Graphics g = gridImage.getGraphics();
+        g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
+        g.fillRect(0, 0, gridImage.getWidth(this), gridImage.getHeight(this));
+        if (viewCharLayer) {
+            boolean painted;
+            for (int y = 0; y < gridHeight; y++) {
+                for (int x = 0; x < gridWidth; x++) {
+                    painted = false;
+                    if (gridData[y][x] != NOCHAR) {
+                        Image charImage = hmCharImages.get(gridData[y][x]);
+                        if (charImage != null) {
+                            g.drawImage(charImage, x * cellSize, y * cellSize, cellSize, cellSize, this);
+                            painted = true;
                         }
                     }
-                }
-            }
-            if (viewSpriteLayer) {
-                for (Point p : spriteMap.keySet()) {
-                    ArrayList<Integer> spriteList = spriteMap.get(p);
-                    if (spriteList != null) {
-                        for (int spriteNum : spriteList) {
-                            Image spriteImage = hmSpriteImages.get(spriteNum);
-                            if (spriteImage != null) {
-                                g.drawImage(spriteImage, p.x, p.y, 16 * spriteMagnification, 16 * spriteMagnification, this);
-                            }
-                        }
+                    if (!painted) {
+                        g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
+                        g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
                     }
-                }
-            }
-            if (cloneModeOn) {
-                if (cloneArray != null) {
-                    if (!hotCell.equals(PT_OFFGRID)) {
-                        g.setColor(CLR_PASTE);
-                        g.fillRect((int) (hotCell.getX() * optScale), (int) (hotCell.getY() * optScale), cloneArray[0].length * optScale, cloneArray.length * optScale);
-                    }
-                } else if (rectClone != null) {
-                    g.setColor(CLR_COPY);
-                    g.fillRect(rectClone.x * optScale, rectClone.y * optScale, (rectClone.width - rectClone.x) * optScale, (rectClone.height - rectClone.y) * optScale);
-                } else {
-                    Rectangle rectTmp = getCloneRectangle(hotCell);
-                    if (rectTmp != null) {
+                    if (highlightLayer[y][x]) {
                         g.setColor(CLR_COPY);
-                        g.fillRect(rectTmp.x * optScale, rectTmp.y * optScale, (rectTmp.width - rectTmp.x) * optScale, (rectTmp.height - rectTmp.y) * optScale);
+                        g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
                     }
                 }
             }
-            if (typeCellOn && !typeCell.equals(PT_OFFGRID)) {
-                outlineCell(g, typeCell.getX(), typeCell.getY(), clrType);
-            }
-            if (!hotCell.equals(PT_OFFGRID)) {
-                highlightCell(g, hotCell.getX(), hotCell.getY());
-            }
-            currBufferScaled = bufferDraw.getScaledInstance(gridWidth * optScale * viewScale, gridHeight * optScale * viewScale, BufferedImage.SCALE_REPLICATE);
-            this.setPreferredSize(new Dimension(gridWidth * optScale * viewScale, gridHeight * optScale * viewScale));
-            g.dispose();
-            this.repaint();
         }
+        if (viewSpriteLayer) {
+            for (Point p : spriteMap.keySet()) {
+                ArrayList<Integer> spriteList = spriteMap.get(p);
+                if (spriteList != null) {
+                    for (int spriteNum : spriteList) {
+                        Image spriteImage = hmSpriteImages.get(spriteNum);
+                        if (spriteImage != null) {
+                            g.drawImage(spriteImage, p.x, p.y, 16 * spriteMagnification, 16 * spriteMagnification, this);
+                        }
+                    }
+                }
+            }
+        }
+        if (cloneModeOn) {
+            if (cloneArray != null) {
+                if (!hotCell.equals(PT_OFFGRID)) {
+                    g.setColor(CLR_PASTE);
+                    g.fillRect((int) (hotCell.getX() * cellSize), (int) (hotCell.getY() * cellSize), cloneArray[0].length * cellSize, cloneArray.length * cellSize);
+                }
+            } else if (rectClone != null) {
+                g.setColor(CLR_COPY);
+                g.fillRect(rectClone.x * cellSize, rectClone.y * cellSize, (rectClone.width - rectClone.x) * cellSize, (rectClone.height - rectClone.y) * cellSize);
+            } else {
+                Rectangle rectTmp = getCloneRectangle(hotCell);
+                if (rectTmp != null) {
+                    g.setColor(CLR_COPY);
+                    g.fillRect(rectTmp.x * cellSize, rectTmp.y * cellSize, (rectTmp.width - rectTmp.x) * cellSize, (rectTmp.height - rectTmp.y) * cellSize);
+                }
+            }
+        }
+        if (typeCellOn && !typeCell.equals(PT_OFFGRID)) {
+            outlineCell(g, typeCell.getX(), typeCell.getY(), clrType);
+        }
+        if (!hotCell.equals(PT_OFFGRID)) {
+            highlightCell(g, hotCell.getX(), hotCell.getY());
+        }
+        g.dispose();
+        int scaledWidth = bufferWidth * viewScale;
+        int scaledHeight = bufferHeight * viewScale;
+        gridImageScaled = gridImage.getScaledInstance(scaledWidth, scaledHeight, BufferedImage.SCALE_REPLICATE);
+        if (showSpritesPerLine) {
+            BufferedImage spritesPerLineImage = getImageBuffer(cellSize, bufferHeight);
+            g = spritesPerLineImage.getGraphics();
+            for (int y = 0; y < bufferHeight; y++) {
+               int spritesOnLine = getSpritesOnLine(y);
+               g.setColor(SPRITE_PER_LINE_COLORS[Math.min(spritesOnLine, SPRITE_PER_LINE_COLORS.length - 1)]);
+               g.drawRect(0, y, cellSize, 1);
+            }
+            g.dispose();
+            spritesPerLineImageScaled = spritesPerLineImage.getScaledInstance(cellSize * viewScale, scaledHeight, BufferedImage.SCALE_REPLICATE);
+        }
+        this.setPreferredSize(new Dimension(scaledWidth + (showSpritesPerLine ? cellSize * viewScale : 0) + 2, scaledHeight + 2));
+        this.repaint();
     }
 
     protected void paintComponent(Graphics g) {
@@ -588,41 +613,54 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         try {
             int gridWidth = gridData[0].length;
             int gridHeight = gridData.length;
-            int size = optScale * viewScale;
+            int size = cellSize * viewScale;
             int width = size * gridWidth;
             int height = size * gridHeight;
-            this.setPreferredSize(new Dimension(gridWidth * size, gridHeight * size));
+            // this.setPreferredSize(new Dimension((gridWidth + (showSpritesPerLine ? 1 : 0)) * size, gridHeight * size));
             Rectangle currBounds = this.getBounds();
             gridOffsetX = (currBounds.width - width) / 2;
             gridOffsetY = (currBounds.height - height) / 2;
             g.drawRect(gridOffsetX - 1, gridOffsetY - 1, width + 1, height + 1);
-            if (currBufferScaled != null) {
-                g.drawImage(currBufferScaled, gridOffsetX, gridOffsetY, this);
-                if (showGrid) {
-                    g.setColor(clrGrid);
-                    int gridSize = size * gridScale;
-                    for (int y = 0; y < gridHeight / gridScale; y++) {
-                        for (int x = 0; x < gridWidth / gridScale; x++) {
-                            g.drawRect(x * gridSize + gridOffsetX, y * gridSize + gridOffsetY, gridSize - 1, gridSize - 1);
-                        }
+            if (gridImageScaled != null) {
+                g.drawImage(gridImageScaled, gridOffsetX, gridOffsetY, this);
+            }
+            if (showGrid) {
+                g.setColor(clrGrid);
+                int gridSize = size * gridScale;
+                for (int y = 0; y < gridHeight / gridScale; y++) {
+                    for (int x = 0; x < gridWidth / gridScale; x++) {
+                        g.drawRect(x * gridSize + gridOffsetX, y * gridSize + gridOffsetY, gridSize - 1, gridSize - 1);
                     }
                 }
-                if (overlay != null) {
-                    ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.33f));
-                    g.drawImage(overlay, gridOffsetX, gridOffsetY, width, height, this);
-                }
+            }
+            if (showSpritesPerLine && spritesPerLineImageScaled != null) {
+                g.drawImage(spritesPerLineImageScaled, gridOffsetX + width + 1, gridOffsetY, this);
+            }
+            if (overlay != null) {
+                ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.33f));
+                g.drawImage(overlay, gridOffsetX, gridOffsetY, width, height, this);
             }
             g.dispose();
         } catch (NullPointerException npe) { /* component not yet initialised */ }
     }
 
+    private int getSpritesOnLine(int y) {
+        int spritesOnLine = 0;
+        for (Point p : spriteMap.keySet()) {
+            if (y >= p.y && y < p.y + 16) {
+                spritesOnLine += spriteMap.get(p).size();
+            }
+        }
+        return spritesOnLine;
+    }
+
     private void outlineCell(Graphics g, int x, int y, Color clr) {
         g.setColor(clr);
-        int size = (optScale << (spriteMode ? spriteMagnification : 0)) - 1;
+        int size = (cellSize << (spriteMode ? spriteMagnification : 0)) - 1;
         if (spriteMode) {
             g.drawRect(x, y, size, size);
         } else {
-            g.drawRect(x * optScale, y * optScale, size, size);
+            g.drawRect(x * cellSize, y * cellSize, size, size);
         }
     }
 
@@ -635,11 +673,11 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         if (lookModeOn || cloneModeOn || !paintOn || image == null) {
             outlineCell(g, x, y, clrHigh);
         } else {
-            int size = optScale << (spriteMode ? spriteMagnification : 0);
+            int size = cellSize << (spriteMode ? spriteMagnification : 0);
             if (spriteMode) {
                 g.drawImage(image, x, y, size, size, this);
             } else {
-                g.drawImage(image, x * optScale, y * optScale, size, size, this);
+                g.drawImage(image, x * cellSize, y * cellSize, size, size, this);
             }
         }
     }
@@ -733,8 +771,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         if (
             pt.getX() <= gridOffsetX ||
             pt.getY() <= gridOffsetY ||
-            pt.getX() >= (gridOffsetX + (optScale * viewScale * gridData[0].length)) ||
-            pt.getY() >= (gridOffsetY + (optScale * viewScale * gridData.length))
+            pt.getX() >= (gridOffsetX + (cellSize * viewScale * gridData[0].length)) ||
+            pt.getY() >= (gridOffsetY + (cellSize * viewScale * gridData.length))
         ) {
             return new Point(PT_OFFGRID);
         }
@@ -743,13 +781,13 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             ptx = (int) ((pt.getX() - gridOffsetX) / viewScale);
             pty = (int) ((pt.getY() - gridOffsetY) / viewScale);
             if (snapSpritesToGrid) {
-                int gridSize = optScale * gridScale;
+                int gridSize = cellSize * gridScale;
                 ptx -= ptx % gridSize;
                 pty -= pty % gridSize;
             }
         } else {
-            ptx = (int) ((pt.getX() - gridOffsetX) / (optScale * viewScale));
-            pty = (int) ((pt.getY() - gridOffsetY) / (optScale * viewScale));
+            ptx = (int) ((pt.getX() - gridOffsetX) / (cellSize * viewScale));
+            pty = (int) ((pt.getY() - gridOffsetY) / (cellSize * viewScale));
         }
         return new Point(ptx, pty);
     }
@@ -922,7 +960,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             parentMouseMotionListener.mouseDragged(me);
         }
         // Scroll when edge is reached
-        int size = optScale * viewScale;
+        int size = cellSize * viewScale;
         Rectangle r = new Rectangle(me.getX() - size, me.getY() - size, 2 * size, 2 * size);
         this.scrollRectToVisible(r);
     }

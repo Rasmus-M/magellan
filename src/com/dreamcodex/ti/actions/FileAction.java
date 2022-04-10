@@ -12,7 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
-public abstract class FileAction extends AbstractAction {
+public abstract class FileAction extends MagellanAction {
 
     protected final String FILEEXT = "mag";
     protected final String[] FILEEXTS = {FILEEXT};
@@ -29,17 +29,8 @@ public abstract class FileAction extends AbstractAction {
     protected final String ANY = "";
     protected final String[] ANYS = {ANY};
 
-    protected final Magellan parent;
-    protected final MapEditor mapEditor;
-    protected final DataSet dataSet;
-    protected final Preferences preferences;
-
     public FileAction(String name, Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
-        super(name);
-        this.parent = parent;
-        this.mapEditor = mapEditor;
-        this.dataSet = dataSet;
-        this.preferences = preferences;
+        super(name, parent, mapEditor, dataSet, preferences);
     }
 
     protected File getFileFromChooser(String startDir, int dialogType, String[] exts, String desc) {
@@ -72,17 +63,5 @@ public abstract class FileAction extends AbstractAction {
             return file;
         }
         return null;
-    }
-
-    protected void showError(String title, String message) {
-        parent.showError(title, message);
-    }
-
-    protected int showConfirmation(String title, String message, boolean includeCancel) {
-        return parent.showConfirmation(title, message, includeCancel);
-    }
-
-    protected Image getImage(String name) {
-        return Toolkit.getDefaultToolkit().getImage(name);
     }
 }

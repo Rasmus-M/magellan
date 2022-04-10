@@ -9,6 +9,7 @@ import com.dreamcodex.ti.actions.exporting.*;
 import com.dreamcodex.ti.actions.importing.*;
 import com.dreamcodex.ti.actions.tools.ClearOverlayImageAction;
 import com.dreamcodex.ti.actions.tools.LoadOverlayImageAction;
+import com.dreamcodex.ti.actions.tools.ShowSpritesPerLineAction;
 import com.dreamcodex.ti.component.*;
 import com.dreamcodex.ti.util.*;
 
@@ -368,6 +369,9 @@ public class MagellanUI {
         jmitSnapSpritesToGrid.setActionCommand(CMD_SNAP_SPRITES_TO_GRID);
         jmitSnapSpritesToGrid.addActionListener(parent);
         optionsMenu.add(jmitSnapSpritesToGrid);
+        JCheckBoxMenuItem showSpritePerLineMenuItem = new JCheckBoxMenuItem(new ShowSpritesPerLineAction("Show Number of Sprites per Line", parent, mapEditor, dataSet, preferences));
+        showSpritePerLineMenuItem.setSelected(mapEditor.getShowSpritesPerLine());
+        optionsMenu.add(showSpritePerLineMenuItem);
 
         // Add menu
         menuBar.add(optionsMenu);

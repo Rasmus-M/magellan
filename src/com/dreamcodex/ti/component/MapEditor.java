@@ -430,11 +430,19 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     }
 
     public BufferedImage getBuffer() {
-        return mapCanvas.getBuffer();
+        return mapCanvas.getGridImage();
     }
 
     public void setOverlay(BufferedImage overlay) {
         this.mapCanvas.setOverlay(overlay);
+    }
+
+    public boolean getShowSpritesPerLine() {
+        return this.mapCanvas.getShowSpritesPerLine();
+    }
+
+    public void setShowSpritesPerLine(boolean showSpritesPerLine) {
+        this.mapCanvas.setShowSpritesPerLine(showSpritesPerLine);
     }
 
     public void redrawCanvas() {

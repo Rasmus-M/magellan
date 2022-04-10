@@ -26,6 +26,7 @@ public class Preferences {
     private boolean viewSpriteLayer = true;
     private boolean magnifySprites = false;
     private boolean snapSpritesToGrid = false;
+    private boolean showSpritesPerLine = false;
     protected boolean exportComments = true;
     protected boolean includeCharNumbers = true;
     protected boolean currentMapOnly = false;
@@ -135,6 +136,14 @@ public class Preferences {
 
     public void setSnapSpritesToGrid(boolean snapSpritesToGrid) {
         this.snapSpritesToGrid = snapSpritesToGrid;
+    }
+
+    public boolean isShowSpritesPerLine() {
+        return showSpritesPerLine;
+    }
+
+    public void setShowSpritesPerLine(boolean showSpritesPerLine) {
+        this.showSpritesPerLine = showSpritesPerLine;
     }
 
     public boolean isExportComments() {
@@ -350,6 +359,7 @@ public class Preferences {
         viewSpriteLayer = getBooleanProperty("viewSpriteLayer", viewSpriteLayer);
         magnifySprites = getBooleanProperty("magnifySprites", magnifySprites);
         snapSpritesToGrid = getBooleanProperty("snapSpritesToGrid", snapSpritesToGrid);
+        showSpritesPerLine = getBooleanProperty("showSpritesPerLIne", showSpritesPerLine);
         exportComments = getBooleanProperty("exportComments", exportComments);
         includeCharNumbers = getBooleanProperty("includeCharNumbers", includeCharNumbers);
         currentMapOnly = getBooleanProperty("currentMapOnly", currentMapOnly);
@@ -407,6 +417,7 @@ public class Preferences {
         appProperties.setProperty("viewCharLayer", viewCharLayer ? "true" : "false");
         appProperties.setProperty("viewSpriteLayer", viewSpriteLayer ? "true" : "false");
         appProperties.setProperty("magnifySprites", magnifySprites ? "true" : "false");
+        appProperties.setProperty("showSpritesPerLIne", showSpritesPerLine ? "true" : "false");
         appProperties.setProperty("snapSpritesToGrid", snapSpritesToGrid ? "true" : "false");
         appProperties.setProperty("defStartChar", "" + defStartChar);
         appProperties.setProperty("defEndChar", "" + defEndChar);

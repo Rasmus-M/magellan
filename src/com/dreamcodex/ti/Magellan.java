@@ -1279,6 +1279,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             mapEditor.setViewSpriteLayer(preferences.isViewSpriteLayer());
             mapEditor.setMagnifySprites(preferences.isMagnifySprites());
             mapEditor.setSnapSpritesToGrid(preferences.isSnapSpritesToGrid());
+            mapEditor.setShowSpritesPerLine(preferences.isShowSpritesPerLine());
         } catch (Exception e) {
             showError("Error reading preferences", e.getMessage());
             e.printStackTrace(System.err);
@@ -1298,6 +1299,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             preferences.setViewSpriteLayer(mapEditor.getViewSpriteLayer());
             preferences.setMagnifySprites(mapEditor.getMagnifySprites());
             preferences.setSnapSpritesToGrid(mapEditor.getSnapSpritesToGrid());
+            preferences.setShowSpritesPerLine(mapEditor.getShowSpritesPerLine());
             preferences.savePreferences();
         } catch (IOException ioe) {
             showError("Error saving preferences", ioe.getMessage());
