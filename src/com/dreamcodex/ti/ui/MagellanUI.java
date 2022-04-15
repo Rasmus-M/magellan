@@ -844,7 +844,7 @@ public class MagellanUI {
         if (name.endsWith("spr") || name.endsWith("chr")) {
             name = name.substring(0, name.length() - 3);
         }
-        URL imageURL = getClass().getResource("../images/icon_" + name + "_mono.png");
+        URL imageURL = Magellan.class.getResource("images/icon_" + name + "_mono.png");
         return new ImageIcon(Toolkit.getDefaultToolkit().getImage(imageURL));
     }
 
