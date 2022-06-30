@@ -323,15 +323,15 @@ public class AssemblyDataFileExporter extends Exporter {
                 printPaddedLine(bw, sbLine.toString(), includeComments ? "Width, Height, Size" : null);
                 sbLine.delete(0, sbLine.length());
                 if (compression == MagellanExportDialog.COMPRESSION_NONE) {
+                    boolean isByteContent = Globals.isByteGrid(mapToSave);
                     boolean isFirstByte;
-                    String hexChunk;
                     isFirstByte = true;
                     for (int y = 0; y < mapToSave.length; y++) {
                         if (includeComments) {
                             printPaddedLine(bw, "* -- Map Row " + y + " -- ", false);
                         }
                         int rowLength = mapToSave[y].length;
-                        boolean useBytes = rowLength % 2 == 1;
+                        boolean useBytes = rowLength % 2 == 1 && isByteContent;
                         String directive = useBytes ? "BYTE" : "DATA";
                         for (int cl = 0; cl < Math.ceil((double) rowLength / 8); cl++) {
                             if (y == 0 && cl == 0) {
@@ -347,12 +347,12 @@ public class AssemblyDataFileExporter extends Exporter {
                                     }
                                     sbLine.append(">");
                                 }
-                                hexChunk = Integer.toHexString(mapToSave[y][colpos]).toUpperCase();
-                                if (mapToSave[y][colpos] == MapCanvas.NOCHAR) {
-                                    hexChunk = "00";
+                                int value = mapToSave[y][colpos];
+                                if (value == MapCanvas.NOCHAR) {
+                                    value = 0;
                                 }
-                                sbLine.append(hexChunk.length() < 1 ? "00" : (hexChunk.length() < 2 ? "0" : "")).append(hexChunk);
-                                if (!useBytes) {
+                                sbLine.append(Globals.toHexString(value, isByteContent ? 2 : 4));
+                                if (!useBytes && isByteContent) {
                                     isFirstByte = !isFirstByte;
                                 }
                             }

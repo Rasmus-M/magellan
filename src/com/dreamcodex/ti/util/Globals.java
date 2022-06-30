@@ -548,6 +548,17 @@ public class Globals {
         return true;
     }
 
+    public static boolean isByteGrid(int[][] grid) {
+        for (int[] row : grid) {
+            for (int i : row) {
+                if (i > 255) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     public static double gridColorDistance(int[][] grid1, int[][] grid2) {
         double dist = 0;
         for (int y = 0; y < grid1.length; y++) {
