@@ -123,7 +123,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                 );
             }
             else if (colorMode == COLOR_MODE_BITMAP) {
-                if (transitionType == TransitionType.BOTTOM_TO_TOP) {
+                if (transitionType == TransitionType.TOP_TO_BOTTOM ||transitionType == TransitionType.BOTTOM_TO_TOP) {
                     colorsOK = true;
                 }
                 else {
