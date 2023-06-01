@@ -63,12 +63,10 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                     case BOTTOM_TO_TOP:
                     case LEFT_TO_RIGHT:
                     case RIGHT_TO_LEFT:
-                        int yStart = transitionType.getyOffset() < 0 && !wrap ? 1 : 0;
-                        int yEnd = height - (transitionType.getyOffset() > 0 && !wrap ? 1 : 0);
-                        int xStart = transitionType.getxOffset() < 0 && !wrap ? 1 : 0;
-                        int xEnd = width - (transitionType.getxOffset() > 0 && !wrap ? 1 : 0);
-                        for (int y = yStart; y < yEnd; y++) {
-                            for (int x = xStart; x < xEnd; x++) {
+                        int yStart = transitionType.getyOffset() == 0 || wrap ? 0 : 1;
+                        int xStart = transitionType.getxOffset() == 0 || wrap ? 0 : 1;
+                        for (int y = yStart; y < height; y++) {
+                            for (int x = xStart; x < width; x++) {
                                 int fromChar = mapData[y][x];
                                 int toChar = mapData[floorMod(y + transitionType.getyOffset(), height)][floorMod(x + transitionType.getxOffset(), width)];
                                 addTransCharToMap(new TransChar(fromChar, toChar));
@@ -77,16 +75,27 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                         break;
                     case TWO_DIMENSIONAL:
                         for (int y = wrap ? 0 : 1; y < mapData.length; y++) {
-                            for (int x = 0; x < width - (wrap ? 0 : 1); x++) {
+                            for (int x = wrap ? 0 : 1; x < width; x++) {
                                 int fromChar = mapData[y][x];
-                                int toChar1 = mapData[y][x < width - 1 ? x + 1 : 0];
-                                int toChar2 = mapData[y > 0 ? y - 1 : height - 1][x];
-                                int toChar3 = mapData[y > 0 ? y - 1 : height - 1][x < width - 1 ? x + 1 : 0];
+                                int toChar1 = mapData[y][floorMod(x + 1, width)];
+                                int toChar2 = mapData[floorMod(y - 1, height)][x];
+                                int toChar3 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
                                 addTransCharToMap(new TransChar(fromChar, toChar1, toChar2, toChar3));
                             }
                         }
                         break;
                     case ISOMETRIC:
+                        for (int y = wrap ? 0 : 1; y < mapData.length; y++) {
+                            for (int x = wrap ? 0 : 2; x < width; x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar1 = mapData[y][floorMod(x + 1, width)];
+                                int toChar2 = mapData[y][floorMod(x + 2, width)];
+                                int toChar3 = mapData[floorMod(y - 1, height)][x];
+                                int toChar4 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
+                                int toChar5 = mapData[floorMod(y - 1, height)][floorMod(x + 2, width)];
+                                addTransCharToMap(new TransChar(fromChar, toChar1, toChar2, toChar3, toChar4, toChar5));
+                            }
+                        }
                         break;
                 }
             }
@@ -307,6 +316,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         setSize(400, 500);
         setVisible(true);
         addWindowListener(this);
+        transitionTypeComboBox.setSelectedItem(transitionType);
         transitionTypeComboBox.addActionListener(this);
         wrapCheckbox.addActionListener(this);
         refreshButton.addActionListener(this);
@@ -321,6 +331,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == transitionTypeComboBox) {
             transitionType = (TransitionType) transitionTypeComboBox.getSelectedItem();
+            valueChanged(null);
             tableModel.refresh();
         }
         else if (e.getSource() == wrapCheckbox) {
@@ -329,6 +340,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         }
         else if (e.getSource() == refreshButton) {
             tableModel.refresh();
+            valueChanged(null);
         }
         else if (e.getSource() == closeButton) {
             mapEditor.removeAllHighlights();
@@ -350,12 +362,10 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                     case BOTTOM_TO_TOP:
                     case LEFT_TO_RIGHT:
                     case RIGHT_TO_LEFT:
-                        int yStart = transitionType.getyOffset() < 0 && !wrap ? 1 : 0;
-                        int yEnd = height - (transitionType.getyOffset() > 0 && !wrap ? 1 : 0);
-                        int xStart = transitionType.getxOffset() < 0 && !wrap ? 1 : 0;
-                        int xEnd = width - (transitionType.getxOffset() > 0 && !wrap ? 1 : 0);
-                        for (int y = yStart; y < yEnd; y++) {
-                            for (int x = xStart; x < xEnd; x++) {
+                        int yStart = transitionType.getyOffset() == 0 || wrap ? 0 : 1;
+                        int xStart = transitionType.getxOffset() == 0 || wrap ? 0 : 1;
+                        for (int y = yStart; y < height; y++) {
+                            for (int x = xStart; x < width; x++) {
                                 int fromChar = mapData[y][x];
                                 int toY = floorMod(y + transitionType.getyOffset(), height);
                                 int toX = floorMod(x + transitionType.getxOffset(), width);
@@ -368,22 +378,40 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                         }
                         break;
                     case TWO_DIMENSIONAL:
-                        for (int y = 1; y < height; y++) {
-                            for (int x = 0; x < width - 1; x++) {
+                        for (int y = wrap ? 0 : 1; y < height; y++) {
+                            for (int x = wrap ? 0 : 1; x < width; x++) {
                                 int fromChar = mapData[y][x];
-                                int toChar1 = mapData[y][x + 1];
-                                int toChar2 = mapData[y - 1][x];
-                                int toChar3 = mapData[y - 1][x + 1];
+                                int toChar1 = mapData[y][floorMod(x + 1, width)];
+                                int toChar2 = mapData[floorMod(y - 1, height)][x];
+                                int toChar3 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
                                 if (fromChar == transChar.getFromChar() && Arrays.equals(transChar.getToChars(), new int[] {toChar1, toChar2, toChar3})) {
                                     mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(x + 1, y);
-                                    mapEditor.highlightCell(x, y - 1);
-                                    mapEditor.highlightCell(x + 1, y - 1);
+                                    mapEditor.highlightCell(floorMod(x + 1, width), y);
+                                    mapEditor.highlightCell(x, floorMod(y - 1, height));
+                                    mapEditor.highlightCell(floorMod(x + 1, width), floorMod(y - 1, height));
                                 }
                             }
                         }
                         break;
                     case ISOMETRIC:
+                        for (int y = wrap ? 0 : 1; y < height; y++) {
+                            for (int x = wrap ? 0 : 2; x < width; x++) {
+                                int fromChar = mapData[y][x];
+                                int toChar1 = mapData[y][floorMod(x + 1, width)];
+                                int toChar2 = mapData[y][floorMod(x + 2, width)];
+                                int toChar3 = mapData[floorMod(y - 1, height)][x];
+                                int toChar4 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
+                                int toChar5 = mapData[floorMod(y - 1, height)][floorMod(x + 2, width)];
+                                if (fromChar == transChar.getFromChar() && Arrays.equals(transChar.getToChars(), new int[] {toChar1, toChar2, toChar3, toChar4, toChar5})) {
+                                    mapEditor.highlightCell(x, y);
+                                    mapEditor.highlightCell(floorMod(x + 1, width), y);
+                                    mapEditor.highlightCell(floorMod(x + 2, width), y);
+                                    mapEditor.highlightCell(x, floorMod(y - 1, height));
+                                    mapEditor.highlightCell(floorMod(x + 1, width), floorMod(y - 1, height));
+                                    mapEditor.highlightCell(floorMod(x + 2, width), floorMod(y - 1, height));
+                                }
+                            }
+                        }
                         break;
                 }
             }
