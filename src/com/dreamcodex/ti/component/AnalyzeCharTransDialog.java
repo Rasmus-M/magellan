@@ -58,45 +58,10 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             int height = mapData.length;
             int width = mapData[0].length;
             if (width > 1 && height > 1) {
-                switch (transitionType) {
-                    case TOP_TO_BOTTOM:
-                    case BOTTOM_TO_TOP:
-                    case LEFT_TO_RIGHT:
-                    case RIGHT_TO_LEFT:
-                        int yStart = transitionType.getyOffset() == 0 || wrap ? 0 : 1;
-                        int xStart = transitionType.getxOffset() == 0 || wrap ? 0 : 1;
-                        for (int y = yStart; y < height; y++) {
-                            for (int x = xStart; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toChar = mapData[floorMod(y + transitionType.getyOffset(), height)][floorMod(x + transitionType.getxOffset(), width)];
-                                addTransCharToMap(new TransChar(fromChar, toChar));
-                            }
-                        }
-                        break;
-                    case TWO_DIMENSIONAL:
-                        for (int y = wrap ? 0 : 1; y < mapData.length; y++) {
-                            for (int x = wrap ? 0 : 1; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toChar1 = mapData[y][floorMod(x + 1, width)];
-                                int toChar2 = mapData[floorMod(y - 1, height)][x];
-                                int toChar3 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
-                                addTransCharToMap(new TransChar(fromChar, toChar1, toChar2, toChar3));
-                            }
-                        }
-                        break;
-                    case ISOMETRIC:
-                        for (int y = wrap ? 0 : 1; y < mapData.length; y++) {
-                            for (int x = wrap ? 0 : 2; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toChar1 = mapData[y][floorMod(x + 1, width)];
-                                int toChar2 = mapData[y][floorMod(x + 2, width)];
-                                int toChar3 = mapData[floorMod(y - 1, height)][x];
-                                int toChar4 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
-                                int toChar5 = mapData[floorMod(y - 1, height)][floorMod(x + 2, width)];
-                                addTransCharToMap(new TransChar(fromChar, toChar1, toChar2, toChar3, toChar4, toChar5));
-                            }
-                        }
-                        break;
+                for (int y = transitionType.getYStart(wrap); y < height; y++) {
+                    for (int x = transitionType.getXStart(wrap); x < width; x++) {
+                        addTransCharToMap(new TransChar(transitionType, x, y, mapData));
+                    }
                 }
             }
             sortedTransCharList = new ArrayList<>(transCharMap.values());
@@ -132,7 +97,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                 );
             }
             else if (colorMode == COLOR_MODE_BITMAP) {
-                if (transitionType == TransitionType.TOP_TO_BOTTOM ||transitionType == TransitionType.BOTTOM_TO_TOP) {
+                if (transitionType == TransitionType.TOP_TO_BOTTOM || transitionType == TransitionType.BOTTOM_TO_TOP) {
                     colorsOK = true;
                 }
                 else {
@@ -360,31 +325,30 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                 switch (transitionType) {
                     case TOP_TO_BOTTOM:
                     case BOTTOM_TO_TOP:
+                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
+                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
+                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
+                                    mapEditor.highlightCell(x, y);
+                                    mapEditor.highlightCell(x, floorMod(y + transitionType.getyOffset(), height));
+                                }
+                            }
+                        }
+                        break;
                     case LEFT_TO_RIGHT:
                     case RIGHT_TO_LEFT:
-                        int yStart = transitionType.getyOffset() == 0 || wrap ? 0 : 1;
-                        int xStart = transitionType.getxOffset() == 0 || wrap ? 0 : 1;
-                        for (int y = yStart; y < height; y++) {
-                            for (int x = xStart; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toY = floorMod(y + transitionType.getyOffset(), height);
-                                int toX = floorMod(x + transitionType.getxOffset(), width);
-                                int toChar = mapData[toY][toX];
-                                if (fromChar == transChar.getFromChar() && toChar == transChar.getToChar()) {
+                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
+                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
+                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
                                     mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(toX, toY);
+                                    mapEditor.highlightCell(floorMod(x + transitionType.getxOffset(), width), y);
                                 }
                             }
                         }
                         break;
                     case TWO_DIMENSIONAL:
-                        for (int y = wrap ? 0 : 1; y < height; y++) {
-                            for (int x = wrap ? 0 : 1; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toChar1 = mapData[y][floorMod(x + 1, width)];
-                                int toChar2 = mapData[floorMod(y - 1, height)][x];
-                                int toChar3 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
-                                if (fromChar == transChar.getFromChar() && Arrays.equals(transChar.getToChars(), new int[] {toChar1, toChar2, toChar3})) {
+                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
+                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
+                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
                                     mapEditor.highlightCell(x, y);
                                     mapEditor.highlightCell(floorMod(x + 1, width), y);
                                     mapEditor.highlightCell(x, floorMod(y - 1, height));
@@ -394,15 +358,9 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                         }
                         break;
                     case ISOMETRIC:
-                        for (int y = wrap ? 0 : 1; y < height; y++) {
-                            for (int x = wrap ? 0 : 2; x < width; x++) {
-                                int fromChar = mapData[y][x];
-                                int toChar1 = mapData[y][floorMod(x + 1, width)];
-                                int toChar2 = mapData[y][floorMod(x + 2, width)];
-                                int toChar3 = mapData[floorMod(y - 1, height)][x];
-                                int toChar4 = mapData[floorMod(y - 1, height)][floorMod(x + 1, width)];
-                                int toChar5 = mapData[floorMod(y - 1, height)][floorMod(x + 2, width)];
-                                if (fromChar == transChar.getFromChar() && Arrays.equals(transChar.getToChars(), new int[] {toChar1, toChar2, toChar3, toChar4, toChar5})) {
+                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
+                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
+                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
                                     mapEditor.highlightCell(x, y);
                                     mapEditor.highlightCell(floorMod(x + 1, width), y);
                                     mapEditor.highlightCell(floorMod(x + 2, width), y);

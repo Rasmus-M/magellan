@@ -22,7 +22,7 @@ public class ScrollFileExporter extends Exporter {
     }
 
     public void writeScrollFile(File mapDataFile, TransitionType transitionType, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
-        if (transitionType == TransitionType.TWO_DIMENSIONAL || transitionType == TransitionType.ISOMETRIC) {
+        if (transitionType == TransitionType.ISOMETRIC) {
             throw new Exception("Export not implemented for " + transitionType);
         }
         mapEditor.storeCurrentMap();
@@ -33,7 +33,11 @@ public class ScrollFileExporter extends Exporter {
         boolean[] usedChars = new boolean[256];
         int[] startAndEndChar = {255, 0};
         // Find transitions
-        int imax = findCharacterTransitions(transMaps, transCharSet, transChars, usedChars, colorSets, startAndEndChar, currMapOnly, transitionType, wrap);
+        boolean allColorsOK = findCharacterTransitions(transMaps, transCharSet, transChars, usedChars, colorSets, startAndEndChar, currMapOnly, transitionType, wrap);
+        if (!allColorsOK) {
+            JOptionPane.showMessageDialog(null, "Warning - Some character transitions have incompatible colors. This may cause color spills when the map is scrolled.", "Invalid Color Transitions", JOptionPane.INFORMATION_MESSAGE);
+        }
+        int imax = getMaxIndex(transCharSet);
         int startChar = startAndEndChar[0];
         int endChar = startAndEndChar[1];
         // Remap
@@ -53,206 +57,237 @@ public class ScrollFileExporter extends Exporter {
         bw.close();
     }
 
-    private int findCharacterTransitions(ArrayList<int[][]> transMaps, TransChar[] transCharSet, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, boolean currMapOnly, TransitionType transitionType, boolean wrap) throws Exception {
-        int imax = 0;
+    private boolean findCharacterTransitions(ArrayList<int[][]> transMaps, TransChar[] transCharSet, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, boolean currMapOnly, TransitionType transitionType, boolean wrap) throws Exception {
         boolean allColorsOK = true;
         for (int m = 0; m < mapEditor.getMapCount(); m++) {
             if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
                 int[][] mapData = mapEditor.getMapData(m);
                 if (mapData.length > 1 && mapData[0].length > 1) {
-                    int i = 0;
-                    int height = mapData.length;
-                    int yStart = transitionType.getyOffset() < 0 && !wrap ? 1 : 0;
-                    int yEnd = height - (transitionType.getyOffset() > 0 && !wrap ? 1 : 0);
-                    int width = mapData[0].length;
-                    int xStart = transitionType.getxOffset() < 0 && !wrap ? 1 : 0;
-                    int xEnd = width - (transitionType.getxOffset() > 0 && !wrap ? 1 : 0);
-                    for (int y = yStart; y < yEnd; y++) {
-                        for (int x = xStart; x < xEnd; x++) {
-                            int fromChar = mapData[y][x];
-                            if (fromChar < startAndEndChar[0]) {
-                                startAndEndChar[0] = fromChar;
-                            }
-                            if (fromChar > startAndEndChar[1]) {
-                                startAndEndChar[1] = fromChar;
-                            }
-                            usedChars[fromChar] = true;
-                            int toChar = mapData[floorMod(y + transitionType.getyOffset(), height)][floorMod(x + transitionType.getxOffset(), width)];
-                            if (toChar < startAndEndChar[0]) {
-                                startAndEndChar[0] = toChar;
-                            }
-                            if (toChar > startAndEndChar[1]) {
-                                startAndEndChar[1] = toChar;
-                            }
-                            usedChars[toChar] = true;
-                            String key = fromChar + "-" + toChar;
-                            TransChar transChar = transChars.get(key);
-                            if (transChar != null) {
-                                transChar.incCount();
-                            } else {
-                                boolean colorsOK = true;
-                                boolean invert = false;
-                                if (colorMode == COLOR_MODE_BITMAP) {
-                                    int[][] charColors = new int[8][8];
-                                    if (transitionType.getxOffset() != 0) {
-                                        int[][] fromColorGrid = this.charColors.get(fromChar);
-                                        int[][] toColorGrid = this.charColors.get(toChar);
-                                        for (int r = 0; r < 8 && colorsOK; r++) {
-                                            int[] fromColorRow = fromColorGrid[r];
-                                            int[] toColorRow = toColorGrid[r];
-                                            int screenColor = mapEditor.getColorScreen();
-                                            int fromForeColor = fromColorRow[Globals.INDEX_CLR_FORE] != 0 ? fromColorRow[Globals.INDEX_CLR_FORE] : screenColor;
-                                            int toForeColor = toColorRow[Globals.INDEX_CLR_FORE] != 0 ? toColorRow[Globals.INDEX_CLR_FORE] : screenColor;
-                                            if (fromForeColor == toForeColor) {
-                                                charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                                            } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
-                                                charColors[r][Globals.INDEX_CLR_FORE] = toForeColor;
-                                            } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
-                                                charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                                            } else {
-                                                charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                                                colorsOK = false;
-                                                allColorsOK = false;
-                                            }
-                                            int fromBackColor = fromColorRow[Globals.INDEX_CLR_BACK] != 0 ? fromColorRow[Globals.INDEX_CLR_BACK] : screenColor;
-                                            int toBackColor = toColorRow[Globals.INDEX_CLR_BACK] != 0 ? toColorRow[Globals.INDEX_CLR_BACK] : screenColor;
-                                            if (fromBackColor == toBackColor) {
-                                                charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                                            } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
-                                                charColors[r][Globals.INDEX_CLR_BACK] = toBackColor;
-                                            } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
-                                                charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                                            } else {
-                                                charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                                                colorsOK = false;
-                                                allColorsOK = false;
-                                            }
-                                        }
-                                    }
-                                    transChar = new TransChar(fromChar, toChar, i, colorsOK, charColors);
-                                    transChars.put(key, transChar);
-                                    transCharSet[i] = transChar;
-                                    imax = i++;
-                                    if (imax > 255) {
-                                        throw new Exception("Character Set Full: Scrolling this map requires more than 256 characters.");
-                                    }
-                                } else {
-                                    int screenColor = mapEditor.getColorScreen();
-                                    int[] fromClrSet = clrSets[fromChar / 8];
-                                    int[] toClrSet = clrSets[toChar / 8];
-                                    int foreColor;
-                                    int backColor;
-                                    int fromForeColor = fromClrSet[Globals.INDEX_CLR_FORE] != 0 ? fromClrSet[Globals.INDEX_CLR_FORE] : screenColor;
-                                    int toForeColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
-                                    if (fromForeColor == toForeColor) {
-                                        foreColor = fromForeColor;
-                                    } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
-                                        foreColor = toForeColor;
-                                    } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
-                                        foreColor = fromForeColor;
-                                    } else {
-                                        foreColor = fromForeColor;
-                                        colorsOK = false;
-                                        // allColorsOK = false;
-                                        System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromForeColor=" + fromForeColor + " toForeColor=" + toForeColor);
-                                    }
-                                    int fromBackColor = fromClrSet[Globals.INDEX_CLR_BACK] != 0 ? fromClrSet[Globals.INDEX_CLR_BACK] : screenColor;
-                                    int toBackColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
-                                    if (fromBackColor == toBackColor) {
-                                        backColor = fromBackColor;
-                                    } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
-                                        backColor = toBackColor;
-                                    } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
-                                        backColor = fromBackColor;
-                                    } else {
-                                        backColor = fromBackColor;
-                                        colorsOK = false;
-                                        // allColorsOK = false;
-                                        System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromBackColor=" + fromBackColor + " toBackColor=" + toBackColor);
-                                    }
-                                    if (!colorsOK) {
-                                        // Invert color set and pattern of to character
-                                        colorsOK = true;
-                                        toForeColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
-                                        if (fromForeColor == toForeColor) {
-                                            foreColor = fromForeColor;
-                                        } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
-                                            foreColor = toForeColor;
-                                        } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
-                                            foreColor = fromForeColor;
-                                        } else {
-                                            foreColor = fromForeColor;
-                                            colorsOK = false;
-                                            allColorsOK = false;
-                                        }
-                                        toBackColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
-                                        if (fromBackColor == toBackColor) {
-                                            backColor = fromBackColor;
-                                        } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
-                                            backColor = toBackColor;
-                                        } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
-                                            backColor = fromBackColor;
-                                        } else {
-                                            backColor = fromBackColor;
-                                            colorsOK = false;
-                                            allColorsOK = false;
-                                        }
-                                        invert = colorsOK;
-                                    }
-                                    transChar = new TransChar(fromChar, toChar, -1, colorsOK, foreColor, backColor);
-                                    transChar.setInvert(invert);
-                                    transChars.put(key, transChar);
-                                    int ckey = backColor + (foreColor << 4);
-                                    ArrayList<TransChar> colorSet = colorSets.computeIfAbsent(ckey, k -> new ArrayList<>());
-                                    colorSet.add(transChar);
-                                }
-                            }
-                        }
-                    }
-                    if (colorMode != COLOR_MODE_BITMAP) {
-                        // Organize into color sets
-                        i = 0;
-                        for (int ckey : colorSets.keySet()) {
-                            ArrayList<TransChar> colorSet = colorSets.get(ckey);
-                            for (TransChar transChar : colorSet) {
-                                transChar.setIndex(i);
-                                transCharSet[i] = transChar;
-                                imax = i++;
-                                if (i > 255) {
-                                    throw new Exception("Character Set Full: Scrolling this map requires more than 32 color sets.");
-                                }
-                                if (imax > 255) {
-                                    throw new Exception("Character Set Full: Scrolling this map requires more than 256 characters.");
-                                }
-                            }
-                            while (i % 8 != 0) {
-                                i++;
-                            }
-                            if (i > 256) {
-                                throw new Exception("Character Set Full: Scrolling this map requires more than 32 color sets.");
-                            }
-                        }
-                    }
-                    int newHeight = height - (transitionType.getyOffset() != 0 && !wrap ? 1 : 0);
-                    int newWidth = width - (transitionType.getxOffset() != 0 && !wrap ? 1 : 0);
-                    int[][] transMap = new int[newHeight][newWidth];
-                    transMaps.add(transMap);
-                    for (int y = yStart; y < yEnd; y++) {
-                        for (int x = xStart; x < xEnd; x++) {
-                            int fromChar = mapData[y][x];
-                            int toChar = mapData[floorMod(y + transitionType.getyOffset(), height)][floorMod(x + transitionType.getxOffset(), width)];;
-                            String key = fromChar + "-" + toChar;
-                            TransChar transChar = transChars.get(key);
-                            transMap[y - yStart][x - xStart] = transChar.getIndex();
-                        }
+                    allColorsOK &= findCharacterTransitionsForMap(mapData, transCharSet, transChars, usedChars, colorSets, startAndEndChar, transitionType, wrap);
+                }
+            }
+        }
+        // Add to transCharSet
+        int i = getMaxIndex(transCharSet) + 1;
+        if (colorMode == COLOR_MODE_BITMAP) {
+            for (TransChar transChar : transChars.values()) {
+                addTransCharToSet(transChar, transCharSet, i++);
+            }
+        } else {
+            // Organize into color sets
+            for (ArrayList<TransChar> colorSet : colorSets.values()) {
+                for (TransChar transChar : colorSet) {
+                    addTransCharToSet(transChar, transCharSet, i++);
+                }
+                while (i % 8 != 0) {
+                    i++;
+                }
+                if (i > 255) {
+                    throw new Exception("Character Set Full: Scrolling this map requires more than 32 color sets.");
+                }
+            }
+        }
+        // Create maps
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                int[][] mapData = mapEditor.getMapData(m);
+                if (mapData.length > 1 && mapData[0].length > 1) {
+                    createTransitionMap(mapData, transChars, transMaps, transitionType, wrap);
+                }
+            }
+        }
+        return allColorsOK;
+    }
+
+    private boolean findCharacterTransitionsForMap(int[][] mapData, TransChar[] transCharSet, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, TransitionType transitionType, boolean wrap) throws Exception {
+        boolean allColorsOK = true;
+        int width = mapData[0].length;
+        int height = mapData.length;
+        int xStart = transitionType.getxOffset() == 0 || wrap ? 0 : 1;
+        int yStart = transitionType.getyOffset() == 0 || wrap ? 0 : 1;
+        for (int y = yStart; y < height; y++) {
+            for (int x = xStart; x < width; x++) {
+                TransChar newTransChar = new TransChar(transitionType, x, y, mapData);
+                updateUsedChars(newTransChar, usedChars, startAndEndChar);
+                TransChar transChar = transChars.get(newTransChar.getKey());
+                if (transChar != null) {
+                    transChar.incCount();
+                } else {
+                    determineColorsForTransChar(newTransChar, transitionType, colorSets);
+                    transChars.put(newTransChar.getKey(), newTransChar);
+                    if (!newTransChar.isColorsOK()) {
+                        allColorsOK = false;
                     }
                 }
             }
         }
-        if (!allColorsOK) {
-            JOptionPane.showMessageDialog(null, "Warning - Some character transitions have incompatible colors. This may cause color spills when the map is scrolled.", "Invalid Color Transitions", JOptionPane.INFORMATION_MESSAGE);
+        return allColorsOK;
+    }
+
+    private void createTransitionMap(int[][] mapData, Map<String, TransChar> transChars, ArrayList<int[][]> transMaps, TransitionType transitionType, boolean wrap) {
+        int width = mapData[0].length;
+        int height = mapData.length;
+        int xStart = transitionType.getXStart(wrap);
+        int yStart = transitionType.getYStart(wrap);
+        int newWidth = width - xStart;
+        int newHeight = height - yStart;
+        int[][] transMap = new int[newHeight][newWidth];
+        transMaps.add(transMap);
+        for (int y = yStart; y < height; y++) {
+            for (int x = xStart; x < width; x++) {
+                TransChar testTransChar = new TransChar(transitionType, x, y, mapData);
+                TransChar transChar = transChars.get(testTransChar.getKey());
+                transMap[y - yStart][x - xStart] = transChar.getIndex();
+            }
         }
-        return imax;
+    }
+
+    private int getMaxIndex(TransChar[] transCharSet) {
+        for (int i = transCharSet.length - 1; i >= 0; i--) {
+            if (transCharSet[i] != null) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void updateUsedChars(TransChar transChar, boolean[] usedChars, int[] startAndEndChar) {
+        int fromChar = transChar.getFromChar();
+        if (fromChar < startAndEndChar[0]) {
+            startAndEndChar[0] = fromChar;
+        }
+        if (fromChar > startAndEndChar[1]) {
+            startAndEndChar[1] = fromChar;
+        }
+        usedChars[fromChar] = true;
+        int toChar = transChar.getToChar();
+        if (toChar < startAndEndChar[0]) {
+            startAndEndChar[0] = toChar;
+        }
+        if (toChar > startAndEndChar[1]) {
+            startAndEndChar[1] = toChar;
+        }
+        usedChars[toChar] = true;
+    }
+
+    private void addTransCharToSet(TransChar transChar, TransChar[] transCharSet, int index) throws Exception {
+        if (index < transCharSet.length) {
+            transChar.setIndex(index);
+            transCharSet[index] = transChar;
+        } else {
+            throw new Exception("Character Set Full: Scrolling this map requires more than 32 color sets.");
+        }
+    }
+
+    private void determineColorsForTransChar(TransChar transChar, TransitionType transitionType, Map<Integer, ArrayList<TransChar>> colorSets) {
+        int fromChar = transChar.getFromChar();
+        int toChar = transChar.getToChar();
+        boolean colorsOK = true;
+        boolean invert = false;
+        if (colorMode == COLOR_MODE_BITMAP) {
+            int[][] charColors = new int[8][8];
+            if (transitionType.getxOffset() != 0) {
+                int[][] fromColorGrid = this.charColors.get(fromChar);
+                int[][] toColorGrid = this.charColors.get(toChar);
+                for (int r = 0; r < 8 && colorsOK; r++) {
+                    int[] fromColorRow = fromColorGrid[r];
+                    int[] toColorRow = toColorGrid[r];
+                    int screenColor = mapEditor.getColorScreen();
+                    int fromForeColor = fromColorRow[Globals.INDEX_CLR_FORE] != 0 ? fromColorRow[Globals.INDEX_CLR_FORE] : screenColor;
+                    int toForeColor = toColorRow[Globals.INDEX_CLR_FORE] != 0 ? toColorRow[Globals.INDEX_CLR_FORE] : screenColor;
+                    if (fromForeColor == toForeColor) {
+                        charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
+                    } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
+                        charColors[r][Globals.INDEX_CLR_FORE] = toForeColor;
+                    } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
+                        charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
+                    } else {
+                        charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
+                        colorsOK = false;
+                    }
+                    int fromBackColor = fromColorRow[Globals.INDEX_CLR_BACK] != 0 ? fromColorRow[Globals.INDEX_CLR_BACK] : screenColor;
+                    int toBackColor = toColorRow[Globals.INDEX_CLR_BACK] != 0 ? toColorRow[Globals.INDEX_CLR_BACK] : screenColor;
+                    if (fromBackColor == toBackColor) {
+                        charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
+                    } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
+                        charColors[r][Globals.INDEX_CLR_BACK] = toBackColor;
+                    } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
+                        charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
+                    } else {
+                        charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
+                        colorsOK = false;
+                    }
+                }
+            }
+            transChar.setColorsOK(colorsOK);
+            transChar.setColorGrid(charColors);
+        } else {
+            int screenColor = mapEditor.getColorScreen();
+            int[] fromClrSet = clrSets[fromChar / 8];
+            int[] toClrSet = clrSets[toChar / 8];
+            int foreColor;
+            int backColor;
+            int fromForeColor = fromClrSet[Globals.INDEX_CLR_FORE] != 0 ? fromClrSet[Globals.INDEX_CLR_FORE] : screenColor;
+            int toForeColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
+            if (fromForeColor == toForeColor) {
+                foreColor = fromForeColor;
+            } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
+                foreColor = toForeColor;
+            } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+                foreColor = fromForeColor;
+            } else {
+                foreColor = fromForeColor;
+                colorsOK = false;
+                System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromForeColor=" + fromForeColor + " toForeColor=" + toForeColor);
+            }
+            int fromBackColor = fromClrSet[Globals.INDEX_CLR_BACK] != 0 ? fromClrSet[Globals.INDEX_CLR_BACK] : screenColor;
+            int toBackColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
+            if (fromBackColor == toBackColor) {
+                backColor = fromBackColor;
+            } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
+                backColor = toBackColor;
+            } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+                backColor = fromBackColor;
+            } else {
+                backColor = fromBackColor;
+                colorsOK = false;
+                System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromBackColor=" + fromBackColor + " toBackColor=" + toBackColor);
+            }
+            if (!colorsOK) {
+                // Invert color set and pattern of to character
+                colorsOK = true;
+                toForeColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
+                if (fromForeColor == toForeColor) {
+                    foreColor = fromForeColor;
+                } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
+                    foreColor = toForeColor;
+                } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+                    foreColor = fromForeColor;
+                } else {
+                    foreColor = fromForeColor;
+                    colorsOK = false;
+                }
+                toBackColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
+                if (fromBackColor == toBackColor) {
+                    backColor = fromBackColor;
+                } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
+                    backColor = toBackColor;
+                } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+                    backColor = fromBackColor;
+                } else {
+                    backColor = fromBackColor;
+                    colorsOK = false;
+                }
+                invert = colorsOK;
+            }
+            transChar.setColorsOK(colorsOK);
+            transChar.setForeColor(foreColor);
+            transChar.setBackColor(backColor);
+            transChar.setInvert(invert);
+            int ckey = backColor + (foreColor << 4);
+            ArrayList<TransChar> colorSet = colorSets.computeIfAbsent(ckey, k -> new ArrayList<>());
+            colorSet.add(transChar);
+        }
     }
 
     private void remapOriginalCharacters(ArrayList<Integer> remappedChars, TransChar[] remappedTransCharSet, TransChar[] transCharSet, boolean[] usedChars, int startChar, int endChar, boolean animate) {
@@ -269,9 +304,16 @@ public class ScrollFileExporter extends Exporter {
                         if (transChar.getFromChar() == mapFrom) {
                             transChar.setFromChar(mapTo);
                         }
-                        if (transChar.getToChar() == mapFrom) {
-                            transChar.setToChar(mapTo);
+                        int[] toChars = transChar.getToChars();
+                        int[] remappedToChars = new int[toChars.length];
+                        for (int i = 0; i < toChars.length; i++) {
+                            if (toChars[i] == mapFrom) {
+                                remappedToChars[i] = mapTo;
+                            } else {
+                                remappedToChars[i] = toChars[i];
+                            }
                         }
+                        transChar.setToChars(remappedToChars);
                     }
                 }
                 mapTo++;
@@ -385,12 +427,12 @@ public class ScrollFileExporter extends Exporter {
             TransChar transChar = remappedTransCharSet[i];
             if (transChar != null) {
                 printPaddedLine(bw,
-                        (i == 0 ? "TCHARS" : "      ") + " BYTE >" + Globals.toHexString(transChar.getFromChar(), 2) + ",>" + Globals.toHexString(transChar.getToChar(), 2),
-                        !includeComments ? null :
-                                "#" + Globals.toHexString(transChar.getIndex(), 2) +
-                                        (colorMode != COLOR_MODE_BITMAP ? " color " + Globals.toHexString(transChar.getForeColor(), 1) + "/" + Globals.toHexString(transChar.getBackColor(), 1) : "") +
-                                        (transChar.isInvert() ? " invert" : "") +
-                                        (transChar.isColorsOK() ? "" : " ERROR")
+                    (i == 0 ? "TCHARS" : "      ") + " BYTE " + transChar,
+                    !includeComments ? null :
+                        "#" + Globals.toHexString(transChar.getIndex(), 2) +
+                            (colorMode != COLOR_MODE_BITMAP ? " color " + Globals.toHexString(transChar.getForeColor(), 1) + "/" + Globals.toHexString(transChar.getBackColor(), 1) : "") +
+                            (transChar.isInvert() ? " invert" : "") +
+                            (transChar.isColorsOK() ? "" : " ERROR")
                 );
             } else {
                 printPaddedLine(bw, (i == 0 ? "TCHARS" : "      ") + " BYTE >FF,>FF", !includeComments ? null : "#" + Globals.toHexString(i, 2) + " unused");

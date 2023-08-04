@@ -30,4 +30,34 @@ public enum TransitionType {
     public int getyOffset() {
         return yOffset;
     }
+
+    public int getXStart(boolean wrap) {
+        switch (this) {
+            case LEFT_TO_RIGHT:
+            case RIGHT_TO_LEFT:
+            case TWO_DIMENSIONAL:
+                return wrap ? 0 : 1;
+            case ISOMETRIC:
+                return wrap ? 0 : 2;
+            case TOP_TO_BOTTOM:
+            case BOTTOM_TO_TOP:
+            default:
+                return 0;
+        }
+    }
+
+    public int getYStart(boolean wrap) {
+        switch (this) {
+            case TOP_TO_BOTTOM:
+            case BOTTOM_TO_TOP:
+            case TWO_DIMENSIONAL:
+            case ISOMETRIC:
+                return wrap ? 0 : 1;
+            case LEFT_TO_RIGHT:
+            case RIGHT_TO_LEFT:
+            default:
+                return 0;
+        }
+    }
+
 }

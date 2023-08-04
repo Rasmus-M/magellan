@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 
+import static java.lang.Math.floorMod;
+
 /**
  * Created with IntelliJ IDEA.
  * User: Rasmus
@@ -34,16 +36,40 @@ public class TransChar {
         this.invert = transChar.invert;
     }
 
-    public TransChar(int fromChar, int toChar) {
-        this(fromChar, toChar, false);
-    }
-
-    public TransChar(int fromChar, int toChar1, int toChar2, int toChar3) {
-        this(fromChar, new int[] {toChar1, toChar2, toChar3}, false);
-    }
-
-    public TransChar(int fromChar, int toChar1, int toChar2, int toChar3, int toChar4, int toChar5) {
-        this(fromChar, new int[] {toChar1, toChar2, toChar3, toChar4, toChar5}, false);
+    public TransChar(TransitionType transitionType, int x, int y, int[][] mapData) {
+        int height = mapData.length;
+        int width = mapData[0].length;
+        switch (transitionType) {
+            case TOP_TO_BOTTOM:
+            case BOTTOM_TO_TOP:
+            case LEFT_TO_RIGHT:
+            case RIGHT_TO_LEFT:
+                this.fromChar = mapData[y][x];
+                this.toChars = new int[] {
+                    mapData[floorMod(y + transitionType.getyOffset(), height)][floorMod(x + transitionType.getxOffset(), width)]
+                };
+                break;
+            case TWO_DIMENSIONAL: {
+                this.fromChar = mapData[y][x];
+                this.toChars = new int[] {
+                    mapData[y][floorMod(x + 1, width)],
+                    mapData[floorMod(y - 1, height)][x],
+                    mapData[floorMod(y - 1, height)][floorMod(x + 1, width)]
+                };
+                break;
+            }
+            case ISOMETRIC: {
+                this.fromChar = mapData[y][x];
+                this.toChars = new int[] {
+                    mapData[y][floorMod(x + 1, width)],
+                    mapData[y][floorMod(x + 2, width)],
+                    mapData[floorMod(y - 1, height)][x],
+                    mapData[floorMod(y - 1, height)][floorMod(x + 1, width)],
+                    mapData[floorMod(y - 1, height)][floorMod(x + 2, width)]
+                };
+                break;
+            }
+        }
     }
 
     public TransChar(int fromChar, int toChar, boolean colorsOK) {
@@ -55,13 +81,6 @@ public class TransChar {
         this.toChars = toChars;
         this.colorsOK = colorsOK;
         count = 1;
-    }
-
-    public TransChar(int fromChar, int toChar, int index, boolean colorsOK, int foreColor, int backColor) {
-        this(fromChar, toChar, colorsOK);
-        this.index = index;
-        this.foreColor = foreColor;
-        this.backColor = backColor;
     }
 
     public TransChar(int fromChar, int toChar, int index, boolean colorsOK, int[][] colorGrid) {
@@ -127,8 +146,16 @@ public class TransChar {
         return foreColor;
     }
 
+    public void setForeColor(int foreColor) {
+        this.foreColor = foreColor;
+    }
+
     public int getBackColor() {
         return backColor;
+    }
+
+    public void setBackColor(int backColor) {
+        this.backColor = backColor;
     }
 
     public int[][] getColorGrid() {
@@ -156,6 +183,14 @@ public class TransChar {
             o instanceof TransChar &&
             ((TransChar) o).getFromChar() == fromChar &&
             Arrays.equals(((TransChar) o).getToChars(), toChars);
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder(">" + Globals.toHexString(this.getFromChar(), 2));
+        for (int toChar : toChars) {
+            sb.append(",>").append(Globals.toHexString(toChar, 2));
+        }
+        return sb.toString();
     }
 
     public static class TransCharCountComparator implements Comparator<TransChar> {
