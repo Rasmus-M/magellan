@@ -58,9 +58,9 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             int height = mapData.length;
             int width = mapData[0].length;
             if (width > 1 && height > 1) {
-                for (int y = transitionType.getYStart(wrap); y < height; y++) {
-                    for (int x = transitionType.getXStart(wrap); x < width; x++) {
-                        addTransCharToMap(new TransChar(transitionType, x, y, mapData));
+                for (int y = transitionType.getYStart(wrap); y < height - transitionType.getYEnd(wrap); y++) {
+                    for (int x = transitionType.getXStart(wrap); x < width - transitionType.getXEnd(wrap); x++) {
+                        addTransCharToMap(new TransChar(transitionType, x, y, mapData), transitionType);
                     }
                 }
             }
@@ -68,61 +68,59 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             sortedTransCharList.sort(new TransChar.TransCharCountComparator());
         }
 
-        private void addTransCharToMap(TransChar transChar) {
+        private void addTransCharToMap(TransChar transChar, TransitionType transitionType) {
             String key = transChar.getKey();
-
             TransChar existingTransChar = transCharMap.get(key);
             if (existingTransChar != null) {
                 existingTransChar.incCount();
             }
             else {
-                transChar.setColorsOK(areColorsOK(transChar));
+                transChar.setColorsOK(areColorsOK(transChar, transitionType));
                 transCharMap.put(key, transChar);
             }
         }
 
-        private boolean areColorsOK(TransChar transChar) {
-            boolean colorsOK;
+        private boolean areColorsOK(TransChar transChar, TransitionType transitionType) {
+            boolean colorsOK = true;
             if (colorMode == COLOR_MODE_GRAPHICS_1 ) {
-                int[] fromClrSet = clrSets[transChar.getFromChar() / 8];
-                int[] toClrSet = clrSets[transChar.getToChar() / 8];
-                colorsOK = Globals.isColorTransitionOK(
-                        fromClrSet[Globals.INDEX_CLR_FORE],
-                        toClrSet[Globals.INDEX_CLR_FORE],
-                        fromClrSet[Globals.INDEX_CLR_BACK],
-                        toClrSet[Globals.INDEX_CLR_BACK],
-                        screenColor,
-                        charGrids.get(transChar.getFromChar()),
-                        charGrids.get(transChar.getToChar())
-                );
+                int fromChar = transChar.getFromChar();
+                int[] fromClrSet = clrSets[fromChar / 8];
+                for (int i = 0; i < transitionType.getSize() && colorsOK; i++) {
+                    int toChar = transChar.getToChars()[i];
+                    int[] toClrSet = clrSets[toChar / 8];
+                    colorsOK = Globals.isColorTransitionOK(
+                            fromClrSet[Globals.INDEX_CLR_FORE],
+                            toClrSet[Globals.INDEX_CLR_FORE],
+                            fromClrSet[Globals.INDEX_CLR_BACK],
+                            toClrSet[Globals.INDEX_CLR_BACK],
+                            screenColor,
+                            charGrids.get(fromChar),
+                            charGrids.get(toChar)
+                    );
+                }
             }
             else if (colorMode == COLOR_MODE_BITMAP) {
-                if (transitionType == TransitionType.TOP_TO_BOTTOM || transitionType == TransitionType.BOTTOM_TO_TOP) {
-                    colorsOK = true;
-                }
-                else {
-                    colorsOK = true;
-                    int[][] fromColorGrid = charColors.get(transChar.getFromChar());
-                    int[][] toColorGrid = charColors.get(transChar.getToChar());
-                    int[][] fromCharGrid = charGrids.get(transChar.getFromChar());
-                    int[][] toCharGrid = charGrids.get(transChar.getToChar());
-                    for (int i = 0; i < 8 && colorsOK; i++) {
-                        if (!Globals.isColorTransitionOK(
-                                fromColorGrid[i][Globals.INDEX_CLR_FORE],
-                                toColorGrid[i][Globals.INDEX_CLR_FORE],
-                                fromColorGrid[i][Globals.INDEX_CLR_BACK],
-                                toColorGrid[i][Globals.INDEX_CLR_BACK],
-                                screenColor,
-                                fromCharGrid[i],
-                                toCharGrid[i]
-                        )) {
-                            colorsOK = false;
+                int fromChar = transChar.getFromChar();
+                for (int i = 0; i < transitionType.getSize() && colorsOK; i++) {
+                    if (transitionType.getXOffsets()[i] != 0) {
+                        int[][] fromColorGrid = charColors.get(fromChar);
+                        int toChar = transChar.getToChars()[i];
+                        int[][] toColorGrid = charColors.get(toChar);
+                        int[][] fromCharGrid = charGrids.get(fromChar);
+                        int[][] toCharGrid = charGrids.get(toChar);
+                        for (int y = 0; y < 8 && colorsOK; y++) {
+                            colorsOK = Globals.isColorTransitionOK(
+                                    fromColorGrid[y][Globals.INDEX_CLR_FORE],
+                                    toColorGrid[y][Globals.INDEX_CLR_FORE],
+                                    fromColorGrid[y][Globals.INDEX_CLR_BACK],
+                                    toColorGrid[y][Globals.INDEX_CLR_BACK],
+                                    screenColor,
+                                    fromCharGrid[y],
+                                    toCharGrid[y]
+                            );
                         }
                     }
                 }
-            }
-            else {
-                colorsOK = true;
             }
             return colorsOK;
         }
@@ -322,55 +320,15 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             int height = mapData.length;
             int width = mapData[0].length;
             if (height > 1 && width > 1) {
-                switch (transitionType) {
-                    case TOP_TO_BOTTOM:
-                    case BOTTOM_TO_TOP:
-                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
-                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
-                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
-                                    mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(x, floorMod(y + transitionType.getyOffset(), height));
-                                }
+                for (int y = transitionType.getYStart(wrap); y < height - transitionType.getYEnd(wrap); y++) {
+                    for (int x = transitionType.getXStart(wrap); x < width - transitionType.getXEnd(wrap); x++) {
+                        if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
+                            mapEditor.highlightCell(x, y);
+                            for (int i = 0; i < transitionType.getSize(); i++) {
+                                mapEditor.highlightCell(floorMod(x + transitionType.getXOffsets()[i], width), floorMod(y + transitionType.getYOffsets()[i], height));
                             }
                         }
-                        break;
-                    case LEFT_TO_RIGHT:
-                    case RIGHT_TO_LEFT:
-                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
-                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
-                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
-                                    mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(floorMod(x + transitionType.getxOffset(), width), y);
-                                }
-                            }
-                        }
-                        break;
-                    case TWO_DIMENSIONAL:
-                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
-                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
-                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
-                                    mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(floorMod(x + 1, width), y);
-                                    mapEditor.highlightCell(x, floorMod(y - 1, height));
-                                    mapEditor.highlightCell(floorMod(x + 1, width), floorMod(y - 1, height));
-                                }
-                            }
-                        }
-                        break;
-                    case ISOMETRIC:
-                        for (int y = transitionType.getYStart(wrap); y < height; y++) {
-                            for (int x = transitionType.getXStart(wrap); x < width; x++) {
-                                if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
-                                    mapEditor.highlightCell(x, y);
-                                    mapEditor.highlightCell(floorMod(x + 1, width), y);
-                                    mapEditor.highlightCell(floorMod(x + 2, width), y);
-                                    mapEditor.highlightCell(x, floorMod(y - 1, height));
-                                    mapEditor.highlightCell(floorMod(x + 1, width), floorMod(y - 1, height));
-                                    mapEditor.highlightCell(floorMod(x + 2, width), floorMod(y - 1, height));
-                                }
-                            }
-                        }
-                        break;
+                    }
                 }
             }
             mapEditor.redrawCanvas();

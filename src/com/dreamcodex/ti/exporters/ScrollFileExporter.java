@@ -48,7 +48,7 @@ public class ScrollFileExporter extends Exporter {
         BufferedWriter bw = new BufferedWriter(new FileWriter(mapDataFile));
         writeOriginalCharacterPatterns(bw, remappedChars, includeCharNumbers, includeComments);
         writeColors(bw, colorSets, usedChars, startChar, endChar, animate, includeCharNumbers, includeComments);
-        writeTransitionCharacters(bw, remappedTransCharSet, imax, includeComments);
+        writeTransitionCharacters(bw, remappedTransCharSet, imax, includeComments, transitionType);
         writeInvertedCharacters(bw, remappedTransCharSet, imax, includeComments);
         writeMap(bw, transMaps, compression, includeComments);
         writeScrolledPatterns(bw, remappedChars, remappedTransCharSet, imax, transitionType, includeComments, frames, animate);
@@ -103,10 +103,8 @@ public class ScrollFileExporter extends Exporter {
         boolean allColorsOK = true;
         int width = mapData[0].length;
         int height = mapData.length;
-        int xStart = transitionType.getxOffset() == 0 || wrap ? 0 : 1;
-        int yStart = transitionType.getyOffset() == 0 || wrap ? 0 : 1;
-        for (int y = yStart; y < height; y++) {
-            for (int x = xStart; x < width; x++) {
+        for (int y = transitionType.getYStart(wrap); y < height - transitionType.getYEnd(wrap); y++) {
+            for (int x = transitionType.getXStart(wrap); x < width - transitionType.getXEnd(wrap); x++) {
                 TransChar newTransChar = new TransChar(transitionType, x, y, mapData);
                 updateUsedChars(newTransChar, usedChars, startAndEndChar);
                 TransChar transChar = transChars.get(newTransChar.getKey());
@@ -129,12 +127,14 @@ public class ScrollFileExporter extends Exporter {
         int height = mapData.length;
         int xStart = transitionType.getXStart(wrap);
         int yStart = transitionType.getYStart(wrap);
-        int newWidth = width - xStart;
-        int newHeight = height - yStart;
+        int xEnd = transitionType.getXEnd(wrap);
+        int yEnd = transitionType.getYEnd(wrap);
+        int newWidth = width - xEnd - xStart;
+        int newHeight = height - yEnd - yStart;
         int[][] transMap = new int[newHeight][newWidth];
         transMaps.add(transMap);
-        for (int y = yStart; y < height; y++) {
-            for (int x = xStart; x < width; x++) {
+        for (int y = yStart; y < height - yEnd; y++) {
+            for (int x = xStart; x < width - xEnd; x++) {
                 TransChar testTransChar = new TransChar(transitionType, x, y, mapData);
                 TransChar transChar = transChars.get(testTransChar.getKey());
                 transMap[y - yStart][x - xStart] = transChar.getIndex();
@@ -186,7 +186,7 @@ public class ScrollFileExporter extends Exporter {
         boolean invert = false;
         if (colorMode == COLOR_MODE_BITMAP) {
             int[][] charColors = new int[8][8];
-            if (transitionType.getxOffset() != 0) {
+            if (transitionType.getXOffset() != 0) {
                 int[][] fromColorGrid = this.charColors.get(fromChar);
                 int[][] toColorGrid = this.charColors.get(toChar);
                 for (int r = 0; r < 8 && colorsOK; r++) {
@@ -416,7 +416,7 @@ public class ScrollFileExporter extends Exporter {
         }
     }
 
-    private void writeTransitionCharacters(BufferedWriter bw, TransChar[] remappedTransCharSet, int imax, boolean includeComments) throws Exception {
+    private void writeTransitionCharacters(BufferedWriter bw, TransChar[] remappedTransCharSet, int imax, boolean includeComments, TransitionType transitionType) throws Exception {
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
             printPaddedLine(bw, "* Transition Character Pairs (from, to) ", false);
@@ -435,7 +435,7 @@ public class ScrollFileExporter extends Exporter {
                             (transChar.isColorsOK() ? "" : " ERROR")
                 );
             } else {
-                printPaddedLine(bw, (i == 0 ? "TCHARS" : "      ") + " BYTE >FF,>FF", !includeComments ? null : "#" + Globals.toHexString(i, 2) + " unused");
+                printPaddedLine(bw, (i == 0 ? "TCHARS" : "      ") + " BYTE >FF" + Globals.repeat(",>FF", transitionType.getSize()), !includeComments ? null : "#" + Globals.toHexString(i, 2) + " unused");
             }
         }
     }
@@ -642,7 +642,7 @@ public class ScrollFileExporter extends Exporter {
     }
 
     private void writeScrolledPatterns(BufferedWriter bw, ArrayList<Integer> charMap, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
-        if (frames > 0 || transitionType.getyOffset() != 0 && frames == -1) {
+        if (frames > 0 || transitionType.getYOffset() != 0 && frames == -1) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
                 printPaddedLine(bw, "* Scrolled Character Patterns", false);
@@ -654,7 +654,7 @@ public class ScrollFileExporter extends Exporter {
                     for (int i = 0; i <= imax; i++) {
                         StringBuilder sbLine = new StringBuilder();
                         if (i == 0) {
-                            sbLine.append(transitionType.getyOffset() != 0 ? "V" : "H").append("PFRM").append(f);
+                            sbLine.append(transitionType.getYOffset() != 0 ? "V" : "H").append("PFRM").append(f);
                         }
                         else {
                             sbLine.append("      ");
@@ -670,9 +670,9 @@ public class ScrollFileExporter extends Exporter {
                                 Globals.invertGrid(toGrid, 1);
                             }
                             int[][] scrollGrid = new int[8][8];
-                            if (transitionType.getyOffset() != 0) {
+                            if (transitionType.getYOffset() != 0) {
                                 int y1 = 0;
-                                if (transitionType.getyOffset() > 0) {
+                                if (transitionType.getYOffset() > 0) {
                                     for (int y = offset; y < 8; y++) {
                                         System.arraycopy(fromGrid[y], 0, scrollGrid[y1], 0, 8);
                                         y1++;
@@ -694,7 +694,7 @@ public class ScrollFileExporter extends Exporter {
                             }
                             else {
                                 int x1 = 0;
-                                if (transitionType.getxOffset() > 0) {
+                                if (transitionType.getXOffset() > 0) {
                                     for (int x = offset; x < 8; x++) {
                                         for (int y = 0; y < 8; y++) {
                                             scrollGrid[y][x1] = fromGrid[y][x];
@@ -768,7 +768,7 @@ public class ScrollFileExporter extends Exporter {
     }
 
     private void writeScrolledColors(BufferedWriter bw, ArrayList<Integer> charMap, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
-        boolean vertical = transitionType.getyOffset() != 0;
+        boolean vertical = transitionType.getYOffset() != 0;
         if ((frames > 0 || vertical && frames == -1) && colorMode == COLOR_MODE_BITMAP) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);

@@ -2,62 +2,113 @@ package com.dreamcodex.ti.util;
 
 public enum TransitionType {
 
-    TOP_TO_BOTTOM("Top to Bottom", 0, 1),
-    BOTTOM_TO_TOP("Bottom to top", 0, -1),
-    LEFT_TO_RIGHT("Left to right", 1, 0),
-    RIGHT_TO_LEFT("Right to left", -1, 0),
-    TWO_DIMENSIONAL("Two dimensional", 1, -1),
-    ISOMETRIC("Isometric", 0, 0);
+    TOP_TO_BOTTOM("Top to Bottom", new int[] {0}, new int[] {1}),
+    BOTTOM_TO_TOP("Bottom to top", new int[] {0}, new int[] {-1}),
+    LEFT_TO_RIGHT("Left to right", new int[] {1}, new int[] {0}),
+    RIGHT_TO_LEFT("Right to left", new int[] {-1}, new int[] {0}),
+    TWO_DIMENSIONAL("Two dimensional", new int[] {1, 0, 1}, new int[] {0, -1, -1}),
+    ISOMETRIC("Isometric", new int[] {1, 2, 0, 1, 2}, new int[] {0, 0, -1, -1, -1});
 
     private final String label;
-    private final int xOffset;
-    private final int yOffset;
+    private final int[] xOffsets;
+    private final int[] yOffsets;
 
-    TransitionType(String label, int xOffset, int yOffset) {
+    TransitionType(String label, int[] xOffsets, int[] yOffsets) {
         this.label = label;
-        this.xOffset = xOffset;
-        this.yOffset = yOffset;
+        this.xOffsets = xOffsets;
+        this.yOffsets = yOffsets;
     }
 
     public String toString() {
         return label;
     }
 
-    public int getxOffset() {
-        return xOffset;
+    public int[] getXOffsets() {
+        return xOffsets;
     }
 
-    public int getyOffset() {
-        return yOffset;
+    public int[] getYOffsets() {
+        return yOffsets;
+    }
+
+    public int getXOffset() {
+        return xOffsets[0];
+    }
+
+    public int getYOffset() {
+        return yOffsets[0];
+    }
+
+    public int getSize() {
+        return xOffsets.length;
     }
 
     public int getXStart(boolean wrap) {
+        if (wrap) {
+            return 0;
+        }
         switch (this) {
-            case LEFT_TO_RIGHT:
-            case RIGHT_TO_LEFT:
-            case TWO_DIMENSIONAL:
-                return wrap ? 0 : 1;
-            case ISOMETRIC:
-                return wrap ? 0 : 2;
             case TOP_TO_BOTTOM:
             case BOTTOM_TO_TOP:
+            case LEFT_TO_RIGHT:
+            case TWO_DIMENSIONAL:
+            case ISOMETRIC:
             default:
                 return 0;
+            case RIGHT_TO_LEFT:
+                return 1;
+        }
+    }
+
+    public int getXEnd(boolean wrap) {
+        if (wrap) {
+            return 0;
+        }
+        switch (this) {
+            case TOP_TO_BOTTOM:
+            case BOTTOM_TO_TOP:
+            case RIGHT_TO_LEFT:
+            default:
+                return 0;
+            case LEFT_TO_RIGHT:
+            case TWO_DIMENSIONAL:
+                return 1;
+            case ISOMETRIC:
+                return 2;
         }
     }
 
     public int getYStart(boolean wrap) {
+        if (wrap) {
+            return 0;
+        }
         switch (this) {
             case TOP_TO_BOTTOM:
-            case BOTTOM_TO_TOP:
-            case TWO_DIMENSIONAL:
-            case ISOMETRIC:
-                return wrap ? 0 : 1;
             case LEFT_TO_RIGHT:
             case RIGHT_TO_LEFT:
             default:
                 return 0;
+            case BOTTOM_TO_TOP:
+            case TWO_DIMENSIONAL:
+            case ISOMETRIC:
+                return 1;
         }
     }
 
+    public int getYEnd(boolean wrap) {
+        if (wrap) {
+            return 0;
+        }
+        switch (this) {
+            case BOTTOM_TO_TOP:
+            case LEFT_TO_RIGHT:
+            case RIGHT_TO_LEFT:
+            case TWO_DIMENSIONAL:
+            case ISOMETRIC:
+            default:
+                return 0;
+            case TOP_TO_BOTTOM:
+                return 1;
+        }
+    }
 }
