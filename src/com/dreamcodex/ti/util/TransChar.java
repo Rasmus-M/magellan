@@ -18,10 +18,12 @@ public class TransChar {
     private int index;
     private int count;
     private boolean colorsOK;
-    private int foreColor;
-    private int backColor;
+    private int foreColor = -1;
+    private int backColor = -1;
     private int[][] colorGrid;
     private boolean invert;
+    private boolean foreColorUsed;
+    private boolean backColorUsed;
 
     public TransChar(TransChar transChar) {
         this.fromChar = transChar.fromChar;
@@ -146,6 +148,22 @@ public class TransChar {
 
     public void setInvert(boolean invert) {
         this.invert = invert;
+    }
+
+    public boolean isForeColorUsed() {
+        return foreColorUsed;
+    }
+
+    public void setForeColorUsed(boolean foreColorUsed) {
+        this.foreColorUsed = foreColorUsed;
+    }
+
+    public boolean isBackColorUsed() {
+        return backColorUsed;
+    }
+
+    public void setBackColorUsed(boolean backColorUsed) {
+        this.backColorUsed = backColorUsed;
     }
 
     public void incCount() {

@@ -63,7 +63,7 @@ public class ScrollFileExporter extends Exporter {
             if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
                 int[][] mapData = mapEditor.getMapData(m);
                 if (mapData.length > 1 && mapData[0].length > 1) {
-                    allColorsOK &= findCharacterTransitionsForMap(mapData, transCharSet, transChars, usedChars, colorSets, startAndEndChar, transitionType, wrap);
+                    allColorsOK &= findCharacterTransitionsForMap(mapData, transChars, usedChars, colorSets, startAndEndChar, transitionType, wrap);
                 }
             }
         }
@@ -99,7 +99,7 @@ public class ScrollFileExporter extends Exporter {
         return allColorsOK;
     }
 
-    private boolean findCharacterTransitionsForMap(int[][] mapData, TransChar[] transCharSet, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, TransitionType transitionType, boolean wrap) throws Exception {
+    private boolean findCharacterTransitionsForMap(int[][] mapData, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, TransitionType transitionType, boolean wrap) throws Exception {
         boolean allColorsOK = true;
         int width = mapData[0].length;
         int height = mapData.length;
@@ -181,112 +181,138 @@ public class ScrollFileExporter extends Exporter {
 
     private void determineColorsForTransChar(TransChar transChar, TransitionType transitionType, Map<Integer, ArrayList<TransChar>> colorSets) {
         int fromChar = transChar.getFromChar();
-        int toChar = transChar.getToChar();
-        boolean colorsOK = true;
-        boolean invert = false;
         if (colorMode == COLOR_MODE_BITMAP) {
-            int[][] charColors = new int[8][8];
-            if (transitionType.getXOffset() != 0) {
-                int[][] fromColorGrid = this.charColors.get(fromChar);
-                int[][] toColorGrid = this.charColors.get(toChar);
-                for (int r = 0; r < 8 && colorsOK; r++) {
-                    int[] fromColorRow = fromColorGrid[r];
-                    int[] toColorRow = toColorGrid[r];
-                    int screenColor = mapEditor.getColorScreen();
-                    int fromForeColor = fromColorRow[Globals.INDEX_CLR_FORE] != 0 ? fromColorRow[Globals.INDEX_CLR_FORE] : screenColor;
-                    int toForeColor = toColorRow[Globals.INDEX_CLR_FORE] != 0 ? toColorRow[Globals.INDEX_CLR_FORE] : screenColor;
-                    if (fromForeColor == toForeColor) {
-                        charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                    } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
-                        charColors[r][Globals.INDEX_CLR_FORE] = toForeColor;
-                    } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
-                        charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                    } else {
-                        charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
-                        colorsOK = false;
-                    }
-                    int fromBackColor = fromColorRow[Globals.INDEX_CLR_BACK] != 0 ? fromColorRow[Globals.INDEX_CLR_BACK] : screenColor;
-                    int toBackColor = toColorRow[Globals.INDEX_CLR_BACK] != 0 ? toColorRow[Globals.INDEX_CLR_BACK] : screenColor;
-                    if (fromBackColor == toBackColor) {
-                        charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                    } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
-                        charColors[r][Globals.INDEX_CLR_BACK] = toBackColor;
-                    } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
-                        charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                    } else {
-                        charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
-                        colorsOK = false;
-                    }
+            determineColorsForTransCharInBitmapMode(transChar, fromChar, transChar.getToChar(), transitionType.getXOffset() != 0);
+        } else {
+            for (int toChar : transChar.getToChars()) {
+                determineColorsForTransCharInGraphicsMode(transChar, fromChar, toChar);
+                if (!transChar.isColorsOK()) {
+                    break;
                 }
             }
-            transChar.setColorsOK(colorsOK);
-            transChar.setColorGrid(charColors);
+            int ckey = transChar.getBackColor() + (transChar.getForeColor() << 4);
+            ArrayList<TransChar> colorSet = colorSets.computeIfAbsent(ckey, k -> new ArrayList<>());
+            colorSet.add(transChar);
+        }
+    }
+
+    private void determineColorsForTransCharInBitmapMode(TransChar transChar, int fromChar, int toChar, boolean horizontal) {
+        int[][] charColors = new int[8][8];
+        boolean colorsOK = true;
+        if (horizontal) {
+            int[][] fromColorGrid = this.charColors.get(fromChar);
+            int[][] toColorGrid = this.charColors.get(toChar);
+            for (int r = 0; r < 8 && colorsOK; r++) {
+                int[] fromColorRow = fromColorGrid[r];
+                int[] toColorRow = toColorGrid[r];
+                int screenColor = mapEditor.getColorScreen();
+                int fromForeColor = fromColorRow[Globals.INDEX_CLR_FORE] != 0 ? fromColorRow[Globals.INDEX_CLR_FORE] : screenColor;
+                int toForeColor = toColorRow[Globals.INDEX_CLR_FORE] != 0 ? toColorRow[Globals.INDEX_CLR_FORE] : screenColor;
+                if (fromForeColor == toForeColor) {
+                    charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
+                } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_FORE)) {
+                    charColors[r][Globals.INDEX_CLR_FORE] = toForeColor;
+                } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_FORE)) {
+                    charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
+                } else {
+                    charColors[r][Globals.INDEX_CLR_FORE] = fromForeColor;
+                    colorsOK = false;
+                }
+                int fromBackColor = fromColorRow[Globals.INDEX_CLR_BACK] != 0 ? fromColorRow[Globals.INDEX_CLR_BACK] : screenColor;
+                int toBackColor = toColorRow[Globals.INDEX_CLR_BACK] != 0 ? toColorRow[Globals.INDEX_CLR_BACK] : screenColor;
+                if (fromBackColor == toBackColor) {
+                    charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
+                } else if (!Globals.arrayContains(charGrids.get(fromChar)[r], Globals.INDEX_CLR_BACK)) {
+                    charColors[r][Globals.INDEX_CLR_BACK] = toBackColor;
+                } else if (!Globals.arrayContains(charGrids.get(toChar)[r], Globals.INDEX_CLR_BACK)) {
+                    charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
+                } else {
+                    charColors[r][Globals.INDEX_CLR_BACK] = fromBackColor;
+                    colorsOK = false;
+                }
+            }
+        }
+        transChar.setColorsOK(colorsOK);
+        transChar.setColorGrid(charColors);
+    }
+
+    private void determineColorsForTransCharInGraphicsMode(TransChar transChar, int fromChar, int toChar) {
+        boolean colorsOK = true;
+        boolean invert = false;
+        int screenColor = mapEditor.getColorScreen();
+        int[] fromClrSet = clrSets[fromChar / 8];
+        int[] toClrSet = clrSets[toChar / 8];
+        int foreColor;
+        int backColor;
+        // Fore color
+        int fromForeColor = fromClrSet[Globals.INDEX_CLR_FORE] != 0 ? fromClrSet[Globals.INDEX_CLR_FORE] : screenColor;
+        int toForeColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
+        if (fromForeColor == toForeColor) {
+            foreColor = fromForeColor; // Same fore colors
+        } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
+            foreColor = toForeColor; // From grid empty - use to color
+        } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+            foreColor = fromForeColor; // To grid empty - user from color
         } else {
-            int screenColor = mapEditor.getColorScreen();
-            int[] fromClrSet = clrSets[fromChar / 8];
-            int[] toClrSet = clrSets[toChar / 8];
-            int foreColor;
-            int backColor;
-            int fromForeColor = fromClrSet[Globals.INDEX_CLR_FORE] != 0 ? fromClrSet[Globals.INDEX_CLR_FORE] : screenColor;
-            int toForeColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
+            foreColor = fromForeColor;
+            colorsOK = false;
+            System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromForeColor=" + fromForeColor + " toForeColor=" + toForeColor);
+        }
+        // Back color
+        int fromBackColor = fromClrSet[Globals.INDEX_CLR_BACK] != 0 ? fromClrSet[Globals.INDEX_CLR_BACK] : screenColor;
+        int toBackColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
+        if (fromBackColor == toBackColor) {
+            backColor = fromBackColor; // Same back colors
+        } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
+            backColor = toBackColor; // From grid full - use to color
+        } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+            backColor = fromBackColor; // To grid full - use from color
+        } else {
+            backColor = fromBackColor;
+            colorsOK = false;
+            System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromBackColor=" + fromBackColor + " toBackColor=" + toBackColor);
+        }
+        if (!colorsOK) {
+            // Invert color set and pattern of to character
+            colorsOK = true;
+            toForeColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
             if (fromForeColor == toForeColor) {
                 foreColor = fromForeColor;
             } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
                 foreColor = toForeColor;
-            } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
+            } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
                 foreColor = fromForeColor;
             } else {
                 foreColor = fromForeColor;
                 colorsOK = false;
-                System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromForeColor=" + fromForeColor + " toForeColor=" + toForeColor);
             }
-            int fromBackColor = fromClrSet[Globals.INDEX_CLR_BACK] != 0 ? fromClrSet[Globals.INDEX_CLR_BACK] : screenColor;
-            int toBackColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
+            toBackColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
             if (fromBackColor == toBackColor) {
                 backColor = fromBackColor;
             } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
                 backColor = toBackColor;
-            } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
+            } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
                 backColor = fromBackColor;
             } else {
                 backColor = fromBackColor;
                 colorsOK = false;
-                System.out.println("Colors not OK: fromChar=" + fromChar + " toChar=" + toChar + " fromBackColor=" + fromBackColor + " toBackColor=" + toBackColor);
             }
-            if (!colorsOK) {
-                // Invert color set and pattern of to character
-                colorsOK = true;
-                toForeColor = toClrSet[Globals.INDEX_CLR_BACK] != 0 ? toClrSet[Globals.INDEX_CLR_BACK] : screenColor;
-                if (fromForeColor == toForeColor) {
-                    foreColor = fromForeColor;
-                } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_FORE)) {
-                    foreColor = toForeColor;
-                } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_BACK)) {
-                    foreColor = fromForeColor;
-                } else {
-                    foreColor = fromForeColor;
-                    colorsOK = false;
-                }
-                toBackColor = toClrSet[Globals.INDEX_CLR_FORE] != 0 ? toClrSet[Globals.INDEX_CLR_FORE] : screenColor;
-                if (fromBackColor == toBackColor) {
-                    backColor = fromBackColor;
-                } else if (!Globals.arrayContains(charGrids.get(fromChar), Globals.INDEX_CLR_BACK)) {
-                    backColor = toBackColor;
-                } else if (!Globals.arrayContains(charGrids.get(toChar), Globals.INDEX_CLR_FORE)) {
-                    backColor = fromBackColor;
-                } else {
-                    backColor = fromBackColor;
-                    colorsOK = false;
-                }
-                invert = colorsOK;
-            }
+            invert = colorsOK;
+        }
+        boolean initialized = transChar.getForeColor() != -1 || transChar.getBackColor() != -1;
+        if (initialized && (
+                transChar.getForeColor() != foreColor && transChar.isForeColorUsed() ||
+                transChar.getBackColor() != backColor && transChar.isBackColorUsed() ||
+                transChar.isInvert() != invert
+        )) {
+            transChar.setColorsOK(false);
+        } else {
             transChar.setColorsOK(colorsOK);
             transChar.setForeColor(foreColor);
+            transChar.setForeColorUsed(Globals.arrayContains(charGrids.get(fromChar), foreColor) || Globals.arrayContains(charGrids.get(toChar), foreColor));
             transChar.setBackColor(backColor);
+            transChar.setBackColorUsed(Globals.arrayContains(charGrids.get(fromChar), backColor) || Globals.arrayContains(charGrids.get(toChar), backColor));
             transChar.setInvert(invert);
-            int ckey = backColor + (foreColor << 4);
-            ArrayList<TransChar> colorSet = colorSets.computeIfAbsent(ckey, k -> new ArrayList<>());
-            colorSet.add(transChar);
         }
     }
 
