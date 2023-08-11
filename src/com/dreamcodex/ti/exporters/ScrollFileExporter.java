@@ -668,132 +668,178 @@ public class ScrollFileExporter extends Exporter {
     }
 
     private void writeScrolledPatterns(BufferedWriter bw, ArrayList<Integer> charMap, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
-        if (frames > 0 || transitionType.getYOffset() != 0 && frames == -1) {
+        if (transitionType == TransitionType.ISOMETRIC) {
+            return;
+        }
+        if ((frames > 0 || transitionType.getYOffset() != 0 && frames == -1)) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
                 printPaddedLine(bw, "* Scrolled Character Patterns", false);
                 printPaddedLine(bw, "****************************************", false);
             }
-            if (frames > 0) {
-                for (int f = 0; f < frames; f++) {
-                    int offset = f * 8 / frames;
+            if (transitionType.getSize() == 1) {
+                if (frames > 0) {
+                    for (int f = 0; f < frames; f++) {
+                        int offset = f * 8 / frames;
+                        for (int i = 0; i <= imax; i++) {
+                            StringBuilder sbLine = new StringBuilder();
+                            if (i == 0) {
+                                sbLine.append(transitionType.getYOffset() != 0 ? "V" : "H").append("PFRM").append(f);
+                            }
+                            else {
+                                sbLine.append("      ");
+                            }
+                            sbLine.append(" DATA ");
+                            String hexstr;
+                            TransChar transChar = transCharSet[i];
+                            if (transChar != null) {
+
+                                int[][] fromGrid = charGrids.get(charMap.get(transChar.getFromChar()) + (animate ? f * 32 : 0));
+                                int[][] toGrid = charGrids.get(charMap.get(transChar.getToChar()) + (animate ? f * 32 : 0));
+                                if (transChar.isInvert()) {
+                                    toGrid = Globals.cloneGrid(toGrid);
+                                    Globals.invertGrid(toGrid, 1);
+                                }
+                                int[][] scrollGrid = new int[8][8];
+                                if (transitionType.getYOffset() != 0) {
+                                    int y1 = 0;
+                                    if (transitionType.getYOffset() > 0) {
+                                        for (int y = offset; y < 8; y++) {
+                                            System.arraycopy(fromGrid[y], 0, scrollGrid[y1], 0, 8);
+                                            y1++;
+                                        }
+                                        for (int y = 0; y < offset; y++) {
+                                            System.arraycopy(toGrid[y], 0, scrollGrid[y1], 0, 8);
+                                            y1++;
+                                        }
+                                    } else {
+                                        for (int y = 8 - offset; y < 8; y++) {
+                                            System.arraycopy(toGrid[y], 0, scrollGrid[y1], 0, 8);
+                                            y1++;
+                                        }
+                                        for (int y = 0; y < 8 - offset; y++) {
+                                            System.arraycopy(fromGrid[y], 0, scrollGrid[y1], 0, 8);
+                                            y1++;
+                                        }
+                                    }
+                                }
+                                else {
+                                    int x1 = 0;
+                                    if (transitionType.getXOffset() > 0) {
+                                        for (int x = offset; x < 8; x++) {
+                                            for (int y = 0; y < 8; y++) {
+                                                scrollGrid[y][x1] = fromGrid[y][x];
+                                            }
+                                            x1++;
+                                        }
+                                        for (int x = 0; x < offset; x++) {
+                                            for (int y = 0; y < 8; y++) {
+                                                scrollGrid[y][x1] = toGrid[y][x];
+                                            }
+                                            x1++;
+                                        }
+                                    } else {
+                                        for (int x = 8 - offset; x < 8; x++) {
+                                            for (int y = 0; y < 8; y++) {
+                                                scrollGrid[y][x1] = toGrid[y][x];
+                                            }
+                                            x1++;
+                                        }
+                                        for (int x = 0; x < 8 - offset; x++) {
+                                            for (int y = 0; y < 8; y++) {
+                                                scrollGrid[y][x1] = fromGrid[y][x];
+                                            }
+                                            x1++;
+                                        }
+                                    }
+                                }
+                                hexstr = Globals.getHexString(scrollGrid).toUpperCase();
+                            }
+                            else {
+                                hexstr = Globals.BLANKCHAR;
+                            }
+                            sbLine.append(">").append(hexstr, 0, 4).append(",");
+                            sbLine.append(">").append(hexstr, 4, 8).append(",");
+                            sbLine.append(">").append(hexstr, 8, 12).append(",");
+                            sbLine.append(">").append(hexstr, 12, 16);
+                            printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + (transChar == null ? " unused" : "") : null);
+                        }
+                    }
+                }
+                // Pattern strips
+                else {
                     for (int i = 0; i <= imax; i++) {
-                        StringBuilder sbLine = new StringBuilder();
-                        if (i == 0) {
-                            sbLine.append(transitionType.getYOffset() != 0 ? "V" : "H").append("PFRM").append(f);
-                        }
-                        else {
-                            sbLine.append("      ");
-                        }
-                        sbLine.append(" DATA ");
                         String hexstr;
                         TransChar transChar = transCharSet[i];
                         if (transChar != null) {
-                            int[][] fromGrid = charGrids.get(charMap.get(transChar.getFromChar()) + (animate ? f * 32 : 0));
-                            int[][] toGrid = charGrids.get(charMap.get(transChar.getToChar()) + (animate ? f * 32 : 0));
-                            if (transChar.isInvert()) {
-                                toGrid = Globals.cloneGrid(toGrid);
-                                Globals.invertGrid(toGrid, 1);
-                            }
-                            int[][] scrollGrid = new int[8][8];
-                            if (transitionType.getYOffset() != 0) {
-                                int y1 = 0;
-                                if (transitionType.getYOffset() > 0) {
-                                    for (int y = offset; y < 8; y++) {
-                                        System.arraycopy(fromGrid[y], 0, scrollGrid[y1], 0, 8);
-                                        y1++;
-                                    }
-                                    for (int y = 0; y < offset; y++) {
-                                        System.arraycopy(toGrid[y], 0, scrollGrid[y1], 0, 8);
-                                        y1++;
-                                    }
-                                } else {
-                                    for (int y = 8 - offset; y < 8; y++) {
-                                        System.arraycopy(toGrid[y], 0, scrollGrid[y1], 0, 8);
-                                        y1++;
-                                    }
-                                    for (int y = 0; y < 8 - offset; y++) {
-                                        System.arraycopy(fromGrid[y], 0, scrollGrid[y1], 0, 8);
-                                        y1++;
-                                    }
-                                }
-                            }
-                            else {
-                                int x1 = 0;
-                                if (transitionType.getXOffset() > 0) {
-                                    for (int x = offset; x < 8; x++) {
-                                        for (int y = 0; y < 8; y++) {
-                                            scrollGrid[y][x1] = fromGrid[y][x];
-                                        }
-                                        x1++;
-                                    }
-                                    for (int x = 0; x < offset; x++) {
-                                        for (int y = 0; y < 8; y++) {
-                                            scrollGrid[y][x1] = toGrid[y][x];
-                                        }
-                                        x1++;
-                                    }
-                                } else {
-                                    for (int x = 8 - offset; x < 8; x++) {
-                                        for (int y = 0; y < 8; y++) {
-                                            scrollGrid[y][x1] = toGrid[y][x];
-                                        }
-                                        x1++;
-                                    }
-                                    for (int x = 0; x < 8 - offset; x++) {
-                                        for (int y = 0; y < 8; y++) {
-                                            scrollGrid[y][x1] = fromGrid[y][x];
-                                        }
-                                        x1++;
-                                    }
-                                }
-                            }
-                            hexstr = Globals.getHexString(scrollGrid).toUpperCase();
+                            hexstr =
+                                Globals.getHexString(charGrids.get(charMap.get(transChar.getToChar()))).toUpperCase() +
+                                Globals.getHexString(charGrids.get(charMap.get(transChar.getFromChar()))).toUpperCase();
                         }
                         else {
-                            hexstr = Globals.BLANKCHAR;
+                            hexstr = Globals.BLANKCHAR + Globals.BLANKCHAR;
                         }
+                        StringBuilder sbLine = new StringBuilder();
+                        sbLine.append(i == 0 ? "PSTRIP" : "      ").append(" DATA ");
                         sbLine.append(">").append(hexstr, 0, 4).append(",");
                         sbLine.append(">").append(hexstr, 4, 8).append(",");
                         sbLine.append(">").append(hexstr, 8, 12).append(",");
                         sbLine.append(">").append(hexstr, 12, 16);
-                        printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + (transChar == null ? " unused" : "") : null);
+                        printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2)) : null);
+                        sbLine = new StringBuilder();
+                        sbLine.append("       DATA ");
+                        sbLine.append(">").append(hexstr, 16, 20).append(",");
+                        sbLine.append(">").append(hexstr, 20, 24).append(",");
+                        sbLine.append(">").append(hexstr, 24, 28).append(",");
+                        sbLine.append(">").append(hexstr, 28, 32);
+                        printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2)) : null);
                     }
                 }
-            }
-            // Pattern strips
-            else {
-                for (int i = 0; i <= imax; i++) {
-                    String hexstr;
-                    TransChar transChar = transCharSet[i];
-                    if (transChar != null) {
-                        hexstr =
-                            Globals.getHexString(charGrids.get(charMap.get(transChar.getToChar()))).toUpperCase() +
-                            Globals.getHexString(charGrids.get(charMap.get(transChar.getFromChar()))).toUpperCase();
+            } else {
+                int hFrames = transitionType.getWidth() > 1 ? frames : 1;
+                int vFrames = transitionType.getHeight() > 1 ? frames : 1;
+                for (int hFrame = 0; hFrame < hFrames; hFrame++) {
+                    int hOffset = hFrame * 8 / hFrames;
+                    for (int vFrame = 0; vFrame < vFrames; vFrame++) {
+                        int vOffset = vFrame * 8 / vFrames;
+                        for (int i = 0; i <= imax; i++) {
+                            StringBuilder sbLine = new StringBuilder();
+                            if (i == 0) {
+                                sbLine.append("PFRM").append(hFrame).append(vFrame);
+                            } else {
+                                sbLine.append("      ");
+                            }
+                            sbLine.append(" DATA ");
+                            String hexstr;
+                            TransChar transChar = transCharSet[i];
+                            if (transChar != null) {
+                                int[][] grid = new int[transitionType.getHeight() * 8][transitionType.getWidth() * 8];
+                                Globals.copyGrid(charGrids.get(charMap.get(transChar.getFromChar())), grid, transitionType.getBaseX() * 8, transitionType.getBaseY() * 8);
+                                for (int t = 0; t < transitionType.getSize(); t++) {
+                                    Globals.copyGrid(charGrids.get(charMap.get(transChar.getToChars()[t])), grid, (transitionType.getBaseX() + transitionType.getXOffsets()[t]) * 8, (transitionType.getBaseY() + transitionType.getYOffsets()[t]) * 8);
+                                }
+                                int[][] scrollGrid = new int[8][8];
+                                Globals.copyGrid(grid, scrollGrid, transitionType.getBaseX() * 8 + hOffset * (transitionType.getBaseX() == 0 ? 1 : -1), transitionType.getBaseY() * 8 + vOffset * (transitionType.getBaseY() == 0 ? 1 : -1), 0, 0, 8, 8);
+                                hexstr = Globals.getHexString(scrollGrid).toUpperCase();
+                            } else {
+                                hexstr = Globals.BLANKCHAR;
+                            }
+                            sbLine.append(">").append(hexstr, 0, 4).append(",");
+                            sbLine.append(">").append(hexstr, 4, 8).append(",");
+                            sbLine.append(">").append(hexstr, 8, 12).append(",");
+                            sbLine.append(">").append(hexstr, 12, 16);
+                            printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + (transChar == null ? " unused" : "") : null);
+                        }
                     }
-                    else {
-                        hexstr = Globals.BLANKCHAR + Globals.BLANKCHAR;
-                    }
-                    StringBuilder sbLine = new StringBuilder();
-                    sbLine.append(i == 0 ? "PSTRIP" : "      ").append(" DATA ");
-                    sbLine.append(">").append(hexstr, 0, 4).append(",");
-                    sbLine.append(">").append(hexstr, 4, 8).append(",");
-                    sbLine.append(">").append(hexstr, 8, 12).append(",");
-                    sbLine.append(">").append(hexstr, 12, 16);
-                    printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2)) : null);
-                    sbLine = new StringBuilder();
-                    sbLine.append("       DATA ");
-                    sbLine.append(">").append(hexstr, 16, 20).append(",");
-                    sbLine.append(">").append(hexstr, 20, 24).append(",");
-                    sbLine.append(">").append(hexstr, 24, 28).append(",");
-                    sbLine.append(">").append(hexstr, 28, 32);
-                    printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2)) : null);
                 }
             }
         }
     }
 
     private void writeScrolledColors(BufferedWriter bw, ArrayList<Integer> charMap, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
+        if (transitionType.getSize() > 1) {
+            return;
+        }
         boolean vertical = transitionType.getYOffset() != 0;
         if ((frames > 0 || vertical && frames == -1) && colorMode == COLOR_MODE_BITMAP) {
             if (includeComments) {

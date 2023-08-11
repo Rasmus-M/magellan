@@ -2,25 +2,37 @@ package com.dreamcodex.ti.util;
 
 public enum TransitionType {
 
-    TOP_TO_BOTTOM("Top to Bottom", new int[] {0}, new int[] {1}),
-    BOTTOM_TO_TOP("Bottom to top", new int[] {0}, new int[] {-1}),
-    LEFT_TO_RIGHT("Left to right", new int[] {1}, new int[] {0}),
-    RIGHT_TO_LEFT("Right to left", new int[] {-1}, new int[] {0}),
-    TWO_DIMENSIONAL("Two dimensional", new int[] {1, 0, 1}, new int[] {0, -1, -1}),
-    ISOMETRIC("Isometric", new int[] {1, 2, 0, 1, 2}, new int[] {0, 0, -1, -1, -1});
+    TOP_TO_BOTTOM("Top to Bottom", 1, 2, new int[] {0}, new int[] {1}),
+    BOTTOM_TO_TOP("Bottom to top", 1, 2, new int[] {0}, new int[] {-1}),
+    LEFT_TO_RIGHT("Left to right", 2, 1, new int[] {1}, new int[] {0}),
+    RIGHT_TO_LEFT("Right to left", 2, 1, new int[] {-1}, new int[] {0}),
+    TWO_DIMENSIONAL("Two dimensional", 2, 2, new int[] {1, 0, 1}, new int[] {0, -1, -1}),
+    ISOMETRIC("Isometric", 3, 2, new int[] {1, 2, 0, 1, 2}, new int[] {0, 0, -1, -1, -1});
 
     private final String label;
+    private int width;
+    private int height;
     private final int[] xOffsets;
     private final int[] yOffsets;
 
-    TransitionType(String label, int[] xOffsets, int[] yOffsets) {
+    TransitionType(String label, int width, int height, int[] xOffsets, int[] yOffsets) {
         this.label = label;
+        this.width = width;
+        this.height = height;
         this.xOffsets = xOffsets;
         this.yOffsets = yOffsets;
     }
 
     public String toString() {
         return label;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public int[] getXOffsets() {
@@ -108,6 +120,34 @@ public enum TransitionType {
             default:
                 return 0;
             case TOP_TO_BOTTOM:
+                return 1;
+        }
+    }
+
+    public int getBaseX() {
+        switch (this) {
+            case TOP_TO_BOTTOM:
+            case BOTTOM_TO_TOP:
+            case LEFT_TO_RIGHT:
+            case TWO_DIMENSIONAL:
+            case ISOMETRIC:
+            default:
+                return 0;
+            case RIGHT_TO_LEFT:
+                return 1;
+        }
+    }
+
+    public int getBaseY() {
+        switch (this) {
+            case TOP_TO_BOTTOM:
+            case LEFT_TO_RIGHT:
+            case RIGHT_TO_LEFT:
+            default:
+                return 0;
+            case BOTTOM_TO_TOP:
+            case TWO_DIMENSIONAL:
+            case ISOMETRIC:
                 return 1;
         }
     }

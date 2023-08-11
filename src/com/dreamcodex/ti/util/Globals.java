@@ -436,10 +436,16 @@ public class Globals {
         copyGrid(grid, destination, 0, 0);
     }
 
-    public static void copyGrid(int[][] grid, int[][] destination, int xPos, int yPos) {
+    public static void copyGrid(int[][] grid, int[][] destination, int destXPos, int destYPos) {
         for (int y = 0; y < grid.length; y++) {
             int[] row = grid[y];
-            System.arraycopy(row, 0, destination[y + yPos], xPos, row.length);
+            System.arraycopy(row, 0, destination[y + destYPos], destXPos, row.length);
+        }
+    }
+
+    public static void copyGrid(int[][] source, int[][] destination, int srcXPos, int srcYPos, int destXPos, int destYPos, int width, int height) {
+        for (int y = 0; y < height; y++) {
+            System.arraycopy(source[srcYPos + y], srcXPos, destination[y + destYPos], destXPos, width);
         }
     }
 

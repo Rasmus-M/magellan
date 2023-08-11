@@ -81,6 +81,9 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         }
 
         private boolean areColorsOK(TransChar transChar, TransitionType transitionType) {
+            // Note: this is a start, but it's not enough to test the color transition from
+            // the fromChar to each toChar. We must also check that the color transitions are
+            // mutually compatible.
             boolean colorsOK = true;
             if (colorMode == COLOR_MODE_GRAPHICS_1 ) {
                 int fromChar = transChar.getFromChar();
