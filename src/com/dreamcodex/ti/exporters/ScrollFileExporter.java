@@ -305,13 +305,20 @@ public class ScrollFileExporter extends Exporter {
                 transChar.getBackColor() != backColor && transChar.isBackColorUsed() ||
                 transChar.isInvert() != invert
         )) {
-            transChar.setColorsOK(false);
+            if (
+                transChar.getForeColor() != foreColor && transChar.isForeColorUsed() && Globals.arrayContains(charGrids.get(toChar), 1) ||
+                transChar.getBackColor() != backColor && transChar.isBackColorUsed() && Globals.arrayContains(charGrids.get(toChar), 0) ||
+                transChar.isInvert() != invert
+            ) {
+                transChar.setColorsOK(false);
+            }
+
         } else {
             transChar.setColorsOK(colorsOK);
             transChar.setForeColor(foreColor);
-            transChar.setForeColorUsed(Globals.arrayContains(charGrids.get(fromChar), foreColor) || Globals.arrayContains(charGrids.get(toChar), foreColor));
+            transChar.setForeColorUsed(Globals.arrayContains(charGrids.get(fromChar), 1) || Globals.arrayContains(charGrids.get(toChar), 1));
             transChar.setBackColor(backColor);
-            transChar.setBackColorUsed(Globals.arrayContains(charGrids.get(fromChar), backColor) || Globals.arrayContains(charGrids.get(toChar), backColor));
+            transChar.setBackColorUsed(Globals.arrayContains(charGrids.get(fromChar), 0) || Globals.arrayContains(charGrids.get(toChar), 0));
             transChar.setInvert(invert);
         }
     }
