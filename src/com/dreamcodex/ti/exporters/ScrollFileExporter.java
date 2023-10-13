@@ -22,9 +22,6 @@ public class ScrollFileExporter extends Exporter {
     }
 
     public void writeScrollFile(File mapDataFile, TransitionType transitionType, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
-        if (transitionType == TransitionType.ISOMETRIC) {
-            throw new Exception("Export not implemented for " + transitionType);
-        }
         mapEditor.storeCurrentMap();
         ArrayList<int[][]> transMaps = new ArrayList<>();
         Map<String, TransChar> transChars = new HashMap<>();
@@ -675,9 +672,6 @@ public class ScrollFileExporter extends Exporter {
     }
 
     private void writeScrolledPatterns(BufferedWriter bw, ArrayList<Integer> charMap, TransChar[] transCharSet, int imax, TransitionType transitionType, boolean includeComments, int frames, boolean animate) throws Exception {
-        if (transitionType == TransitionType.ISOMETRIC) {
-            return;
-        }
         if ((frames > 0 || transitionType.getYOffset() != 0 && frames == -1)) {
             if (includeComments) {
                 printPaddedLine(bw, "****************************************", false);
