@@ -466,8 +466,14 @@ public class AssemblyDataFileExporter extends Exporter {
                     n += i;
                     System.out.println("Compressed size: " + n);
                 }
-                else if (compression == MagellanExportDialog.COMPRESSION_META_2 || compression == MagellanExportDialog.COMPRESSION_META_4) {
-                    int size = compression == MagellanExportDialog.COMPRESSION_META_2 ? 2 : 4;
+                else if (compression == MagellanExportDialog.COMPRESSION_META_2 || compression == MagellanExportDialog.COMPRESSION_META_4 || compression == MagellanExportDialog.COMPRESSION_META_8) {
+                    int size = compression == MagellanExportDialog.COMPRESSION_META_2 ? 2 : compression == MagellanExportDialog.COMPRESSION_META_4 ? 4 : 8;
+                    if (mapToSave.length % size != 0) {
+                        throw new Exception("Map height is not a multiple of " + compression);
+                    }
+                    if (mapToSave[0].length % size != 0) {
+                        throw new Exception("Map width is not a multiple of " + compression);
+                    }
                     int height = mapToSave.length / size;
                     int width = mapToSave[0].length / size;
                     Map<String, MetaTile> metaTileLookup = new HashMap<>();
