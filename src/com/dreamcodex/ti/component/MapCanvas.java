@@ -633,7 +633,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                     }
                 }
             }
-            if (showSpritesPerLine && spritesPerLineImageScaled != null) {
+            if (showSpritesPerLine && viewSpriteLayer && spritesPerLineImageScaled != null) {
                 g.drawImage(spritesPerLineImageScaled, gridOffsetX + width + 1, gridOffsetY, this);
             }
             if (overlay != null) {
