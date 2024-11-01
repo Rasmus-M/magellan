@@ -10,6 +10,7 @@ import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -30,17 +31,24 @@ public class ImportCharImageAction extends FileAction {
     public void actionPerformed(ActionEvent evt) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            Image charImg = getImage(file.getAbsolutePath());
-            BufferedImage buffImg = new BufferedImage(8 * 8, 8 * 32, BufferedImage.TYPE_3BYTE_BGR);
-            if (color) {
-                Graphics2D g2d = ((Graphics2D) (buffImg.getGraphics()));
-                g2d.setColor(TIGlobals.TI_COLOR_TRANSOPAQUE);
-                g2d.fillRect(0, 0, 8 * 8, 8 * 32);
-                g2d.setComposite(AlphaComposite.SrcOver);
-                g2d.drawImage(charImg, 0, 0, parent);
-                g2d.setComposite(AlphaComposite.Src);
-            } else {
-                buffImg.getGraphics().drawImage(charImg, 0, 0, parent);
+            BufferedImage buffImg;
+            try {
+                Image charImg = ImageIO.read(file);
+                buffImg = new BufferedImage(8 * 8, 8 * 32, BufferedImage.TYPE_3BYTE_BGR);
+                if (color) {
+                    Graphics2D g2d = ((Graphics2D) (buffImg.getGraphics()));
+                    g2d.setColor(TIGlobals.TI_COLOR_TRANSOPAQUE);
+                    g2d.fillRect(0, 0, 8 * 8, 8 * 32);
+                    g2d.setComposite(AlphaComposite.SrcOver);
+                    g2d.drawImage(charImg, 0, 0, parent);
+                    g2d.setComposite(AlphaComposite.Src);
+                } else {
+                    buffImg.getGraphics().drawImage(charImg, 0, 0, parent);
+                }
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+                showError("Error importing file", e.getMessage());
+                return;
             }
             MagellanImportDialog importDialog = new MagellanImportDialog(MagellanImportDialog.TYPE_CHAR_IMAGE, parent, parent, preferences, dataSet);
             if (importDialog.isOkay()) {

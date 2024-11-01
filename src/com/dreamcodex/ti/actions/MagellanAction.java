@@ -31,8 +31,4 @@ public abstract class MagellanAction extends AbstractAction {
     protected int showConfirmation(String title, String message, boolean includeCancel) {
         return parent.showConfirmation(title, message, includeCancel);
     }
-
-    protected Image getImage(String name) {
-        return Toolkit.getDefaultToolkit().getImage(name);
-    }
 }
