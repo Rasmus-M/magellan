@@ -19,15 +19,15 @@ public class AppendDataFileAction extends FileAction {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent evt) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, FILEEXTS, "Map Data Files");
         if (file != null) {
             AppendDataFileImporter importer = new AppendDataFileImporter(mapEditor, dataSet, preferences);
             try {
                 importer.readAppendDataFile(file);
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-                showError("Error appending data file", ioException.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                showError("Error appending data file", e.getMessage());
             }
             parent.updateAll();
             parent.setModified(true);

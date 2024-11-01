@@ -2,6 +2,7 @@ package com.dreamcodex.ti.actions.importing;
 
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.actions.FileAction;
+import com.dreamcodex.ti.component.MagellanImportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.importers.CharacterImageColorImporter;
 import com.dreamcodex.ti.importers.CharacterImageMonoImporter;
@@ -14,6 +15,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 public class ImportCharImageAction extends FileAction {
 
@@ -25,7 +27,7 @@ public class ImportCharImageAction extends FileAction {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent evt) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
             Image charImg = getImage(file.getAbsolutePath());
@@ -40,16 +42,23 @@ public class ImportCharImageAction extends FileAction {
             } else {
                 buffImg.getGraphics().drawImage(charImg, 0, 0, parent);
             }
-            if (color) {
-                CharacterImageColorImporter importer = new CharacterImageColorImporter(mapEditor, dataSet, preferences);
-                importer.readCharImageColor(buffImg);
-            } else {
-                CharacterImageMonoImporter importer = new CharacterImageMonoImporter(mapEditor, dataSet, preferences);
-                importer.readCharImageMono(buffImg);
+            MagellanImportDialog importDialog = new MagellanImportDialog(MagellanImportDialog.TYPE_CHAR_IMAGE, parent, parent, preferences, dataSet);
+            if (importDialog.isOkay()) {
+                try {
+                    if (color) {
+                        CharacterImageColorImporter importer = new CharacterImageColorImporter(mapEditor, dataSet, preferences);
+                        importer.readCharImageColor(buffImg, importDialog.skipBlank());
+                    } else {
+                        CharacterImageMonoImporter importer = new CharacterImageMonoImporter(mapEditor, dataSet, preferences);
+                        importer.readCharImageMono(buffImg, importDialog.skipBlank());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                    showError("Error importing file", e.getMessage());
+                }
+                parent.updateAll();
+                parent.setModified(true);
             }
-            parent.updateAll();
-            parent.setModified(true);
         }
-        parent.updateComponents();
     }
 }

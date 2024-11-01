@@ -28,7 +28,7 @@ public class OpenDataFileAction extends FileAction {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent evt) {
         File file;
         if (filePath != null) {
             file = new File(filePath);
@@ -46,9 +46,9 @@ public class OpenDataFileAction extends FileAction {
                 importer.readDataFile(file);
                 parent.setMapDataFile(file);
                 preferences.addRecentFile(file.getAbsolutePath());
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-                showError("Error opening data file", ioException.getMessage());
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+                showError("Error opening data file", e.getMessage());
             }
         }
         mapEditor.goToMap(0);

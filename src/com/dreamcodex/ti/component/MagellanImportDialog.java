@@ -1,6 +1,5 @@
 package com.dreamcodex.ti.component;
 
-import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.*;
 
@@ -25,6 +24,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
     public static final int TYPE_MAP_IMAGE = 0;
     public static final int TYPE_SPRITE_IMAGE = 1;
+    public static final int TYPE_CHAR_IMAGE = 2;
 
     private static final String OK_TEXT = "Import";
     private static final String CANCEL_TEXT = "Cancel";
@@ -37,6 +37,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
     private final JSpinner jspnGap;
     private final JSlider jsldTolerance;
     private final JCheckBox useExistingPalettes;
+    private final JCheckBox skipBlank;
 
     private boolean clickedOkay = false;
 
@@ -44,7 +45,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
         this(type, parent, ip, preferences.getColorMode(), preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), preferences.getSpriteSetEnd(), dataSet.getEcmPalettes());
     }
 
-    public MagellanImportDialog(int type, JFrame parent, IconProvider ip, ColorMode colorMode, int minc, int maxc, int maxSprite, ECMPalette[] palettes) {
+    private MagellanImportDialog(int type, JFrame parent, IconProvider ip, ColorMode colorMode, int minc, int maxc, int maxSprite, ECMPalette[] palettes) {
         super(parent, "Import Settings", true);
 
         jcmbStartChar = new JComboBox();
@@ -89,6 +90,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
         jsldTolerance.setPaintLabels(true);
 
         useExistingPalettes = new JCheckBox("Use existing palettes");
+        skipBlank = new JCheckBox("Skip blank characters");
 
         Object[] objForm = new Object[15];
         int objCount = 0;
@@ -118,12 +120,15 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
                     objForm[objCount] = useExistingPalettes;
                 }
                 break;
+            case TYPE_CHAR_IMAGE:
+                objForm[objCount] = skipBlank;
+                break;
         }
         Object[] objButtons = {OK_TEXT, CANCEL_TEXT};
         JOptionPane joptMain = new JOptionPane(objForm, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, objButtons, objButtons[0]);
         joptMain.addPropertyChangeListener(this);
         this.setContentPane(joptMain);
-        this.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+        this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         this.pack();
         this.setLocationRelativeTo(this);
         this.setVisible(true);
@@ -181,6 +186,10 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
     public boolean useExistingPalettes() {
         return this.useExistingPalettes.isSelected();
+    }
+
+    public boolean skipBlank() {
+        return this.skipBlank.isSelected();
     }
 
     public void itemStateChanged(ItemEvent e) {

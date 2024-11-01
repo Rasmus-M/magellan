@@ -18,7 +18,7 @@ public class CharacterImageColorImporter extends Importer {
         this.preferences = preferences;
     }
 
-    public void readCharImageColor(BufferedImage buffImg) {
+    public void readCharImageColor(BufferedImage buffImg, boolean skipBlank) {
         // get colorsets
         for (int cs = 0; cs < 32; cs++) {
             int colorFore = -1;
@@ -109,10 +109,6 @@ public class CharacterImageColorImporter extends Importer {
                 }
                 Arrays.sort(ecmColors);
             }
-            // ...
-            if (charGrids.containsKey(charNum)) {
-                charGrids.remove(charNum);
-            }
             if (colOffset * 8 + 7 < buffImg.getWidth() && rowOffset * 8 + 7 < buffImg.getHeight()) {
                 for (int y = 0; y < 8; y++) {
                     int[] newColors = newColorArray[y];
@@ -150,31 +146,33 @@ public class CharacterImageColorImporter extends Importer {
                         }
                     }
                 }
-                charGrids.put(charNum, newCharArray);
-                if (colorMode == COLOR_MODE_BITMAP) {
-                    charColors.put(charNum, newColorArray);
-                }
-                if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
-                    if (ecmGlobalPalette == null) {
-                        // Match char palette to existing palettes
-                        boolean found = false;
-                        for (int i = 0; i < Math.min(ecmPaletteIndex, ecmPalettes.length); i++) {
-                            if (ecmPalettes[i].startsWith(ecmColors, ecmColorIndex)) {
-                                ecmCharPalettes[charNum] = ecmPalettes[i];
-                                found = true;
+                if (!(skipBlank && Globals.isGridEmpty(newCharArray))) {
+                    charGrids.put(charNum, newCharArray);
+                    if (colorMode == COLOR_MODE_BITMAP) {
+                        charColors.put(charNum, newColorArray);
+                    }
+                    if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
+                        if (ecmGlobalPalette == null) {
+                            // Match char palette to existing palettes
+                            boolean found = false;
+                            for (int i = 0; i < Math.min(ecmPaletteIndex, ecmPalettes.length); i++) {
+                                if (ecmPalettes[i].startsWith(ecmColors, ecmColorIndex)) {
+                                    ecmCharPalettes[charNum] = ecmPalettes[i];
+                                    found = true;
+                                }
                             }
-                        }
-                        if (!found) {
-                            if (ecmPaletteIndex < ecmPalettes.length - 1) {
-                                ecmPalettes[ecmPaletteIndex].setIntColors(ecmColors);
-                                ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
-                                ecmPaletteIndex++;
-                            } else {
-                                ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
+                            if (!found) {
+                                if (ecmPaletteIndex < ecmPalettes.length - 1) {
+                                    ecmPalettes[ecmPaletteIndex].setIntColors(ecmColors);
+                                    ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
+                                    ecmPaletteIndex++;
+                                } else {
+                                    ecmCharPalettes[charNum] = ecmPalettes[ecmPaletteIndex];
+                                }
                             }
+                        } else {
+                            ecmCharPalettes[charNum] = ecmGlobalPalette;
                         }
-                    } else {
-                        ecmCharPalettes[charNum] = ecmGlobalPalette;
                     }
                 }
             }

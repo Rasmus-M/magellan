@@ -19,7 +19,7 @@ public class ImportSpriteImageAction extends FileAction {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent evt) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
             MagellanImportDialog importDialog = new MagellanImportDialog(MagellanImportDialog.TYPE_SPRITE_IMAGE, parent, parent, preferences, dataSet);
@@ -27,15 +27,14 @@ public class ImportSpriteImageAction extends FileAction {
                 try {
                     SpriteImageImporter importer = new SpriteImageImporter(mapEditor, dataSet, preferences);
                     importer.readSpriteFile(file, importDialog.getStartSprite(), importDialog.getStartPalette(), importDialog.getEndPalette(), importDialog.getGap(), importDialog.useExistingPalettes());
-                } catch (Exception ee) {
-                    ee.printStackTrace(System.err);
-                    showError("Error importing file", ee.getMessage());
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                    showError("Error importing file", e.getMessage());
                 }
-                importDialog.dispose();
+                parent.setModified(true);
+                parent.updateAll();
             }
-            parent.setModified(true);
         }
-        parent.updateAll();
         parent.editDefault();
     }
 }

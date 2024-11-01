@@ -21,7 +21,7 @@ public class ImportVRAMDumpAction extends FileAction {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent evt) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, VDPEXTS, "VRAM Dump Files", false);
         if (file != null) {
             int charOffset = 0;
@@ -70,11 +70,11 @@ public class ImportVRAMDumpAction extends FileAction {
                 }
                 VRAMDumpImporter importer = new VRAMDumpImporter(mapEditor, dataSet, preferences);
                 importer.readVRAMDumpFile(file, charOffset, mapOffset, colorOffset, spriteOffset, spriteAttrOffset, bitmapMode, textMode, textColor, screenColor);
-                parent.updateAll();
-                parent.setModified(true);
-            } catch (IOException ioException) {
-                showError("Error importing file", ioException.getMessage());
+            } catch (Exception e) {
+                showError("Error importing file", e.getMessage());
             }
+            parent.updateAll();
+            parent.setModified(true);
         }
     }
 }

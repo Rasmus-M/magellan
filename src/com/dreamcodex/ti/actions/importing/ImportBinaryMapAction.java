@@ -19,17 +19,18 @@ public class ImportBinaryMapAction extends FileAction {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent evt) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, BINEXTS, "Binary Files", false);
         if (file != null) {
             try {
                 BinaryMapImporter importer = new BinaryMapImporter(mapEditor, dataSet, preferences);
                 importer.readBinaryMap(file);
-                parent.updateComponents();
-                parent.setModified(true);
-            } catch (IOException ioException) {
-                showError("Error importing file", ioException.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                showError("Error importing file", e.getMessage());
             }
+            parent.updateAll();
+            parent.setModified(true);
         }
     }
 }
