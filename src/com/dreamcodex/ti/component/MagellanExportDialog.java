@@ -210,6 +210,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
                 objForm.add(jchkIncludeComments);
                 break;
             case TYPE_BINARY:
+                objForm.add(jchkIncludeMapData);
                 objForm.add(jchkCurrentMapOnly);
                 objForm.add(jchkIncludeCharData);
                 objForm.add(new JLabel("From Char #"));

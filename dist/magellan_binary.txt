@@ -10,7 +10,7 @@ STRUCTURE
 	<COLORSET CHUNK (optional)>
 	<CHARDATA CHUNK (optional)>
 	<SPRITEDATA CHUNK (optional)>
-	<MAP 0 - MAP HEADER>
+	<MAP 0 - MAP HEADER (optional)>
 		<MAP 0 - MAP DATA>
 		<MAP SPRITE HEADER (optional)>
 		<MAP SPRITE DATA (optional)>
@@ -70,6 +70,7 @@ byte 0-xxxx     Tile character values (0-255) [later may be RLE encoded data]
 *	The "chunk header" byte uses bit flags to specify if optional data chunks are included.
 	The following bit flags are currently supported:
 
+	0 = Map Chunk Is Present
 	1 = Colorset Chunk Is Present
 	2 = Character Data Chunk Is Present
 	4 = Sprite Chunk Is Present

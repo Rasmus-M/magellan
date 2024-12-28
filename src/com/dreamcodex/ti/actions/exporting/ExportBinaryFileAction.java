@@ -52,15 +52,20 @@ public class ExportBinaryFileAction extends FileAction {
                 int eChar = exporter.getEndChar();
                 int sSprite = exporter.getStartSprite();
                 int eSprite = exporter.getEndSprite();
+                boolean bIncludeMapData = exporter.includeMapData();
                 boolean bIncludeColorSets = exporter.includeColorData();
                 boolean bIncludeCharData = exporter.includeCharData();
                 boolean includeSpriteData = exporter.includeSpriteData();
-                byte chunkByte = (byte) ((bIncludeColorSets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeCharData ? Exporter.BIN_CHUNK_CHARS : 0) | (includeSpriteData ? Exporter.BIN_CHUNK_SPRITES : 0));
+                byte chunkByte = (byte) ((bIncludeMapData ? Exporter.BIN_CHUNK_MAPS : 0) | (bIncludeColorSets ? Exporter.BIN_CHUNK_COLORS : 0) | (bIncludeCharData ? Exporter.BIN_CHUNK_CHARS : 0) | (includeSpriteData ? Exporter.BIN_CHUNK_SPRITES : 0));
+                preferences.setIncludeMapData(bIncludeMapData);
                 preferences.setCurrentMapOnly(exporter.currentMapOnly());
+                preferences.setIncludeCharData(bIncludeCharData);
                 preferences.setDefStartChar(Math.min(sChar, eChar));
                 preferences.setDefEndChar(Math.max(sChar, eChar));
+                preferences.setIncludeSpriteData(includeSpriteData);
                 preferences.setDefStartSprite(Math.min(sSprite, eSprite));
                 preferences.setDefEndSprite(Math.max(sSprite, eSprite));
+                preferences.setIncludeColorData(bIncludeColorSets);
                 BinaryFileExporter magIO = new BinaryFileExporter(mapEditor, dataSet, preferences);
                 try {
                     magIO.writeBinaryFile(file, chunkByte, preferences.getDefStartChar(), preferences.getDefEndChar(), preferences.getDefStartSprite(), preferences.getDefEndSprite(), preferences.isCurrentMapOnly());

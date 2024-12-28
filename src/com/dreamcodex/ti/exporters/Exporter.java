@@ -10,8 +10,9 @@ import java.util.HashMap;
 public abstract class Exporter {
 
     public static final byte[] BIN_HEADER_MAG = {(byte) 'M', (byte) 'G'};
-    public static final byte[] BIN_HEADER_VER = {(byte) '0', (byte) '2'};
+    public static final byte[] BIN_HEADER_VER = {(byte) '0', (byte) '3'};
 
+    public static final byte BIN_CHUNK_MAPS = 1;
     public static final byte BIN_CHUNK_COLORS = 1 << 1;
     public static final byte BIN_CHUNK_CHARS = 1 << 2;
     public static final byte BIN_CHUNK_SPRITES = 1 << 3;

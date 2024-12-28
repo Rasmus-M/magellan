@@ -27,7 +27,7 @@ public class BinaryFileExporter extends Exporter {
         fos.write(BIN_HEADER_MAG);
         fos.write(BIN_HEADER_VER);
         fos.write(chunkFlags);
-        byte mapCount = (byte) (currMapOnly ? 1 : mapEditor.getMapCount());
+        byte mapCount = (byte) (((chunkFlags & BIN_CHUNK_MAPS) == BIN_CHUNK_MAPS) ? (currMapOnly ? 1 : mapEditor.getMapCount()) : 0);
         fos.write(mapCount);
 
         // write Colorset Chunk (if present)
@@ -65,60 +65,58 @@ public class BinaryFileExporter extends Exporter {
         }
 
         // write Maps
-        for (int m = 0; m < mapEditor.getMapCount(); m++) {
-            if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
-                int[][] mapToSave = mapEditor.getMapData(m);
-                int mapCols = mapToSave[0].length;
-                int mapRows = mapToSave.length;
-                int mapSize = mapCols * mapRows;
-                int mapScreenColor = mapEditor.getScreenColor(m);
+        if ((chunkFlags & BIN_CHUNK_MAPS) == BIN_CHUNK_MAPS) {
+            for (int m = 0; m < mapEditor.getMapCount(); m++) {
+                if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                    int[][] mapToSave = mapEditor.getMapData(m);
+                    int mapCols = mapToSave[0].length;
+                    int mapRows = mapToSave.length;
+                    int mapSize = mapCols * mapRows;
+                    int mapScreenColor = mapEditor.getScreenColor(m);
 
-                // write Map Header
-                //   reserved bytes for Magellan use
-                fos.write(BIN_MAP_HEADER_RESERVED1);
-                fos.write(BIN_MAP_HEADER_RESERVED2);
-                fos.write(BIN_MAP_HEADER_RESERVED3);
-                fos.write(BIN_MAP_HEADER_RESERVED4);
-                //   map size as a series of bytes
-                int mapSizeChunk = mapSize;
-                for (int i = 0; i < 8; i++) {
-                    if (mapSizeChunk > 255) {
+                    // write Map Header
+                    //   reserved bytes for Magellan use
+                    fos.write(BIN_MAP_HEADER_RESERVED1);
+                    fos.write(BIN_MAP_HEADER_RESERVED2);
+                    fos.write(BIN_MAP_HEADER_RESERVED3);
+                    fos.write(BIN_MAP_HEADER_RESERVED4);
+                    //   map size as a series of bytes
+                    int mapSizeChunk = mapSize;
+                    for (int i = 0; i < 8; i++) {
+                        if (mapSizeChunk > 255) {
+                            fos.write(255);
+                            mapSizeChunk -= 255;
+                        } else if (mapSizeChunk > 0) {
+                            fos.write((byte) mapSizeChunk);
+                            mapSizeChunk = 0;
+                        } else {
+                            fos.write(0);
+                        }
+                    }
+                    //   map columns as a byte pair
+                    if (mapCols > 255) {
                         fos.write(255);
-                        mapSizeChunk -= 255;
-                    }
-                    else if (mapSizeChunk > 0) {
-                        fos.write((byte) mapSizeChunk);
-                        mapSizeChunk = 0;
-                    }
-                    else {
+                        fos.write(mapCols - 255);
+                    } else {
+                        fos.write(mapCols);
                         fos.write(0);
                     }
-                }
-                //   map columns as a byte pair
-                if (mapCols > 255) {
-                    fos.write(255);
-                    fos.write(mapCols - 255);
-                }
-                else {
-                    fos.write(mapCols);
-                    fos.write(0);
-                }
-                //   map rows as a byte pair
-                if (mapRows > 255) {
-                    fos.write(255);
-                    fos.write(mapRows - 255);
-                }
-                else {
-                    fos.write(mapRows);
-                    fos.write(0);
-                }
-                //   map screen color
-                fos.write(mapScreenColor);
+                    //   map rows as a byte pair
+                    if (mapRows > 255) {
+                        fos.write(255);
+                        fos.write(mapRows - 255);
+                    } else {
+                        fos.write(mapRows);
+                        fos.write(0);
+                    }
+                    //   map screen color
+                    fos.write(mapScreenColor);
 
-                // write Map Data
-                for (int y = 0; y < mapRows; y++) {
-                    for (int x = 0; x < mapCols; x++) {
-                        fos.write(mapToSave[y][x]);
+                    // write Map Data
+                    for (int y = 0; y < mapRows; y++) {
+                        for (int x = 0; x < mapCols; x++) {
+                            fos.write(mapToSave[y][x]);
+                        }
                     }
                 }
             }
