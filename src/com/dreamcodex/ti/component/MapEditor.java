@@ -1,5 +1,6 @@
 package com.dreamcodex.ti.component;
 
+import com.dreamcodex.ti.actions.map.*;
 import com.dreamcodex.ti.iface.MapChangeListener;
 import com.dreamcodex.ti.iface.MapSelectListener;
 import com.dreamcodex.ti.iface.ScreenColorListener;
@@ -97,6 +98,12 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         JButton jbtnRotateRight = getToolButton(Globals.CMD_ROTATER_MAP, "Rotate map right (will swap dimensions)");
         JButton jbtnFlipH = getToolButton(Globals.CMD_FLIPH_MAP, "Flip horizontal");
         JButton jbtnFlipV = getToolButton(Globals.CMD_FLIPV_MAP, "Flip vertical");
+
+        JButton jbtnShiftLeft = getToolButton(new ShiftMapLeftAction(getIcon("shiftl_mono"), this, undoManager));
+        JButton jbtnShiftRight = getToolButton(new ShiftMapRightAction(getIcon("shiftr_mono"), this, undoManager));
+        JButton jbtnShiftUp = getToolButton(new ShiftMapUpAction(getIcon("shiftu_mono"), this, undoManager));
+        JButton jbtnShiftDown = getToolButton(new ShiftMapDownAction(getIcon("shiftd_mono"), this, undoManager));
+
         jbtnToggleGrid = getToolButton(Globals.CMD_GRID_CHR, "Toggle grid on and off");
         JButton jbtnAddMap = getToolButton(Globals.CMD_ADDMAP, "Add new map");
         jbtnAddMap.setBackground(new Color(192, 255, 192));
@@ -138,6 +145,11 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         jpnlTools.add(jbtnRotateRight);
         jpnlTools.add(jbtnFlipH);
         jpnlTools.add(jbtnFlipV);
+        jpnlTools.add(new JLabel("  "));
+        jpnlTools.add(jbtnShiftLeft);
+        jpnlTools.add(jbtnShiftRight);
+        jpnlTools.add(jbtnShiftUp);
+        jpnlTools.add(jbtnShiftDown);
         jpnlTools.add(new JLabel("  "));
         jpnlTools.add(jbtnTextCursor);
         jpnlTools.add(jbtnClone);
@@ -445,6 +457,11 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         this.mapCanvas.setShowSpritesPerLine(showSpritesPerLine);
     }
 
+    public void redrawModifiedCanvas() {
+        this.redrawCanvas();
+        this.notifyMapChangedListeners();
+    }
+
     public void redrawCanvas() {
         mapCanvas.redrawCanvas();
     }
@@ -602,12 +619,24 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     }
 
     protected ImageIcon getIcon(String name) {
+        // Note: components like this have an images directory separate from the root images
         if (name.endsWith("spr") || name.endsWith("chr")) {
             name = name.substring(0, name.length() - 3);
         }
         String imagePath = "images/icon_" + name + ".png";
         URL imageURL = getClass().getResource(imagePath);
         return new ImageIcon(Toolkit.getDefaultToolkit().getImage(imageURL));
+    }
+
+    protected JButton getToolButton(MapAction action) {
+        JButton jbtnTool = new JButton(action);
+        // jbtnTool.addActionListener(this);
+        jbtnTool.setToolTipText(action.getName());
+        jbtnTool.setMargin(new Insets(1, 1, 1, 1));
+        jbtnTool.setOpaque(true);
+        jbtnTool.setBackground(Globals.CLR_BUTTON_NORMAL);
+        jbtnTool.setPreferredSize(Globals.DM_TOOL);
+        return jbtnTool;
     }
 
     protected JButton getToolButton(String actcmd, String tooltip) {

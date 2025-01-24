@@ -1,5 +1,6 @@
 package com.dreamcodex.ti.component;
 
+import com.dreamcodex.ti.actions.map.MapAction;
 import com.dreamcodex.ti.iface.MapChangeListener;
 import com.dreamcodex.ti.util.Globals;
 import com.dreamcodex.ti.util.HashPoint;
@@ -1173,6 +1174,27 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             } else {
                 rotateRight(false);
             }
+        }
+    }
+
+    public static class ActionEdit extends AbstractUndoableEdit {
+
+        private final MapAction action;
+        private final MapAction undoAction;
+
+        public ActionEdit(MapAction action, MapAction undoAction) {
+            this.action = action;
+            this.undoAction = undoAction;
+        }
+
+        public void undo() throws CannotUndoException {
+            super.undo();
+            undoAction.performAction();
+        }
+
+        public void redo() throws CannotUndoException {
+            super.redo();
+            action.performAction();
         }
     }
 }
