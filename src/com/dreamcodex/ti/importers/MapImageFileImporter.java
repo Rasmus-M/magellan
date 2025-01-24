@@ -107,7 +107,7 @@ public class MapImageFileImporter extends Importer {
     }
 
     public void readMapImageFile(File mapImageFile, int startIndex, int endIndex, int startPalette, int tolerance) throws Exception {
-        this.startIndex = startIndex & 0xf8;
+        this.startIndex = startIndex & 0xfff8;
         this.endIndex = endIndex;
         this.maxIndex = endIndex - startIndex;
         this.startPalette = startPalette;
