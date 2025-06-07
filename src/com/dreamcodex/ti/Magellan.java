@@ -213,7 +213,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             boolean spriteMode = tabbedPane.getSelectedIndex() == 1;
             mapEditor.setSpriteMode(spriteMode);
             if (spriteMode) {
-                ui.getLookButton().setBackground(Globals.CLR_BUTTON_NORMAL);
+                mapEditor.getLookButton().setBackground(Globals.CLR_BUTTON_NORMAL);
             }
         });
 
@@ -427,9 +427,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 dataSet.getSpriteGrids().put(activeSprite, spriteCanvas.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
-            } else if (command.equals(Globals.CMD_LOOK)) {
-                mapEditor.setLookModeOn(!mapEditor.isLookModeOn());
-                ui.getLookButton().setBackground((mapEditor.isLookModeOn() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL));
             } else if (command.equals(Globals.CMD_NEW)) {
                 int userResponse = showConfirmation("Confirm New Project", "This will delete all current data.\n\rAre you sure?", false);
                 if (userResponse == JOptionPane.YES_OPTION) {
@@ -846,8 +843,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 ActionEvent aeChar = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, Globals.CMD_EDIT_CHR + mapEditor.getLookChar());
                 this.actionPerformed(aeChar);
                 // Turn look mode off
-                ActionEvent aeLook = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, Globals.CMD_LOOK);
-                this.actionPerformed(aeLook);
+                mapEditor.setLookModeOn(false);
             }
         }
         if (!mapEditor.getHotCell().equals(MapCanvas.PT_OFFGRID)) {
@@ -886,8 +882,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             if (mapEditor.getLookChar() != MapCanvas.NOCHAR) {
                 ActionEvent aeChar = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, Globals.CMD_EDIT_CHR + mapEditor.getLookChar());
                 this.actionPerformed(aeChar);
-                ActionEvent aeLook = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, Globals.CMD_LOOK);
-                this.actionPerformed(aeLook);
+                mapEditor.setLookModeOn(false);
             }
         }
         if (!mapEditor.getHotCell().equals(MapCanvas.PT_OFFGRID)) {
@@ -1541,7 +1536,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         ColorMode colorMode = dataSet.getColorMode();
         // Character editor
         updateCharButton(activeChar, false);
-        ui.getLookButton().setBackground((mapEditor.isLookModeOn() ? Globals.CLR_BUTTON_ACTIVE : Globals.CLR_BUTTON_NORMAL));
         ui.getTransparencyCheckBox().setVisible(colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3);
         ui.getTransparencyCheckBox().setSelected(dataSet.getEcmCharTransparency()[activeChar]);
         int[][] charGridData = ui.getCharGridCanvas().getGridData();

@@ -53,7 +53,6 @@ public class MagellanUI {
     // Character editor
     private GridCanvas charGridCanvas;
     private JTextField charTextField;
-    private JButton lookButton;
     private JButton charUndoButton;
     private JButton charRedoButton;
     private JLabel charIntLabel;
@@ -95,10 +94,6 @@ public class MagellanUI {
 
     public JTextField getCharTextField() {
         return charTextField;
-    }
-
-    public JButton getLookButton() {
-        return lookButton;
     }
 
     public JButton getCharUndoButton() {
@@ -428,8 +423,6 @@ public class MagellanUI {
         jpnlToolButtons.add(getToolButton(Globals.CMD_CLEAR_CHR, "Clear"));
         jpnlToolButtons.add(getToolButton(Globals.CMD_INVERT_CHR, "Invert Image"));
         jpnlToolButtons.add(getToolButton(Globals.CMD_GRID_CHR, "Toggle Grid"));
-        lookButton = getToolButton(Globals.CMD_LOOK, "Look At Character");
-        jpnlToolButtons.add(lookButton);
         charUndoButton = getToolButton(Globals.CMD_UNDO_CHR, "Undo Edit");
         charUndoButton.setEnabled(false);
         jpnlToolButtons.add(charUndoButton);
