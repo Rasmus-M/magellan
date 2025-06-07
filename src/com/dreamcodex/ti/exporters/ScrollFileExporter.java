@@ -520,30 +520,22 @@ public class ScrollFileExporter extends Exporter {
             printPaddedLine(bw, sbLine.toString(), "Width, Height, Size");
             sbLine.delete(0, sbLine.length());
             if (compression == MagellanExportDialog.COMPRESSION_NONE) {
-                boolean isFirstByte = true;
                 for (int y = 0; y < mapToSave.length; y++) {
                     if (includeComments) {
                         printPaddedLine(bw, "* -- Map Row " + y + " -- ", false);
                     }
-                    for (int cl = 0; cl < Math.ceil((double) mapToSave[y].length / 8); cl++) {
+                    for (int cl = 0; cl < Math.ceil((double) mapToSave[y].length / 32); cl++) {
                         if (y == 0 && cl == 0) {
-                            sbLine.append("MD").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" DATA ");
+                            sbLine.append("MD").append(m).append(m < 10 ? "   " : (m < 100 ? "  " : (m < 1000 ? " " : ""))).append(" BYTE ");
                         } else {
-                            sbLine.append("       DATA ");
+                            sbLine.append("       BYTE ");
                         }
-                        for (int colpos = (cl * 8); colpos < Math.min((cl + 1) * 8, mapToSave[y].length); colpos++) {
-                            if (isFirstByte) {
-                                if (colpos > (cl * 8)) {
-                                    sbLine.append(",");
-                                }
-                                sbLine.append(">");
+                        for (int colpos = (cl * 32); colpos < Math.min((cl + 1) * 32, mapToSave[y].length); colpos++) {
+                            if (colpos > (cl * 32)) {
+                                sbLine.append(",");
                             }
+                            sbLine.append(">");
                             sbLine.append(mapToSave[y][colpos] == MapCanvas.NOCHAR ? "00" : Globals.toHexString(mapToSave[y][colpos], 2));
-                            isFirstByte = !isFirstByte;
-                        }
-                        if (!isFirstByte) {
-                            sbLine.append("XX"); // If odd, pad with an illegal value
-                            isFirstByte = true;
                         }
                         printPaddedLine(bw, sbLine.toString(), includeComments);
                         sbLine.delete(0, sbLine.length());
