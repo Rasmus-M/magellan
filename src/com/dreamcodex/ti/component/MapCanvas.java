@@ -461,19 +461,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         this.redrawCanvas();
     }
 
-    public void toggleTextCursor() {
-        this.setTypeCellOn(!this.showTypeCell());
-        this.redrawCanvas();
-    }
-
-    public void toggleCloneMode() {
-        this.setCloneModeOn(!isCloneModeOn());
-    }
-
-    public void toggleFloodFillMode() {
-        this.setFloodFillMode(!isFloodFillModeOn());
-    }
-
     public void advanceTypeCell() {
         if (!typeCell.equals(PT_OFFGRID)) {
             int typeX = (int) (typeCell.getX());
