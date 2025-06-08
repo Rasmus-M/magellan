@@ -705,7 +705,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     int floodFill(Point p, int oldChar, int newChar) {
         int charsFilled = 0;
-        if (getGridAt(p) == oldChar) {
+        if (oldChar != newChar && getGridAt(p) == oldChar) {
             setGridAt(p, newChar);
             charsFilled++;
             charsFilled += floodFill(new Point(p.x + 1, p.y), oldChar, newChar);
