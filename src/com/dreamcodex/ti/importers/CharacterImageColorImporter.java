@@ -18,44 +18,60 @@ public class CharacterImageColorImporter extends Importer {
         this.preferences = preferences;
     }
 
-    public void readCharImageColor(BufferedImage buffImg, boolean skipBlank) {
+    public void readCharImageColor(BufferedImage buffImg, int startIndex, int endIndex, int gap, boolean skipBlank) {
+        int width = buffImg.getWidth();
+        int height = buffImg.getHeight();
+        int size = 8 + gap;
+        int cols = (width + gap) / size;
+        int rows = (height + gap) / size;
         // get colorsets
-        for (int cs = 0; cs < 32; cs++) {
-            int colorFore = -1;
-            int colorBack = -1;
-            int testY = 0;
-            int testX = 0;
-            while (testY < 8 && (colorFore == -1 || colorBack == -1)) {
-                int pixelColor = buffImg.getRGB(testX, (cs * 8) + testY);
-                int tiColor = getTIColorForPixel(pixelColor);
-                if ((tiColor > 0) && (colorFore == -1)) {
-                    colorFore = tiColor;
+        if (colorMode == COLOR_MODE_GRAPHICS_1) {
+            cols = Math.min(cols, 8);
+            rows = Math.min(rows, 32);
+            width = cols * size - gap;
+            height = rows * size - gap;
+            for (int cs = 0; cs < rows; cs++) {
+                int colorFore = -1;
+                int colorBack = -1;
+                int testY = 0;
+                int testX = 0;
+                while (testY < 8 && (colorFore == -1 || colorBack == -1)) {
+                    int pixelColor = buffImg.getRGB(testX, (cs * 8) + testY);
+                    int tiColor = getTIColorForPixel(pixelColor);
+                    if ((tiColor > 0) && (colorFore == -1)) {
+                        colorFore = tiColor;
+                    } else if ((tiColor > 0) && (tiColor != colorFore)) {
+                        colorBack = tiColor;
+                    }
+                    testX++;
+                    if (testX % size == size - 1) {
+                        testX += gap;
+                    }
+                    if (testX >= width) {
+                        testX = 0;
+                        testY++;
+                        if (testY % size == size - 1) {
+                            testY += gap;
+                        }
+                    }
                 }
-                else if ((tiColor > 0) && (tiColor != colorFore)) {
-                    colorBack = tiColor;
+                if (colorFore == -1) {
+                    colorFore = 1;
                 }
-                testX++;
-                if (testX >= 64) {
-                    testX = 0;
-                    testY++;
+                if (colorBack == -1) {
+                    colorBack = 0;
                 }
+                clrSets[cs][Globals.INDEX_CLR_FORE] = colorFore;
+                clrSets[cs][Globals.INDEX_CLR_BACK] = colorBack;
             }
-            if (colorFore == -1) {
-                colorFore = 1;
-            }
-            if (colorBack == -1) {
-                colorBack = 0;
-            }
-            clrSets[cs][Globals.INDEX_CLR_FORE] = colorFore;
-            clrSets[cs][Globals.INDEX_CLR_BACK] = colorBack;
         }
         // Global ECM palette
         ECMPalette ecmGlobalPalette = null;
         if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
             ECMPalette basePalette = ecmPalettes[0];
             int ecmColorIndex = 0;
-            for (int y = 0; y < buffImg.getHeight(); y++) {
-                for (int x = 0; x < buffImg.getWidth(); x++) {
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
                     int color = buffImg.getRGB(x, y);
                     boolean found = false;
                     for (int i = 0; i < ecmColorIndex && !found; i++) {
@@ -77,45 +93,46 @@ public class CharacterImageColorImporter extends Importer {
             }
         }
         // get character glyphs
-        int rowOffset = 0;
-        int colOffset = 0;
+        int row = 0;
+        int col = 0;
         int cSet = 0;
         int ecmPaletteIndex = 1;
-        for (int charNum = TIGlobals.MIN_CHAR; charNum <= preferences.getCharacterSetEnd(); charNum++) {
-            int[][] newCharArray = new int[8][8];
-            int[][] newColorArray = new int[8][2];
-            // ECM palette for character
-            int[] ecmColors = colorMode == COLOR_MODE_ECM_2 ? new int[4] : (colorMode == COLOR_MODE_ECM_3 ? new int[8] : null);
-            int ecmColorIndex = 0;
-            if (ecmGlobalPalette == null && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
-                for (int y = 0; y < 8; y++) {
-                    for (int x = 0; x < 8; x++) {
-                        int color = buffImg.getRGB((colOffset * 8) + x, (rowOffset * 8) + y);
-                        boolean found = false;
-                        for (int i = 0; i < Math.min(ecmColorIndex, ecmColors.length) && !found; i++) {
-                            if (ecmColors[i] == color) {
-                                found = true;
+        for (int charNum = startIndex; charNum <= endIndex; charNum++) {
+            if (col < cols && row < rows) {
+                int[][] newCharArray = new int[8][8];
+                int[][] newColorArray = new int[8][2];
+                // ECM palette for character
+                int[] ecmColors = colorMode == COLOR_MODE_ECM_2 ? new int[4] : (colorMode == COLOR_MODE_ECM_3 ? new int[8] : null);
+                int ecmColorIndex = 0;
+                if (ecmGlobalPalette == null && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
+                    for (int y = 0; y < 8; y++) {
+                        for (int x = 0; x < 8; x++) {
+                            int color = buffImg.getRGB((col * size) + x, (row * size) + y);
+                            boolean found = false;
+                            for (int i = 0; i < Math.min(ecmColorIndex, ecmColors.length) && !found; i++) {
+                                if (ecmColors[i] == color) {
+                                    found = true;
+                                }
                             }
-                        }
-                        if (!found) {
-                            if (ecmColorIndex < ecmColors.length) {
-                                ecmColors[ecmColorIndex++] = color;
+                            if (!found) {
+                                if (ecmColorIndex < ecmColors.length) {
+                                    ecmColors[ecmColorIndex++] = color;
+                                }
                             }
                         }
                     }
+                    for (int i = ecmColorIndex; i < ecmColors.length; i++) {
+                        ecmColors[i] = Color.WHITE.getRGB();
+                    }
+                    Arrays.sort(ecmColors);
                 }
-                for (int i = ecmColorIndex; i < ecmColors.length; i++) {
-                    ecmColors[i] = Color.WHITE.getRGB();
-                }
-                Arrays.sort(ecmColors);
-            }
-            if (colOffset * 8 + 7 < buffImg.getWidth() && rowOffset * 8 + 7 < buffImg.getHeight()) {
+                // Colors
                 for (int y = 0; y < 8; y++) {
                     int[] newColors = newColorArray[y];
                     newColors[0] = -1;
                     newColors[1] = -1;
                     for (int x = 0; x < 8; x++) {
-                        int color = buffImg.getRGB((colOffset * 8) + x, (rowOffset * 8) + y) | 0xff000000;
+                        int color = buffImg.getRGB((col * size) + x, (row * size) + y) | 0xff000000;
                         if (colorMode == COLOR_MODE_GRAPHICS_1) {
                             newCharArray[y][x] = (color == TIGlobals.TI_PALETTE_OPAQUE[clrSets[cSet][Globals.INDEX_CLR_FORE]].getRGB() ? 1 : 0);
                         } else if (colorMode == COLOR_MODE_BITMAP) {
@@ -176,21 +193,16 @@ public class CharacterImageColorImporter extends Importer {
                     }
                 }
             }
-            colOffset++;
-            if (colOffset >= 8) {
-                colOffset = 0;
-                rowOffset++;
+            col++;
+            if (col >= cols) {
+                col = 0;
+                row++;
                 cSet++;
             }
         }
     }
 
     protected int getTIColorForPixel(int pixelRBG) {
-        for (int c = 0; c < TIGlobals.TI_PALETTE_OPAQUE.length; c++) {
-            if (pixelRBG == TIGlobals.TI_PALETTE_OPAQUE[c].getRGB()) {
-                return c;
-            }
-        }
-        return 0;
+        return Globals.getClosestColorIndex(new Color(pixelRBG), TIGlobals.TI_PALETTE_OPAQUE);
     }
 }

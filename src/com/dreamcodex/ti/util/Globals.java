@@ -47,6 +47,7 @@ public class Globals {
     public static final String CMD_SHIFTL_CHR = "shiftlchr";
     public static final String CMD_SHIFTR_CHR = "shiftrchr";
     public static final String CMD_INVERT_CHR = "invertchr";
+    public static final String CMD_PROPERTIES_CHR = "propertieschr";
     public static final String CMD_EDIT_CHR = "editchr";
     public static final String CMD_UPDATE_CHR = "updatechr";
     public static final String CMD_COPY_CHR = "copychr";

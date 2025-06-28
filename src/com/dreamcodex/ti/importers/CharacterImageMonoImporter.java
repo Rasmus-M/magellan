@@ -10,33 +10,37 @@ import java.awt.image.BufferedImage;
 
 public class CharacterImageMonoImporter extends Importer {
 
-    private Preferences preferences;
+    private final Preferences preferences;
 
     public CharacterImageMonoImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
         this.preferences = preferences;
     }
 
-    public void readCharImageMono(BufferedImage buffImg, boolean skipBlank) {
-        // get character glyphs
-        int rowOffset = 0;
-        int colOffset = 0;
-        for (int charNum = TIGlobals.MIN_CHAR; charNum <= preferences.getCharacterSetEnd(); charNum++) {
+    public void readCharImageMono(BufferedImage buffImg, int startIndex, int endIndex, int gap, boolean skipBlank) {
+        int width = buffImg.getWidth();
+        int height = buffImg.getHeight();
+        int size = 8 + gap;
+        int cols = (width + gap) / size;
+        int rows = (height + gap) / size;
+        int col = 0;
+        int row = 0;
+        for (int charNum = startIndex; charNum <= endIndex; charNum++) {
             int[][] newCharArray = new int[8][8];
-            if (colOffset * 8 + 7 < buffImg.getWidth() && rowOffset * 8 + 7 < buffImg.getHeight()) {
+            if (col < cols && row < rows) {
                 for (int y = 0; y < 8; y++) {
                     for (int x = 0; x < 8; x++) {
-                        newCharArray[y][x] = (buffImg.getRGB((colOffset * 8) + x, (rowOffset * 8) + y) != -1 ? 1 : 0);
+                        newCharArray[y][x] = (buffImg.getRGB((col * size) + x, (row * size) + y) != -1 ? 1 : 0);
                     }
                 }
                 if (!(skipBlank && Globals.isGridEmpty(newCharArray))) {
                     charGrids.put(charNum, newCharArray);
                 }
             }
-            colOffset++;
-            if (colOffset >= 8) {
-                colOffset = 0;
-                rowOffset++;
+            col++;
+            if (col >= cols) {
+                col = 0;
+                row++;
             }
         }
     }

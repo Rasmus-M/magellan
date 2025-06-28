@@ -421,6 +421,7 @@ public class MagellanUI {
         JPanel jpnlToolButtons = getPanel(new GridLayout(7, 1, 0, 2));
         jpnlToolButtons.add(getToolButton(Globals.CMD_FILL_CHR, "Fill"));
         jpnlToolButtons.add(getToolButton(Globals.CMD_CLEAR_CHR, "Clear"));
+        jpnlToolButtons.add(getToolButton(CMD_PROPERTIES_CHR, "Character Properties"));
         jpnlToolButtons.add(getToolButton(Globals.CMD_INVERT_CHR, "Invert Image"));
         jpnlToolButtons.add(getToolButton(Globals.CMD_GRID_CHR, "Toggle Grid"));
         charUndoButton = getToolButton(Globals.CMD_UNDO_CHR, "Undo Edit");

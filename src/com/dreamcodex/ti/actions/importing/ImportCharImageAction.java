@@ -31,34 +31,37 @@ public class ImportCharImageAction extends FileAction {
     public void actionPerformed(ActionEvent evt) {
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.OPEN_DIALOG, IMGEXTS, "Image Files", true);
         if (file != null) {
-            BufferedImage buffImg;
-            try {
-                Image charImg = ImageIO.read(file);
-                buffImg = new BufferedImage(8 * 8, 8 * 32, BufferedImage.TYPE_3BYTE_BGR);
-                if (color) {
-                    Graphics2D g2d = ((Graphics2D) (buffImg.getGraphics()));
-                    g2d.setColor(TIGlobals.TI_COLOR_TRANSOPAQUE);
-                    g2d.fillRect(0, 0, 8 * 8, 8 * 32);
-                    g2d.setComposite(AlphaComposite.SrcOver);
-                    g2d.drawImage(charImg, 0, 0, parent);
-                    g2d.setComposite(AlphaComposite.Src);
-                } else {
-                    buffImg.getGraphics().drawImage(charImg, 0, 0, parent);
-                }
-            } catch (IOException e) {
-                e.printStackTrace(System.err);
-                showError("Error importing file", e.getMessage());
-                return;
-            }
             MagellanImportDialog importDialog = new MagellanImportDialog(MagellanImportDialog.TYPE_CHAR_IMAGE, parent, parent, preferences, dataSet);
             if (importDialog.isOkay()) {
+                int gap = importDialog.getGap();
+                BufferedImage buffImg;
+                try {
+                    BufferedImage charImg = ImageIO.read(file);
+                    int width = charImg.getWidth();
+                    int height = charImg.getHeight();
+                    buffImg = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+                    if (color) {
+                        Graphics2D g2d = ((Graphics2D) (buffImg.getGraphics()));
+                        g2d.setColor(TIGlobals.TI_COLOR_TRANSOPAQUE);
+                        g2d.fillRect(0, 0, width, height);
+                        g2d.setComposite(AlphaComposite.SrcOver);
+                        g2d.drawImage(charImg, 0, 0, parent);
+                        g2d.setComposite(AlphaComposite.Src);
+                    } else {
+                        buffImg.getGraphics().drawImage(charImg, 0, 0, parent);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace(System.err);
+                    showError("Error importing file", e.getMessage());
+                    return;
+                }
                 try {
                     if (color) {
                         CharacterImageColorImporter importer = new CharacterImageColorImporter(mapEditor, dataSet, preferences);
-                        importer.readCharImageColor(buffImg, importDialog.skipBlank());
+                        importer.readCharImageColor(buffImg, importDialog.getStartChar(), importDialog.getEndChar(), gap, importDialog.skipBlank());
                     } else {
                         CharacterImageMonoImporter importer = new CharacterImageMonoImporter(mapEditor, dataSet, preferences);
-                        importer.readCharImageMono(buffImg, importDialog.skipBlank());
+                        importer.readCharImageMono(buffImg, importDialog.getStartChar(), importDialog.getEndChar(), importDialog.getGap(), importDialog.skipBlank());
                     }
                 } catch (Exception e) {
                     e.printStackTrace(System.err);

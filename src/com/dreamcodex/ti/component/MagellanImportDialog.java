@@ -53,7 +53,7 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
         for (int i = minc; i <= maxc; i += 8) {
             Icon icon = ip.getIconForChar(i);
             int chardex = i - TIGlobals.CHARMAPSTART;
-            NamedIcon namedIcon = new NamedIcon(icon, (icon == null && chardex >= 0 && chardex < TIGlobals.CHARMAP.length ? TIGlobals.CHARMAP[chardex] + " " : "") + Integer.toString(i));
+            NamedIcon namedIcon = new NamedIcon(icon, (icon == null && chardex >= 0 && chardex < TIGlobals.CHARMAP.length ? TIGlobals.CHARMAP[chardex] + " " : "") + i);
             jcmbStartChar.addItem(namedIcon);
         }
         jcmbStartChar.setSelectedIndex(0);
@@ -61,13 +61,13 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
 
         jcmbEndChar = new JComboBox();
         jcmbEndChar.setRenderer(new CharListCellRenderer());
-        for (int i = minc; i <= maxc; i++) {
+        for (int i = minc; i <= maxc; i ++) {
             Icon icon = ip.getIconForChar(i);
             int chardex = i - TIGlobals.CHARMAPSTART;
-            NamedIcon namedIcon = new NamedIcon(icon, (icon == null && chardex >= 0 && chardex < TIGlobals.CHARMAP.length ? TIGlobals.CHARMAP[chardex] + " " : "") + Integer.toString(i));
+            NamedIcon namedIcon = new NamedIcon(icon, (icon == null && chardex >= 0 && chardex < TIGlobals.CHARMAP.length ? TIGlobals.CHARMAP[chardex] + " " : "") + i);
             jcmbEndChar.addItem(namedIcon);
         }
-        jcmbEndChar.setSelectedIndex(maxc - minc);
+        jcmbEndChar.setSelectedIndex(Math.min(maxc, 128) - minc);
 
         jcmbStartSprite = new JComboBox();
         jcmbStartSprite.setRenderer(new CharListCellRenderer());
@@ -121,6 +121,12 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
                 }
                 break;
             case TYPE_CHAR_IMAGE:
+                objForm[objCount++] = new JLabel("Start Import at Char #");
+                objForm[objCount++] = jcmbStartChar;
+                objForm[objCount++] = new JLabel("End Import at Char #");
+                objForm[objCount++] = jcmbEndChar;
+                objForm[objCount++] = new JLabel("Pixel gap between Chars");
+                objForm[objCount++] = jspnGap;
                 objForm[objCount] = skipBlank;
                 break;
         }

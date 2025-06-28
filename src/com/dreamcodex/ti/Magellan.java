@@ -427,6 +427,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 dataSet.getSpriteGrids().put(activeSprite, spriteCanvas.getGridData());
                 updateSpriteButton(activeSprite);
                 updateComponents();
+            } else if (command.equals(CMD_PROPERTIES_CHR)) {
+                showCharacterPropertiesDIalog();
             } else if (command.equals(Globals.CMD_NEW)) {
                 int userResponse = showConfirmation("Confirm New Project", "This will delete all current data.\n\rAre you sure?", false);
                 if (userResponse == JOptionPane.YES_OPTION) {
@@ -1256,6 +1258,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         else {
             charTransDialog = new AnalyzeCharTransDialog(this, mapEditor, dataSet.getCharImages(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getClrSets(), dataSet.getColorMode());
         }
+    }
+
+    protected void showCharacterPropertiesDIalog() {
+        new CharacterPropertiesDialog(this, activeChar);
     }
 
 // File Handling Methods -------------------------------------------------------------------/
