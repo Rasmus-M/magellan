@@ -162,6 +162,9 @@ public class CharacterImageColorImporter extends Importer {
                             }
                         }
                     }
+                    if (newColors[1] == -1) {
+                        newColors[1] = 0;
+                    }
                 }
                 if (!(skipBlank && Globals.isGridEmpty(newCharArray))) {
                     charGrids.put(charNum, newCharArray);
