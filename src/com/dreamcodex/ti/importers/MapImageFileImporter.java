@@ -372,6 +372,8 @@ public class MapImageFileImporter extends Importer {
     }
 
     private void importBitmapMode(ArrayList<Pattern> patterns) {
+        int lastBackColor = 0;
+        int lastForeColor = 0;
         for (int i = 0; i < patterns.size() && i <= maxIndex; i++) {
             int[][] rgbGrid = patterns.get(i).getRgbGrid();
             int[][] charGrid = this.charGrids.computeIfAbsent(i + startIndex, k -> new int[8][8]);
@@ -390,11 +392,15 @@ public class MapImageFileImporter extends Importer {
                 if (backColor == foreColor && foreColor != screenColor) {
                     backColor = screenColor;
                 }
-                else if (foreColor == screenColor) {
+                else if (backColor != screenColor && (foreColor == screenColor || lastBackColor == foreColor || lastForeColor == backColor)) {
                     int tmp = foreColor;
                     foreColor = backColor;
                     backColor = tmp;
                 }
+
+                lastBackColor = backColor;
+                lastForeColor = foreColor;
+
                 charColors[y][Globals.INDEX_CLR_BACK] = backColor;
                 charColors[y][Globals.INDEX_CLR_FORE] = foreColor;
                 // Pattern
