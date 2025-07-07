@@ -392,7 +392,7 @@ public class MapImageFileImporter extends Importer {
                 if (backColor == foreColor && foreColor != screenColor) {
                     backColor = screenColor;
                 }
-                else if (foreColor == screenColor || lastBackColor == foreColor || lastForeColor == backColor) {
+                else if (backColor != screenColor && (foreColor == screenColor || lastBackColor == foreColor || lastForeColor == backColor)) {
                     int tmp = foreColor;
                     foreColor = backColor;
                     backColor = tmp;
@@ -400,6 +400,7 @@ public class MapImageFileImporter extends Importer {
 
                 lastBackColor = backColor;
                 lastForeColor = foreColor;
+
                 charColors[y][Globals.INDEX_CLR_BACK] = backColor;
                 charColors[y][Globals.INDEX_CLR_FORE] = foreColor;
                 // Pattern
