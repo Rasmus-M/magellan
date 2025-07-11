@@ -145,6 +145,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
             dataSet.setCharColors(new HashMap<>());
         }
         dataSet.setCharImages(new HashMap<>());
+        dataSet.setCharNames(new HashMap<>());
+        dataSet.setCharProperties(new HashMap<>());
         int[][] clrSets = dataSet.getClrSets();
         HashMap<Integer, int[][]> charGrids = dataSet.getCharGrids();
         HashMap<Integer, int[][]> charColors = dataSet.getCharColors();
@@ -428,7 +430,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 updateSpriteButton(activeSprite);
                 updateComponents();
             } else if (command.equals(CMD_PROPERTIES_CHR)) {
-                showCharacterPropertiesDIalog();
+                showCharacterPropertiesDialog();
             } else if (command.equals(Globals.CMD_NEW)) {
                 int userResponse = showConfirmation("Confirm New Project", "This will delete all current data.\n\rAre you sure?", false);
                 if (userResponse == JOptionPane.YES_OPTION) {
@@ -1260,8 +1262,8 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
         }
     }
 
-    protected void showCharacterPropertiesDIalog() {
-        new CharacterPropertiesDialog(this, activeChar);
+    protected void showCharacterPropertiesDialog() {
+        new CharacterPropertiesDialog(this, activeChar, dataSet.getCharNames(), dataSet.getCharProperties(), dataSet.getCharPropertyLabels());
     }
 
 // File Handling Methods -------------------------------------------------------------------/
@@ -1364,6 +1366,9 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                 charNum++;
             }
         }
+        dataSet.setCharNames(new HashMap<>());
+        dataSet.setCharProperties(new HashMap<>());
+        dataSet.setCharPropertyLabels(new String[8]);
         ui.getCharGridCanvas().resetUndoRedo();
         ui.getCharGridCanvas().clearGrid();
         activeChar = TIGlobals.CUSTOMCHAR;

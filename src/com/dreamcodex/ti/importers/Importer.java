@@ -15,6 +15,9 @@ public abstract class Importer {
     protected ECMPalette[] ecmPalettes;
     protected HashMap<Integer, int[][]> charGrids;
     protected HashMap<Integer, int[][]> charColors;
+    protected HashMap<Integer, String> charNames;
+    protected HashMap<Integer, Integer> charProperties;
+    protected String[] charPropertyLabels;
     protected ECMPalette[] ecmCharPalettes;
     protected boolean[] ecmCharTransparency;
     protected HashMap<Integer, int[][]> spriteGrids;
@@ -32,6 +35,9 @@ public abstract class Importer {
             dataSet.getClrSets(),
             dataSet.getCharGrids(),
             dataSet.getCharColors(),
+            dataSet.getCharNames(),
+            dataSet.getCharProperties(),
+            dataSet.getCharPropertyLabels(),
             dataSet.getEcmCharPalettes(),
             dataSet.getEcmCharTransparency(),
             dataSet.getSpriteGrids(),
@@ -46,6 +52,9 @@ public abstract class Importer {
             ECMPalette[] ecmPalettes, int[][] clrSets,
             HashMap<Integer, int[][]> charGrids,
             HashMap<Integer, int[][]> charColors,
+            HashMap<Integer, String> charNames,
+            HashMap<Integer, Integer> charProperties,
+            String[] charPropertyLabels,
             ECMPalette[] ecmCharPalettes,
             boolean[] ecmCharTransparency,
             HashMap<Integer, int[][]> spriteGrids,
@@ -57,6 +66,9 @@ public abstract class Importer {
         this.clrSets = clrSets;
         this.charGrids = charGrids;
         this.charColors = charColors;
+        this.charNames = charNames;
+        this.charProperties = charProperties;
+        this.charPropertyLabels = charPropertyLabels;
         this.ecmPalettes = ecmPalettes;
         this.ecmCharPalettes = ecmCharPalettes;
         this.ecmCharTransparency = ecmCharTransparency;

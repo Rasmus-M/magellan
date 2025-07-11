@@ -142,6 +142,33 @@ public class DataFileExporter extends Exporter {
                 bw.newLine();
             }
         }
+        // Save char properties
+        bw.write("* CHAR NAMES");
+        bw.newLine();
+        for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
+            bw.write(Globals.KEY_CHARNAME);
+            String name = charNames.get(i);
+            bw.write(name != null ? name : "");
+            bw.newLine();
+        }
+        bw.write("* CHAR PROPERTIES");
+        bw.newLine();
+        for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
+            bw.write(Globals.KEY_CHARPROP);
+            Integer prop = charProperties.get(i);
+            if (prop == null) {
+                prop = 0;
+            }
+            bw.write(Globals.toHexString(prop, 2));
+            bw.newLine();
+        }
+        bw.write("* CHAR PROPERTY LABELS");
+        bw.newLine();
+        for (String label : charPropertyLabels) {
+            bw.write(Globals.KEY_CHARPROPLABEL);
+            bw.write(label != null ? label : "");
+            bw.newLine();
+        }
         // save map parameters
         bw.write("* MAPS");
         bw.newLine();

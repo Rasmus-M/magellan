@@ -44,8 +44,8 @@ public class ScrollFileExporter extends Exporter {
         // Write out result
         BufferedWriter bw = new BufferedWriter(new FileWriter(mapDataFile));
         writeOriginalCharacterPatterns(bw, remappedChars, includeCharNumbers, includeComments);
-        writeColors(bw, colorSets, usedChars, startChar, endChar, animate, includeCharNumbers, includeComments);
-        writeTransitionCharacters(bw, remappedTransCharSet, imax, includeComments, transitionType);
+        writeColors(bw, colorSets, remappedChars, usedChars, startChar, endChar, animate, includeCharNumbers, includeComments);
+        writeTransitionCharacters(bw, remappedChars, remappedTransCharSet, imax, includeComments, transitionType);
         writeInvertedCharacters(bw, remappedTransCharSet, imax, includeComments);
         writeMap(bw, transMaps, compression, includeComments);
         writeScrolledPatterns(bw, remappedChars, remappedTransCharSet, imax, transitionType, includeComments, frames, animate);
@@ -372,25 +372,30 @@ public class ScrollFileExporter extends Exporter {
             sbLine.append(">").append(hexstr, 4, 8).append(",");
             sbLine.append(">").append(hexstr, 8, 12).append(",");
             sbLine.append(">").append(hexstr, 12, 16);
-            printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(j, 2) + (i != j ? " (" + Globals.toHexString(i, 2) + ")" : "") : null);
+            String name = charNames.get(i);
+            printPaddedLine(bw, sbLine.toString(), includeComments ?
+                    "#" + Globals.toHexString(j, 2) + (i != j ? " (" + Globals.toHexString(i, 2) + ")" : "") + (name != null ? " " + name : "") :
+                    null
+            );
         }
     }
 
-    private void writeColors(BufferedWriter bw, Map<Integer, ArrayList<TransChar>> colorSets, boolean[] usedChars, int startChar, int endChar, boolean animate, boolean includeCharNumbers, boolean includeComments) throws Exception {
-        if (includeComments) {
-            printPaddedLine(bw, "****************************************", false);
-            printPaddedLine(bw, "* Colorset Definitions", false);
-            printPaddedLine(bw, "****************************************", false);
-        }
+    private void writeColors(BufferedWriter bw, Map<Integer, ArrayList<TransChar>> colorSets, ArrayList<Integer> remappedChars, boolean[] usedChars, int startChar, int endChar, boolean animate, boolean includeCharNumbers, boolean includeComments) throws Exception {
         if (colorMode == COLOR_MODE_BITMAP) {
-            for (int i = startChar; i <= (animate ? charColors.size() - 1 : endChar); i++) {
+            if (includeComments) {
+                printPaddedLine(bw, "****************************************", false);
+                printPaddedLine(bw, "* Original Character Colors", false);
+                printPaddedLine(bw, "****************************************", false);
+            }
+            for (int j = 0; j < remappedChars.size(); j++) {
+                int i = remappedChars.get(j);
                 int[][] charColors = this.charColors.get(i);
                 if (charColors != null && !Globals.isColorGridEmpty(charColors)) {
                     if (includeCharNumbers) {
                         printPaddedLine(bw, "CCH" + i + (i < 10 ? "  " : (i < 100 ? " " : "")) + " DATA " + Globals.toHexString(i, 2), includeComments);
                     }
                     StringBuilder sbLine = new StringBuilder();
-                    sbLine.append("COL").append(i).append(i < 10 ? "  " : (i < 100 ? " " : "")).append(" DATA ");
+                    sbLine.append("COL").append(j).append(j < 10 ? "  " : (j < 100 ? " " : "")).append(" DATA ");
                     for (int row = 0; row < 8; row += 2) {
                         sbLine.append(">");
                         int[] rowColors = charColors[row];
@@ -403,10 +408,19 @@ public class ScrollFileExporter extends Exporter {
                             sbLine.append(",");
                         }
                     }
-                    printPaddedLine(bw, sbLine.toString(), includeComments ? (usedChars[i] ? "" : "unused") : null);
+                    String name = charNames.get(i);
+                    printPaddedLine(bw, sbLine.toString(), includeComments ?
+                            "#" + Globals.toHexString(j, 2) + (i != j ? " (" + Globals.toHexString(i, 2) + ")" : "") + (name != null ? " " + name : "") :
+                            null
+                    );
                 }
             }
         } else {
+            if (includeComments) {
+                printPaddedLine(bw, "****************************************", false);
+                printPaddedLine(bw, "* Colorset Definitions", false);
+                printPaddedLine(bw, "****************************************", false);
+            }
             int nColorSets = 0;
             for (int ckey : colorSets.keySet()) {
                 int size = colorSets.get(ckey).size();
@@ -446,7 +460,7 @@ public class ScrollFileExporter extends Exporter {
         }
     }
 
-    private void writeTransitionCharacters(BufferedWriter bw, TransChar[] remappedTransCharSet, int imax, boolean includeComments, TransitionType transitionType) throws Exception {
+    private void writeTransitionCharacters(BufferedWriter bw, ArrayList<Integer> remappedChars, TransChar[] remappedTransCharSet, int imax, boolean includeComments, TransitionType transitionType) throws Exception {
         if (includeComments) {
             printPaddedLine(bw, "****************************************", false);
             printPaddedLine(bw, "* Transition Character Pairs (from, to) ", false);
@@ -456,10 +470,13 @@ public class ScrollFileExporter extends Exporter {
         for (int i = 0; i <= imax; i++) {
             TransChar transChar = remappedTransCharSet[i];
             if (transChar != null) {
+                String fromName = charNames.get(remappedChars.get(transChar.getFromChar()));
+                String toName = charNames.get(remappedChars.get(transChar.getToChar()));
                 printPaddedLine(bw,
                     (i == 0 ? "TCHARS" : "      ") + " BYTE " + transChar,
                     !includeComments ? null :
                         "#" + Globals.toHexString(transChar.getIndex(), 2) +
+                            (fromName != null && !fromName.isEmpty() && toName != null && !toName.isEmpty() ?  " " + fromName + " -> " + toName : "") +
                             (colorMode != COLOR_MODE_BITMAP ? " color " + Globals.toHexString(transChar.getForeColor(), 1) + "/" + Globals.toHexString(transChar.getBackColor(), 1) : "") +
                             (transChar.isInvert() ? " invert" : "") +
                             (transChar.isColorsOK() ? "" : " ERROR")
@@ -778,14 +795,22 @@ public class ScrollFileExporter extends Exporter {
                         sbLine.append(">").append(hexstr, 4, 8).append(",");
                         sbLine.append(">").append(hexstr, 8, 12).append(",");
                         sbLine.append(">").append(hexstr, 12, 16);
-                        printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2)) : null);
+                        String fromName = transChar != null ? charNames.get(charMap.get(transChar.getFromChar())) : null;
+                        printPaddedLine(bw, sbLine.toString(), includeComments ?
+                                "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2) + (fromName != null ? " " + fromName : "")) :
+                                null
+                        );
                         sbLine = new StringBuilder();
                         sbLine.append("       DATA ");
                         sbLine.append(">").append(hexstr, 16, 20).append(",");
                         sbLine.append(">").append(hexstr, 20, 24).append(",");
                         sbLine.append(">").append(hexstr, 24, 28).append(",");
                         sbLine.append(">").append(hexstr, 28, 32);
-                        printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2)) : null);
+                        String toName = transChar != null ? charNames.get(charMap.get(transChar.getToChar())) : null;
+                        printPaddedLine(bw, sbLine.toString(), includeComments ?
+                                "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2) + (toName != null ? " " + toName : "")) :
+                                null
+                        );
                     }
                 }
             } else {
@@ -935,14 +960,22 @@ public class ScrollFileExporter extends Exporter {
                     sbLine.append(">").append(hexstr, 4, 8).append(",");
                     sbLine.append(">").append(hexstr, 8, 12).append(",");
                     sbLine.append(">").append(hexstr, 12, 16);
-                    printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2)) : null);
+                    String fromName = transChar != null ? charNames.get(charMap.get(transChar.getFromChar())) : null;
+                    printPaddedLine(bw, sbLine.toString(), includeComments ?
+                            "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2))  + (fromName != null ? " " + fromName : "") :
+                            null
+                    );
                     sbLine = new StringBuilder();
                     sbLine.append("       DATA ");
                     sbLine.append(">").append(hexstr, 16, 20).append(",");
                     sbLine.append(">").append(hexstr, 20, 24).append(",");
                     sbLine.append(">").append(hexstr, 24, 28).append(",");
                     sbLine.append(">").append(hexstr, 28, 32);
-                    printPaddedLine(bw, sbLine.toString(), includeComments ? "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2)) : null);
+                    String toName = transChar != null ? charNames.get(charMap.get(transChar.getToChar())) : null;
+                    printPaddedLine(bw, sbLine.toString(), includeComments ?
+                            "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2))  + (toName != null ? " " + toName : "") :
+                            null
+                    );
                 }
             }
         }

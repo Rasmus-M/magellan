@@ -14,6 +14,9 @@ public class DataSet {
     private HashMap<Integer, int[][]> charGrids;
     private HashMap<Integer, int[][]> charColors;
     private HashMap<Integer, Image> charImages;
+    private HashMap<Integer, String> charNames;
+    private HashMap<Integer, Integer> charProperties;
+    private String[] charPropertyLabels = new String[8];
 
     private ECMPalette[] ecmPalettes = null;
     private ECMPalette[] ecmCharPalettes = null;
@@ -62,6 +65,30 @@ public class DataSet {
 
     public void setCharImages(HashMap<Integer, Image> charImages) {
         this.charImages = charImages;
+    }
+
+    public HashMap<Integer, String> getCharNames() {
+        return charNames;
+    }
+
+    public void setCharNames(HashMap<Integer, String> charNames) {
+        this.charNames = charNames;
+    }
+
+    public HashMap<Integer, Integer> getCharProperties() {
+        return charProperties;
+    }
+
+    public void setCharProperties(HashMap<Integer, Integer> charProperties) {
+        this.charProperties = charProperties;
+    }
+
+    public String[] getCharPropertyLabels() {
+        return charPropertyLabels;
+    }
+
+    public void setCharPropertyLabels(String[] charPropertyLabels) {
+        this.charPropertyLabels = charPropertyLabels;
     }
 
     public ECMPalette[] getEcmPalettes() {

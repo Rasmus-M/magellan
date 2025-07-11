@@ -125,6 +125,9 @@ public class Globals {
     public static final String KEY_CHARDATA2 = "C2:"; // Char data plane 2 (ECM)
     public static final String KEY_CHARCOLOR = "CO:";
     public static final String KEY_CHARRANG = "CR:";
+    public static final String KEY_CHARNAME = "CN:";
+    public static final String KEY_CHARPROP = "PR:";
+    public static final String KEY_CHARPROPLABEL = "PL:";
     public static final String KEY_MAPCOUNT = "MC:";
     public static final String KEY_MAPSTART = "M+";
     public static final String KEY_MAPSIZE = "MS:";

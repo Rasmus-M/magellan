@@ -35,6 +35,9 @@ public class DataFileImporter extends Importer {
         int charRead = charStart;
         int charRead1 = charStart;
         int charRead2 = charStart;
+        int charRead3 = charStart;
+        int charRead4 = charStart;
+        int labelRead = 0;
         int charColorRead = charStart;
         int cset = (int) (Math.floor(charStart / 8));
         int palNo = 0;
@@ -93,6 +96,21 @@ public class DataFileImporter extends Importer {
                     this.charColors.put(charColorRead, charColors);
                     charColorRead++;
                 }
+                else if (lineIn.startsWith(Globals.KEY_CHARNAME)) {
+                    String name = lineIn.substring(Globals.KEY_CHARNAME.length());
+                    this.charNames.put(charRead3, name);
+                    charRead3++;
+                }
+                else if (lineIn.startsWith(Globals.KEY_CHARPROP)) {
+                    String props = lineIn.substring(Globals.KEY_CHARPROP.length());
+                    Integer prop = !props.isEmpty() ? Integer.parseInt(props, 16) : 0;
+                    charProperties.put(charRead4, prop);
+                    charRead4++;
+                }
+                else if (lineIn.startsWith(Globals.KEY_CHARPROPLABEL)) {
+                    String label = lineIn.substring(Globals.KEY_CHARPROP.length());
+                    charPropertyLabels[labelRead++] = label;
+                }
                 else if (lineIn.startsWith(Globals.KEY_PALETTE) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = lineIn.substring(Globals.KEY_PALETTE.length());
                     ECMPalette ecmPalette = ecmPalettes[palNo++];
@@ -126,6 +144,8 @@ public class DataFileImporter extends Importer {
                     charRead = charStart;
                     charRead1 = charStart;
                     charRead2 = charStart;
+                    charRead3 = charStart;
+                    charRead4 = charStart;
                     charColorRead = charStart;
                     cset = (int) (Math.floor(charStart / 8));
                     charPalNo = charStart;
