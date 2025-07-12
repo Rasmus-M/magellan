@@ -18,6 +18,8 @@ public abstract class FileAction extends MagellanAction {
     protected final String[] FILEEXTS = {FILEEXT};
     protected final String XBEXT = "xb";
     protected final String[] XBEXTS = {XBEXT, "bas", "txt"};
+    protected final String CVBEXT = "bas";
+    protected final String[] CVBEXTS = {CVBEXT, "bas", "cvb", "txt"};
     protected final String ASMEXT = "a99";
     protected final String[] ASMEXTS = {ASMEXT, "asm"};
     protected final String IMGEXT = "png";

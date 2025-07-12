@@ -238,6 +238,10 @@ public class MagellanUI {
         jmitExportXBDisMer.setAction(new ExportXBDisplayMergeAction("XB Display Merge", parent, mapEditor, dataSet, preferences));
         exportMenu.add(jmitExportXBDisMer);
         exportMenu.addSeparator();
+        JMenuItem jmitExportCVB = new JMenuItem();
+        jmitExportCVB.setAction(new ExportCVBasicDataFileAction("CVBasic Data", parent, mapEditor, dataSet, preferences));
+        exportMenu.add(jmitExportCVB);
+        exportMenu.addSeparator();
         JMenuItem jmitExportAsm = new JMenuItem();
         jmitExportAsm.setAction(new ExportAssemblyDataFileAction("Assembly Data", parent, mapEditor, dataSet, preferences));
         exportMenu.add(jmitExportAsm);
