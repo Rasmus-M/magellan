@@ -37,7 +37,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
 
 // Constants -------------------------------------------------------------------------------/
 
-    public static final String VERSION_NUMBER = "4.8.0";
+    public static final String VERSION_NUMBER = "4.9.0 alpha";
 
     public static final int CHARACTER_SET_BASIC = 0;
     public static final int CHARACTER_SET_EXPANDED = 1;
@@ -799,6 +799,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
                             "<li>Retroclouds (2011)</li>" +
                             "<li>Sometimes99er (2013)</li>" +
                             "<li>David Vella (2016)</li>" +
+                            "<li>Visrealm (2025)</li>" +
                             "<li>Rasmus Moustgaard (2013 - ongoing)</li>" +
                         "</ul>" +
                         "<p>Source code available from: <a href=\"https://github.com/Rasmus-M/magellan\">github.com/Rasmus-M/magellan</a></p>" +
