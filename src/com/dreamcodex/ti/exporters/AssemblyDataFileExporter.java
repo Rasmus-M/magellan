@@ -114,7 +114,7 @@ public class AssemblyDataFileExporter extends Exporter {
                             sbLine.append(",");
                         }
                     }
-                    printPaddedLine(bw, sbLine.toString(), includeComments);
+                    printPaddedLine(bw, sbLine.toString(), includeComments ? charNames.get(i) : null);
                     sbLine.delete(0, sbLine.length());
                 }
             }
@@ -140,7 +140,7 @@ public class AssemblyDataFileExporter extends Exporter {
                             sbLine.append(",");
                         }
                     }
-                    printPaddedLine(bw, sbLine.toString(), includeComments);
+                    printPaddedLine(bw, sbLine.toString(), includeComments ? charNames.get(i) : null);
                     sbLine.delete(0, sbLine.length());
                 }
             }
@@ -153,7 +153,7 @@ public class AssemblyDataFileExporter extends Exporter {
             for (int i = startChar; i <= endChar; i++) {
                 sbLine.append("TAT").append(rightPad(i, 4));
                 sbLine.append("BYTE >").append(Globals.toHexString((paletteMap.get(ecmCharPalettes[i]) << (colorMode == COLOR_MODE_ECM_3 ? 1 : 0)) | (ecmCharTransparency[i] ? 0x10 : 0), 2));
-                printPaddedLine(bw, sbLine.toString(), includeComments);
+                printPaddedLine(bw, sbLine.toString(), includeComments ? charNames.get(i) : null);
                 sbLine.delete(0, sbLine.length());
             }
         }
@@ -183,7 +183,7 @@ public class AssemblyDataFileExporter extends Exporter {
             sbLine.append(">").append(hexstr, 4, 8).append(",");
             sbLine.append(">").append(hexstr, 8, 12).append(",");
             sbLine.append(">").append(hexstr, 12, 16);
-            printPaddedLine(bw, sbLine.toString(), includeComments);
+            printPaddedLine(bw, sbLine.toString(), includeComments ? charNames.get(i) : null);
             sbLine.delete(0, sbLine.length());
         }
         if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {
