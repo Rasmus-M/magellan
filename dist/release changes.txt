@@ -1,3 +1,30 @@
+Magellan V4.9.0
+---------------
+Moved Look At to map toolbar
+CVBasic export
+Character properties (work in progress)
+
+Magellan V4.8.0
+---------------
+Shift map up/down/left/right
+
+Magellan V4.7.0
+---------------
+
+Magellan V4.6.0
+---------------
+8x8 metatiles
+More transition types for scrolling
+
+Magellan V4.5.0
+---------------
+Map overlay
+Show sprites per line
+
+Magellan V4.4.0
+---------------
+Refactoring?
+
 Magellan V4.3.0
 ---------------
 Allow sprites to be placed at any position
@@ -10,7 +37,7 @@ Fix to swapping sprites
 
 Magellan V4.1.0
 ---------------
-Keyboard shortcurs for copy/paste
+Keyboard shortcuts for copy/paste
 Major refactoring of code
 
 Magellan V3.3.2
