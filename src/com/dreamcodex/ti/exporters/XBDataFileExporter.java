@@ -18,16 +18,16 @@ public class XBDataFileExporter extends Exporter {
         int currLine = codeLine;
         int itemCount = 0;
         int colorDataStart = 0;
-        int colorSetStart = (int) (Math.floor(startChar / 8));
-        int colorSetEnd = (int) (Math.floor(endChar / 8));
-        int colorSetNum = (int) (Math.floor((startChar - TIGlobals.BASIC_FIRST_CHAR) / 8)) + 1;
+        int colorSetStart = startChar / 8;
+        int colorSetEnd = endChar / 8;
+        int colorSetNum = (startChar - TIGlobals.BASIC_FIRST_CHAR) / 8 + 1;
         int colorCount = (colorSetEnd - colorSetStart) + 1;
         int charDataStart;
         int charCount = 0;
         int[] mapDataStart = new int[mapEditor.getMapCount()];
         int mapCols;
         int mapRows;
-        StringBuffer sbOutLine = new StringBuffer();
+        StringBuilder sbOutLine = new StringBuilder();
         charDataStart=charLine;
 
         mapEditor.storeCurrentMap();
@@ -56,7 +56,6 @@ public class XBDataFileExporter extends Exporter {
                 blockCount++;
             }
             bw.newLine();
-            currLine = currLine + interLine;
             if (includeComments) {
                 bw.newLine();
                 bw.write("REM CHARACTER DATA");
@@ -74,11 +73,11 @@ public class XBDataFileExporter extends Exporter {
                 }
                 if (!hexstr.equals(Globals.BLANKCHAR) || !excludeBlank) {
                     if (itemCount == 0) {
-                        sbOutLine.append(currLine + " DATA ");
+                        sbOutLine.append(currLine).append(" DATA ");
                     } else {
                         sbOutLine.append(",");
                     }
-                    sbOutLine.append(i + "," + '"' + hexstr.toUpperCase() + '"');
+                    sbOutLine.append(i).append(",").append('"').append(hexstr.toUpperCase()).append('"');
                     itemCount++;
                     if (itemCount >= 4) {
                         bw.write(sbOutLine.toString());
@@ -94,7 +93,6 @@ public class XBDataFileExporter extends Exporter {
                 bw.write(sbOutLine.toString());
                 bw.newLine();
             }
-            currLine = currLine + interLine;
             itemCount = 0;
             sbOutLine.delete(0, sbOutLine.length());
             currLine = mapLine;
@@ -127,16 +125,16 @@ public class XBDataFileExporter extends Exporter {
                         bw.newLine();
                     }
                     currLine = currLine + interLine;
-                    int mapTileVal = TIGlobals.SPACECHAR;
+                    int mapTileVal;
                     for (int y = 0; y < mapRows; y++) {
                         for (int x = 0; x < mapCols; x++) {
                             if (itemCount == 0) {
-                                sbOutLine.append(currLine + " DATA ");
+                                sbOutLine.append(currLine).append(" DATA ");
                             } else {
                                 sbOutLine.append(",");
                             }
                             mapTileVal = ((mapToSave[y][x] < startChar || mapToSave[y][x] > endChar) ? TIGlobals.SPACECHAR : mapToSave[y][x]);
-                            sbOutLine.append("" + mapTileVal);
+                            sbOutLine.append(mapTileVal);
                             itemCount++;
                             if (itemCount >= 16) {
                                 bw.write(sbOutLine.toString());
@@ -146,6 +144,13 @@ public class XBDataFileExporter extends Exporter {
                                 itemCount = 0;
                             }
                         }
+                    }
+                    if (itemCount != 0) {
+                        bw.write(sbOutLine.toString());
+                        bw.newLine();
+                        sbOutLine.delete(0, sbOutLine.length());
+                        currLine = currLine + interLine;
+                        itemCount = 0;
                     }
                     mapTicker++;
                 }
@@ -220,10 +225,6 @@ public class XBDataFileExporter extends Exporter {
 
         if (exportType == Globals.BASIC_PROGRAM) {
 
-
-            currLine = codeLine;
-
-
             if (includeComments) {
                 bw.newLine();
                 bw.write("REM Define Color Set");
@@ -231,7 +232,7 @@ public class XBDataFileExporter extends Exporter {
                 bw.newLine();
             }
 
-            colorSetNum = (int) (Math.floor((startChar - TIGlobals.BASIC_FIRST_CHAR) / 8)) + 1;
+            colorSetNum = (int) (Math.floor((double) (startChar - TIGlobals.BASIC_FIRST_CHAR) / 8)) + 1;
 
             for (int i = colorSetStart; i < (colorSetStart + colorCount); i++) {
 
@@ -243,7 +244,6 @@ public class XBDataFileExporter extends Exporter {
                 currLine = currLine + interLine;
             }
             bw.newLine();
-            currLine = currLine + interLine;
 
             currLine = charLine;
             if (includeComments) {
@@ -264,8 +264,8 @@ public class XBDataFileExporter extends Exporter {
 
                 sbOutLine.delete(0, sbOutLine.length());
                 if (!hexstr.equals(Globals.BLANKCHAR) || !excludeBlank) {
-                    sbOutLine.append(currLine + " CALL CHAR(");
-                    sbOutLine.append(i + "," + '"' + hexstr.toUpperCase() + '"');
+                    sbOutLine.append(currLine).append(" CALL CHAR(");
+                    sbOutLine.append(i).append(",").append('"').append(hexstr.toUpperCase()).append('"');
                     sbOutLine.append(")");
                     bw.write(sbOutLine.toString());
                     bw.newLine();
@@ -297,9 +297,9 @@ public class XBDataFileExporter extends Exporter {
                     int[][] mapToSave = mapEditor.getMapData(m);
                     mapCols = mapToSave[0].length;
                     mapRows = mapToSave.length;
-                    if (m!=0){
-                        currLine=100+((int)(currLine/100)*100);
-                    };
+                    if (m != 0) {
+                        currLine=100+((currLine/100) *100);
+                    }
                     mapDataStart[m] = currLine;
                     if (includeComments) {
                         bw.newLine();
@@ -313,10 +313,10 @@ public class XBDataFileExporter extends Exporter {
                         endChar2 = 127;
                     }
 
-                    int mapTileVal = TIGlobals.SPACECHAR;
+                    int mapTileVal;
 
                     for (int y = 0; y < mapRows - 1; y++) {
-                        Boolean AllSpaces=true;
+                        boolean allSpaces = true;
                         for (int x = 2; x < mapCols - 2; x++) {
                             mapTileVal = ((mapToSave[y][x] > endChar2) ? TIGlobals.SPACECHAR : mapToSave[y][x]);
                             if (mapTileVal == 34) {
@@ -324,10 +324,10 @@ public class XBDataFileExporter extends Exporter {
                             }
                             if (mapTileVal!=TIGlobals.SPACECHAR)
                             {
-                                AllSpaces=false;
+                                allSpaces=false;
                             }
                         }
-                        if (AllSpaces)
+                        if (allSpaces)
                         {
                             if (itemCount > 0) {
                                 sbOutLine.append('"');
@@ -343,7 +343,7 @@ public class XBDataFileExporter extends Exporter {
                         else {
                             for (int x = 2; x < mapCols - 2; x++) {
                                 if (itemCount == 0) {
-                                    sbOutLine.append(currLine + " PRINT " + '"');
+                                    sbOutLine.append(currLine).append(" PRINT ").append('"');
                                     currLine = currLine + interLine;
                                 }
 
@@ -375,14 +375,6 @@ public class XBDataFileExporter extends Exporter {
                 }
             }
 
-            if (itemCount != 0) {
-                sbOutLine.append('"');
-                bw.write(sbOutLine.toString());
-                bw.newLine();
-                sbOutLine.delete(0, sbOutLine.length());
-                itemCount = 0;
-            }
-
             currLine += 100;
 
             int[] mapFillChars = new int[mapEditor.getMapCount() + 1];
@@ -404,7 +396,7 @@ public class XBDataFileExporter extends Exporter {
 
                     mapDataStart[m] = currLine;
 
-                    int mapTileVal = TIGlobals.SPACECHAR;
+                    int mapTileVal;
                     for (int y = 0; y < mapRows; y++) {
                         for (int x = 0; x < mapCols; x++) {
 
@@ -415,11 +407,11 @@ public class XBDataFileExporter extends Exporter {
                                     illegalChars[m]+=1;
                                     totalIllegalChars++;
                                     if (itemCount == 0) {
-                                        sbOutLine.append(currLine + " DATA ");
+                                        sbOutLine.append(currLine).append(" DATA ");
                                     } else {
                                         sbOutLine.append(",");
                                     }
-                                    sbOutLine.append((y + 1) + "," + (x + 1) + "," + mapTileVal);
+                                    sbOutLine.append((y + 1)).append(",").append(x + 1).append(",").append(mapTileVal);
                                     mapFillChars[mapTicker] += 1;
                                     itemCount++;
                                 }
@@ -488,7 +480,6 @@ public class XBDataFileExporter extends Exporter {
                     }
                 }
                 bw.write(currLine + " END");
-                currLine = currLine + interLine;
                 bw.newLine();
             }
         }
