@@ -24,13 +24,12 @@ public class ScrollFileExporter extends Exporter {
     public void writeScrollFile(File mapDataFile, TransitionType transitionType, boolean wrap, int compression, boolean includeComments, boolean currMapOnly, boolean includeCharNumbers, int frames, boolean animate) throws Exception {
         mapEditor.storeCurrentMap();
         ArrayList<int[][]> transMaps = new ArrayList<>();
-        Map<String, TransChar> transChars = new HashMap<>();
         Map<Integer, ArrayList<TransChar>> colorSets = new TreeMap<>();
         TransChar[] transCharSet = new TransChar[256];
         boolean[] usedChars = new boolean[256];
         int[] startAndEndChar = {255, 0};
         // Find transitions
-        boolean allColorsOK = findCharacterTransitions(transMaps, transCharSet, transChars, usedChars, colorSets, startAndEndChar, currMapOnly, transitionType, wrap);
+        boolean allColorsOK = findCharacterTransitions(transMaps, transCharSet, usedChars, colorSets, startAndEndChar, currMapOnly, transitionType, wrap);
         if (!allColorsOK) {
             JOptionPane.showMessageDialog(null, "Warning - Some character transitions have incompatible colors. This may cause color spills when the map is scrolled.", "Invalid Color Transitions", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -54,20 +53,22 @@ public class ScrollFileExporter extends Exporter {
         bw.close();
     }
 
-    private boolean findCharacterTransitions(ArrayList<int[][]> transMaps, TransChar[] transCharSet, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, boolean currMapOnly, TransitionType transitionType, boolean wrap) throws Exception {
+    private boolean findCharacterTransitions(ArrayList<int[][]> transMaps, TransChar[] transCharSet, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, boolean currMapOnly, TransitionType transitionType, boolean wrap) throws Exception {
         boolean allColorsOK = true;
+        Map<String, TransChar> transChars = new HashMap<>();
+        List<TransChar> sortedTransChars = new ArrayList<>();
         for (int m = 0; m < mapEditor.getMapCount(); m++) {
             if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
                 int[][] mapData = mapEditor.getMapData(m);
                 if (mapData.length > 1 && mapData[0].length > 1) {
-                    allColorsOK &= findCharacterTransitionsForMap(mapData, transChars, usedChars, colorSets, startAndEndChar, transitionType, wrap);
+                    allColorsOK &= findCharacterTransitionsForMap(mapData, transChars, sortedTransChars, usedChars, colorSets, startAndEndChar, transitionType, wrap);
                 }
             }
         }
         // Add to transCharSet
         int i = getMaxIndex(transCharSet) + 1;
         if (colorMode == COLOR_MODE_BITMAP) {
-            for (TransChar transChar : transChars.values()) {
+            for (TransChar transChar : sortedTransChars) {
                 addTransCharToSet(transChar, transCharSet, i++);
             }
         } else {
@@ -96,7 +97,7 @@ public class ScrollFileExporter extends Exporter {
         return allColorsOK;
     }
 
-    private boolean findCharacterTransitionsForMap(int[][] mapData, Map<String, TransChar> transChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, TransitionType transitionType, boolean wrap) throws Exception {
+    private boolean findCharacterTransitionsForMap(int[][] mapData, Map<String, TransChar> transChars, List<TransChar> sortedTransChars, boolean[] usedChars, Map<Integer, ArrayList<TransChar>> colorSets, int[] startAndEndChar, TransitionType transitionType, boolean wrap) throws Exception {
         boolean allColorsOK = true;
         int width = mapData[0].length;
         int height = mapData.length;
@@ -110,6 +111,7 @@ public class ScrollFileExporter extends Exporter {
                 } else {
                     determineColorsForTransChar(newTransChar, transitionType, colorSets);
                     transChars.put(newTransChar.getKey(), newTransChar);
+                    sortedTransChars.add(newTransChar);
                     if (!newTransChar.isColorsOK()) {
                         allColorsOK = false;
                     }
