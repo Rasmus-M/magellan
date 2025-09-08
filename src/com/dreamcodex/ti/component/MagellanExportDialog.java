@@ -135,7 +135,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         compressComboBox.setEnabled(includeMapData);
 
         frameComboBox = new JComboBox(new String[] {"0", "2", "4", "8"});
-        if (transitionType == TransitionType.BOTTOM_TO_TOP) {
+        if (transitionType == TransitionType.TOP_TO_BOTTOM || transitionType == TransitionType.BOTTOM_TO_TOP) {
             frameComboBox.addItem("2-character Strips");
         }
         frameComboBox.setSelectedIndex(Math.max(Math.min(scrollFrames != -1 ? (int) Math.floor(Math.log(scrollFrames) / Math.log(2)) : 4, frameComboBox.getItemCount() - 1), 0));

@@ -785,21 +785,24 @@ public class ScrollFileExporter extends Exporter {
                         TransChar transChar = transCharSet[i];
                         if (transChar != null) {
                             hexstr =
-                                Globals.getHexString(charGrids.get(charMap.get(transChar.getToChar()))).toUpperCase() +
-                                Globals.getHexString(charGrids.get(charMap.get(transChar.getFromChar()))).toUpperCase();
+                                Globals.getHexString(charGrids.get(transitionType == TransitionType.TOP_TO_BOTTOM ? charMap.get(transChar.getFromChar()) : charMap.get(transChar.getToChar()))).toUpperCase() +
+                                Globals.getHexString(charGrids.get(transitionType == TransitionType.TOP_TO_BOTTOM ? charMap.get(transChar.getToChar()) : charMap.get(transChar.getFromChar()))).toUpperCase();
                         }
                         else {
                             hexstr = Globals.BLANKCHAR + Globals.BLANKCHAR;
                         }
+                        String fromName = transChar != null ? charNames.get(charMap.get(transChar.getFromChar())) : null;
+                        String fromStr = transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2) + (fromName != null ? " " + fromName : "");
+                        String toName = transChar != null ? charNames.get(charMap.get(transChar.getToChar())) : null;
+                        String toStr = transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getToChar(), 2) + (toName != null ? " " + toName : "");
                         StringBuilder sbLine = new StringBuilder();
                         sbLine.append(i == 0 ? "PSTRIP" : "      ").append(" DATA ");
                         sbLine.append(">").append(hexstr, 0, 4).append(",");
                         sbLine.append(">").append(hexstr, 4, 8).append(",");
                         sbLine.append(">").append(hexstr, 8, 12).append(",");
                         sbLine.append(">").append(hexstr, 12, 16);
-                        String fromName = transChar != null ? charNames.get(charMap.get(transChar.getFromChar())) : null;
                         printPaddedLine(bw, sbLine.toString(), includeComments ?
-                                "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2) + (fromName != null ? " " + fromName : "")) :
+                                "#" + Globals.toHexString(i, 2) + " " + (transitionType == TransitionType.TOP_TO_BOTTOM ? fromStr : toStr) :
                                 null
                         );
                         sbLine = new StringBuilder();
@@ -808,9 +811,8 @@ public class ScrollFileExporter extends Exporter {
                         sbLine.append(">").append(hexstr, 20, 24).append(",");
                         sbLine.append(">").append(hexstr, 24, 28).append(",");
                         sbLine.append(">").append(hexstr, 28, 32);
-                        String toName = transChar != null ? charNames.get(charMap.get(transChar.getToChar())) : null;
                         printPaddedLine(bw, sbLine.toString(), includeComments ?
-                                "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2) + (toName != null ? " " + toName : "")) :
+                                "#" + Globals.toHexString(i, 2) + " " + (transitionType == TransitionType.TOP_TO_BOTTOM ? toStr : fromStr) :
                                 null
                         );
                     }
@@ -942,29 +944,39 @@ public class ScrollFileExporter extends Exporter {
                 for (int i = 0; i <= imax; i++) {
                     String hexstr = "";
                     TransChar transChar = transCharSet[i];
+                    StringBuilder fromColorsHexStr = new StringBuilder();
+                    StringBuilder toColorsHexStr = new StringBuilder();
                     if (transChar != null) {
-                        int[][] toColors = charColors.get(charMap.get(transChar.getToChar()));
-                        for (int row = 0; row < 8; row++) {
-                            hexstr += Integer.toHexString(toColors[row][1]) + Integer.toHexString(toColors[row][0]);
-                        }
                         int[][] fromColors = charColors.get(charMap.get(transChar.getFromChar()));
                         for (int row = 0; row < 8; row++) {
-                            hexstr += Integer.toHexString(fromColors[row][1]) + Integer.toHexString(fromColors[row][0]);
+                            fromColorsHexStr.append(Integer.toHexString(fromColors[row][1])).append(Integer.toHexString(fromColors[row][0]));
+                        }
+                        int[][] toColors = charColors.get(charMap.get(transChar.getToChar()));
+                        for (int row = 0; row < 8; row++) {
+                            toColorsHexStr.append(Integer.toHexString(toColors[row][1])).append(Integer.toHexString(toColors[row][0]));
+                        }
+                        if (transitionType == TransitionType.TOP_TO_BOTTOM) {
+                            hexstr += fromColorsHexStr + toColorsHexStr.toString();
+                        } else {
+                            hexstr += toColorsHexStr + fromColorsHexStr.toString();
                         }
                     }
                     else {
                         hexstr = Globals.BLANKCHAR + Globals.BLANKCHAR;
                     }
                     hexstr = hexstr.toUpperCase();
+                    String fromName = transChar != null ? charNames.get(charMap.get(transChar.getFromChar())) : null;
+                    String fromStr = transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2) + (fromName != null ? " " + fromName : "");
+                    String toName = transChar != null ? charNames.get(charMap.get(transChar.getToChar())) : null;
+                    String toStr = transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getToChar(), 2) + (toName != null ? " " + toName : "");
                     StringBuilder sbLine = new StringBuilder();
                     sbLine.append(i == 0 ? "CSTRIP" : "      ").append(" DATA ");
                     sbLine.append(">").append(hexstr, 0, 4).append(",");
                     sbLine.append(">").append(hexstr, 4, 8).append(",");
                     sbLine.append(">").append(hexstr, 8, 12).append(",");
                     sbLine.append(">").append(hexstr, 12, 16);
-                    String fromName = transChar != null ? charNames.get(charMap.get(transChar.getFromChar())) : null;
                     printPaddedLine(bw, sbLine.toString(), includeComments ?
-                            "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? "unused" : "- " + Globals.toHexString(transChar.getToChar(), 2))  + (fromName != null ? " " + fromName : "") :
+                            "#" + Globals.toHexString(i, 2) + " " + (transitionType == TransitionType.TOP_TO_BOTTOM ? fromStr : toStr) :
                             null
                     );
                     sbLine = new StringBuilder();
@@ -973,9 +985,8 @@ public class ScrollFileExporter extends Exporter {
                     sbLine.append(">").append(hexstr, 20, 24).append(",");
                     sbLine.append(">").append(hexstr, 24, 28).append(",");
                     sbLine.append(">").append(hexstr, 28, 32);
-                    String toName = transChar != null ? charNames.get(charMap.get(transChar.getToChar())) : null;
                     printPaddedLine(bw, sbLine.toString(), includeComments ?
-                            "#" + Globals.toHexString(i, 2) + " " + (transChar == null ? " unused" : "- " + Globals.toHexString(transChar.getFromChar(), 2))  + (toName != null ? " " + toName : "") :
+                            "#" + Globals.toHexString(i, 2) + " " + (transitionType == TransitionType.TOP_TO_BOTTOM ? toStr : fromStr) :
                             null
                     );
                 }
