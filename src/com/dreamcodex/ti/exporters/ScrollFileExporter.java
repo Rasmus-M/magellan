@@ -560,19 +560,6 @@ public class ScrollFileExporter extends Exporter {
                         sbLine.delete(0, sbLine.length());
                     }
                 }
-                ArrayList<int[]> uniqueRows = new ArrayList<>();
-                for (int[] row : mapToSave) {
-                    boolean found = false;
-                    for (int y = 0; y < uniqueRows.size() && !found; y++) {
-                        if (Arrays.equals(row, uniqueRows.get(y))) {
-                            found = true;
-                        }
-                    }
-                    if (!found) {
-                        uniqueRows.add(row);
-                    }
-                }
-                // System.out.println("Unique rows: " + uniqueRows.size());
             } else if (compression == MagellanExportDialog.COMPRESSION_RLE_BYTE) {
                 // RLE compression (byte)
                 // We assume all characters are < 128. If msb is set, the next byte determines
