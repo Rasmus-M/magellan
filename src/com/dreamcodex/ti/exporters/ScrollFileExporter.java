@@ -663,6 +663,49 @@ public class ScrollFileExporter extends Exporter {
                 printPaddedLine(bw, sbLine.toString(), false);
                 n += i;
                 // System.out.println("Compressed size: " + n);
+            } else if (compression == MagellanExportDialog.COMPRESSION_ROW_INDEX) {
+                List<int[]> uniqueRows = new ArrayList<>();
+                List<Integer> rowsIndex = new ArrayList<>();
+                for (int[] row : mapToSave) {
+                    Integer rowIndex = null;
+                    for (int i = 0; i < uniqueRows.size() && rowIndex == null; i++) {
+                        int[] uniqueRow = uniqueRows.get(i);
+                        if (Arrays.equals(row, uniqueRow)) {
+                            rowIndex = i;
+                        }
+                    }
+                    if (rowIndex == null) {
+                        uniqueRows.add(row);
+                        rowIndex = uniqueRows.size() - 1;
+                    }
+                    rowsIndex.add(rowIndex);
+                }
+                printPaddedLine(bw, "RIDX" + m, includeComments);
+                for (int i = 0; i < rowsIndex.size(); i++) {
+                    int rowIndex = rowsIndex.get(i);
+                    if (i % 16 == 0) {
+                        sbLine.append("       BYTE ");
+                    }
+                    sbLine.append(">").append(Globals.toHexString(rowIndex, 2));
+                    if (i % 16 != 15 && i != rowsIndex.size() - 1) {
+                        sbLine.append(",");
+                    } else {
+                        printPaddedLine(bw, sbLine.toString(), includeComments);
+                        sbLine.delete(0, sbLine.length());
+                    }
+                }
+                printPaddedLine(bw, "ROWS" + m, includeComments);
+                for (int[] row : uniqueRows) {
+                    sbLine.append("       BYTE ");
+                    for (int i = 0; i < row.length; i++) {
+                        sbLine.append(">").append(Globals.toHexString(row[i], 2));
+                        if (i < row.length - 1) {
+                            sbLine.append(",");
+                        }
+                    }
+                    printPaddedLine(bw, sbLine.toString(), includeComments);
+                    sbLine.delete(0, sbLine.length());
+                }
             } else {
                 throw new RuntimeException("Compression mode not yet supported.");
             }

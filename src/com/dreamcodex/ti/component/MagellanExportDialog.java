@@ -29,6 +29,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     public static int COMPRESSION_META_4 = 4;
     public static int COMPRESSION_META_8 = 5;
     public static int COMPRESSION_NYBBLES = 6;
+    public static int COMPRESSION_ROW_INDEX = 7;
 
     private String OK_TEXT = "Export";
     private String CANCEL_TEXT = "Cancel";
@@ -130,7 +131,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
 
         jchkWrap = new JCheckBox("Wrap Edges", wrap);
 
-        compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Meta tiles", "4x4 Meta tiles", "8x8 Meta tiles", "Pack in nybbles (16 characters max)"});
+        compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Meta tiles", "4x4 Meta tiles", "8x8 Meta tiles", "Pack in nybbles (16 characters max)", "Unique row index"});
         compressComboBox.setSelectedIndex(Math.min(compression, compressComboBox.getItemCount() - 1));
         compressComboBox.setEnabled(includeMapData);
 
