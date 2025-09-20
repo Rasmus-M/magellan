@@ -21,6 +21,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     public static final int TYPE_BINARY = 2;
     public static final int TYPE_XBSCRMER = 3;
     public static final int TYPE_SCROLL = 4;
+    public static final int TYPE_BINARY_MAP = 5;
 
     public static int COMPRESSION_NONE = 0;
     public static int COMPRESSION_RLE_BYTE = 1;
@@ -54,6 +55,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     private JCheckBox jchkWrap;
     private JComboBox frameComboBox;
     private JComboBox compressComboBox;
+    private JSpinner offsetSpinner;
     private boolean clickedOkay = false;
     private int minChar = 0;
     private int maxChar = 0;
@@ -81,15 +83,16 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
                 preferences.isIncludeColorData(),
                 preferences.getCompression(),
                 preferences.getTransitionType(),
-                preferences.getScrollFrames()
+                preferences.getScrollFrames(),
+                preferences.getOffset()
         );
     }
 
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int maxSprite, boolean currentMapOnly, boolean excludeBlank) {
-        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, true, true, false, true, 0, TransitionType.BOTTOM_TO_TOP, -1);
+        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, true, true, false, true, 0, TransitionType.BOTTOM_TO_TOP, -1, 0);
     }
 
-    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeMapData, boolean includeCharData, boolean includeSpriteData, boolean includeColorData, int compression, TransitionType transitionType, int scrollFrames) {
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeMapData, boolean includeCharData, boolean includeSpriteData, boolean includeColorData, int compression, TransitionType transitionType, int scrollFrames, int offset) {
         super(parent, "Export Settings", true);
         minChar = minc;
         maxChar = maxc;
@@ -172,6 +175,8 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         jcmbStartSprite.setEnabled(includeSpriteData);
         jcmbEndSprite.setEnabled(includeSpriteData);
 
+        offsetSpinner = new JSpinner(new SpinnerNumberModel(offset, 0, 255, 1));
+
         List<Object> objForm = new ArrayList<>();
         switch (type) {
             case TYPE_BASIC:
@@ -242,6 +247,10 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
                 objForm.add(frameComboBox);
                 objForm.add(jchkIncludeCharNumbers);
                 objForm.add(jchkIncludeComments);
+                break;
+            case TYPE_BINARY_MAP:
+                objForm.add(new JLabel("Character offset"));
+                objForm.add(offsetSpinner);
                 break;
         }
 
@@ -340,6 +349,10 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    public int getOffset() {
+        return (int) this.offsetSpinner.getValue();
     }
 
     public boolean isOkay() {

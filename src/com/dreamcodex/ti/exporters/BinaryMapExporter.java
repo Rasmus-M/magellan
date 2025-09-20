@@ -26,15 +26,18 @@ public class BinaryMapExporter extends Exporter {
             for (int mapChar : mapRow) {
                 if (mapChar > 255) {
                     has16BitValues = true;
+                    break;
                 }
             }
         }
         for (int[] mapRow : mapToSave) {
             for (int mapChar : mapRow) {
                 if (has16BitValues) {
+                    mapChar = (mapChar + offset) & 0xffff;
                     fos.write((mapChar & 0xff00) >>> 8);
                     fos.write(mapChar & 0xff);
                 } else {
+                    mapChar = (mapChar + offset) & 0xff;
                     fos.write(mapChar);
                 }
             }

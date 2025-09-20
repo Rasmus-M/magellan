@@ -21,30 +21,7 @@ public class ExportScrollFileAction extends FileAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        MagellanExportDialog exporter = new MagellanExportDialog(
-            MagellanExportDialog.TYPE_SCROLL,
-            parent,
-            parent,
-            preferences.isExportComments(),
-            preferences.getDefStartChar(),
-            preferences.getDefEndChar(),
-            TIGlobals.MIN_CHAR,
-            preferences.getCharacterSetEnd(),
-            preferences.getDefStartSprite(),
-            preferences.getDefEndSprite(),
-            preferences.getSpriteSetEnd(),
-            preferences.isCurrentMapOnly(),
-            preferences.isExcludeBlank(),
-            preferences.isIncludeCharNumbers(),
-            preferences.isWrap(),
-            true,
-            true,
-            preferences.isIncludeSpriteData(),
-            true,
-            preferences.getCompression(),
-            preferences.getTransitionType(),
-            preferences.getScrollFrames()
-        );
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_SCROLL, parent, parent, preferences);
         if (exporter.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -78,6 +55,5 @@ public class ExportScrollFileAction extends FileAction {
             }
         }
         exporter.dispose();
-
     }
 }

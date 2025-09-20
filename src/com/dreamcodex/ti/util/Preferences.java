@@ -47,6 +47,7 @@ public class Preferences {
     protected int compression = MagellanExportDialog.COMPRESSION_NONE;
     protected TransitionType transitionType = TransitionType.BOTTOM_TO_TOP;
     protected int scrollFrames = 0;
+    protected int offset = 0;
     protected ArrayList<String> recentFiles = new ArrayList<String>();
     protected String currentDirectory;
 
@@ -306,6 +307,14 @@ public class Preferences {
         this.scrollFrames = scrollFrames;
     }
 
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
     public ArrayList<String> getRecentFiles() {
         return recentFiles;
     }
@@ -382,6 +391,7 @@ public class Preferences {
         compression = getIntegerProperty("compression", compression);
         transitionType = TransitionType.valueOf(appProperties.getProperty("transitionType", TransitionType.BOTTOM_TO_TOP.name()));
         scrollFrames = getIntegerProperty("scrollFrames", scrollFrames);
+        offset = getIntegerProperty("offset", offset);
         currentDirectory = appProperties.getProperty("filePath");
         if (currentDirectory == null || currentDirectory.length() == 0) {
             currentDirectory = ".";
@@ -426,6 +436,7 @@ public class Preferences {
         appProperties.setProperty("compression", "" + compression);
         appProperties.setProperty("transitionType", transitionType.name());
         appProperties.setProperty("scrollFrames", "" + scrollFrames);
+        appProperties.setProperty("offset", "" + offset);
         appProperties.setProperty("filePath", currentDirectory != null ? currentDirectory : ".");
         StringBuilder recentFileList = new StringBuilder();
         for (String filePath : recentFiles) {

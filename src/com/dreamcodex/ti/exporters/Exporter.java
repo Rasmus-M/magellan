@@ -38,6 +38,7 @@ public abstract class Exporter {
     protected int[] spriteColors;
     protected ECMPalette[] ecmSpritePalettes;
     protected ColorMode colorMode;
+    protected int offset;
 
     public Exporter() {
     }
@@ -57,7 +58,8 @@ public abstract class Exporter {
                 dataSet.getSpriteGrids(),
                 dataSet.getSpriteColors(),
                 dataSet.getEcmSpritePalettes(),
-                preferences.getColorMode()
+                preferences.getColorMode(),
+                preferences.getOffset()
         );
     }
 
@@ -74,7 +76,8 @@ public abstract class Exporter {
         HashMap<Integer, int[][]> spriteGrids,
         int[] spriteColors,
         ECMPalette[] ecmSpritePalettes,
-        ColorMode colorMode
+        ColorMode colorMode,
+        int offset
     ) {
         this.mapEditor = mapEditor;
         this.clrSets = clrSets;
@@ -90,6 +93,7 @@ public abstract class Exporter {
         this.spriteColors = spriteColors;
         this.ecmSpritePalettes = ecmSpritePalettes;
         this.colorMode = colorMode;
+        this.offset = offset;
     }
 
     protected void printPaddedLine(BufferedWriter bw, String str, boolean isCommand) throws IOException {

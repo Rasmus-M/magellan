@@ -2,6 +2,7 @@ package com.dreamcodex.ti.actions.exporting;
 
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.actions.FileAction;
+import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.exporters.BinaryMapExporter;
 import com.dreamcodex.ti.util.DataSet;
@@ -20,22 +21,26 @@ public class ExportBinaryMapAction extends FileAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
-        if (file != null) {
-            boolean isExtensionAdded = false;
-            for (int ex = 0; ex < BINEXTS.length; ex++) {
-                if (file.getAbsolutePath().toLowerCase().endsWith("." + BINEXTS[ex])) {
-                    isExtensionAdded = true;
+        MagellanExportDialog exporter = new MagellanExportDialog(MagellanExportDialog.TYPE_BINARY_MAP, parent, parent, preferences);
+        if (exporter.isOkay()) {
+            File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, BINEXTS, "Binary Data Files");
+            if (file != null) {
+                boolean isExtensionAdded = false;
+                for (int ex = 0; ex < BINEXTS.length; ex++) {
+                    if (file.getAbsolutePath().toLowerCase().endsWith("." + BINEXTS[ex])) {
+                        isExtensionAdded = true;
+                    }
                 }
-            }
-            if (!isExtensionAdded) {
-                file = new File(file.getAbsolutePath() + "." + BINEXT);
-            }
-            BinaryMapExporter magIO = new BinaryMapExporter(mapEditor, dataSet, preferences);
-            try {
-                magIO.writeBinaryMap(file);
-            } catch (IOException ioException) {
-                showError("Export failed", ioException.getMessage());
+                if (!isExtensionAdded) {
+                    file = new File(file.getAbsolutePath() + "." + BINEXT);
+                }
+                preferences.setOffset(exporter.getOffset());
+                BinaryMapExporter magIO = new BinaryMapExporter(mapEditor, dataSet, preferences);
+                try {
+                    magIO.writeBinaryMap(file);
+                } catch (IOException ioException) {
+                    showError("Export failed", ioException.getMessage());
+                }
             }
         }
     }
