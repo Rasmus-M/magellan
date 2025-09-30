@@ -41,8 +41,8 @@ public class SpriteImageImporter extends Importer {
                 firstPalette = minPalette;
                 lastPalette = useExistingPalettes ? maxPalette + 1 : minPalette;
                 Raster raster = image.getRaster();
-                int xSprites = image.getWidth() / size;
-                int ySprites = image.getHeight() / size;
+                int xSprites = (image.getWidth() + gap) / size;
+                int ySprites = (image.getHeight() + gap) / size;
                 for (int sy = 0; sy < ySprites; sy++) {
                     int y0 = sy * size;
                     for (int sx = 0; sx < xSprites; sx++) {
