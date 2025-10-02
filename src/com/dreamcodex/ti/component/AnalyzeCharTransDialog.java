@@ -54,6 +54,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
 
         public void buildMap() {
             transCharMap = new HashMap<>();
+            sortedTransCharList = new ArrayList<>(transCharMap.values());
             int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
             int height = mapData.length;
             int width = mapData[0].length;
@@ -64,8 +65,6 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
                     }
                 }
             }
-            sortedTransCharList = new ArrayList<>(transCharMap.values());
-            sortedTransCharList.sort(new TransChar.TransCharCountComparator());
         }
 
         private void addTransCharToMap(TransChar transChar, TransitionType transitionType) {
@@ -77,6 +76,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
             else {
                 transChar.setColorsOK(areColorsOK(transChar, transitionType));
                 transCharMap.put(key, transChar);
+                sortedTransCharList.add(transChar);
             }
         }
 
