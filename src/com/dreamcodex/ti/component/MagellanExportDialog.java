@@ -136,7 +136,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
 
         compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Meta tiles", "4x4 Meta tiles", "8x8 Meta tiles", "Pack in nybbles (16 characters max)", "Unique row index"});
         compressComboBox.setSelectedIndex(Math.min(compression, compressComboBox.getItemCount() - 1));
-        compressComboBox.setEnabled(includeMapData);
+        compressComboBox.setEnabled(type != TYPE_ASM || includeMapData);
 
         frameComboBox = new JComboBox(new String[] {"0", "2", "4", "8"});
         if (transitionType == TransitionType.TOP_TO_BOTTOM || transitionType == TransitionType.BOTTOM_TO_TOP) {
