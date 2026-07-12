@@ -31,7 +31,6 @@ public class EditSpriteAction extends EditorAction {
     @Override
     protected void performAction(ActionEvent e) {
         ColorMode colorMode = dataSet.getColorMode();
-        GridCanvas charCanvas = parent.getUI().getCharGridCanvas();
         GridCanvas spriteCanvas = parent.getUI().getSpriteGridCanvas();
         int oldActiveSprite = parent.getActiveSprite();
         parent.setActiveSprite(spriteNum);
@@ -51,8 +50,7 @@ public class EditSpriteAction extends EditorAction {
             spriteCanvas.setColorDraw(spriteColors[spriteNum]);
             DualClickButton[] spriteColorDockButtons = parent.getUI().getSpriteColorDockButtons();
             for (int i = 0; i < spriteColorDockButtons.length; i++) {
-                // NOTE: original dispatcher compared against charCanvas.getColorBack() here (pre-existing bug, preserved as-is)
-                spriteColorDockButtons[i].setText(i == charCanvas.getColorBack() ? "B" : (i == spriteCanvas.getColorDraw() ? "F" : ""));
+                spriteColorDockButtons[i].setText(i == spriteCanvas.getColorBack() ? "B" : (i == spriteCanvas.getColorDraw() ? "F" : ""));
             }
         }
         else if (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3) {

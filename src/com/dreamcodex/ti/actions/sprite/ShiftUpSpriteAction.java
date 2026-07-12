@@ -21,8 +21,7 @@ public class ShiftUpSpriteAction extends EditorAction {
         GridCanvas spriteCanvas = parent.getUI().getSpriteGridCanvas();
         spriteCanvas.setGrid(Globals.cycleGridUp(spriteCanvas.getGridData()));
         dataSet.getSpriteGrids().put(parent.getActiveSprite(), spriteCanvas.getGridData());
-        // NOTE: original dispatcher called updateCharButton(activeSprite) here (pre-existing bug, preserved as-is)
-        parent.updateCharButton(parent.getActiveSprite());
+        parent.updateSpriteButton(parent.getActiveSprite());
         parent.updateComponents();
     }
 }

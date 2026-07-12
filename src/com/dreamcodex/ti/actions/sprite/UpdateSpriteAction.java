@@ -62,7 +62,6 @@ public class UpdateSpriteAction extends EditorAction {
         }
         dataSet.getSpriteGrids().put(activeSprite, spriteGrid);
         spriteCanvas.setGrid(dataSet.getSpriteGrids().get(activeSprite));
-        // NOTE: original dispatcher called updateCharButton(activeSprite) here (pre-existing bug, preserved as-is)
-        parent.updateCharButton(activeSprite);
+        parent.updateSpriteButton(activeSprite);
     }
 }
