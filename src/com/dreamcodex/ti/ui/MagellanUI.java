@@ -1,19 +1,22 @@
 package com.dreamcodex.ti.ui;
 
 import com.dreamcodex.ti.Magellan;
+import com.dreamcodex.ti.actions.app.*;
+import com.dreamcodex.ti.actions.character.*;
 import com.dreamcodex.ti.actions.clipboard.CopyCharAction;
 import com.dreamcodex.ti.actions.clipboard.CopySpriteAction;
 import com.dreamcodex.ti.actions.clipboard.PasteCharAction;
 import com.dreamcodex.ti.actions.clipboard.PasteSpriteAction;
 import com.dreamcodex.ti.actions.exporting.*;
 import com.dreamcodex.ti.actions.importing.*;
-import com.dreamcodex.ti.actions.tools.ClearOverlayImageAction;
-import com.dreamcodex.ti.actions.tools.LoadOverlayImageAction;
-import com.dreamcodex.ti.actions.tools.ShowSpritesPerLineAction;
+import com.dreamcodex.ti.actions.options.*;
+import com.dreamcodex.ti.actions.sprite.*;
+import com.dreamcodex.ti.actions.tools.*;
 import com.dreamcodex.ti.component.*;
 import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
+import java.awt.event.ActionListener;
 
 import java.awt.*;
 import java.net.URL;
@@ -172,9 +175,8 @@ public class MagellanUI {
         JMenuBar menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu("File");
-        JMenuItem jmitNew = new JMenuItem("New Map Project");
-        jmitNew.setActionCommand(Globals.CMD_NEW);
-        jmitNew.addActionListener(parent);
+        JMenuItem jmitNew = new JMenuItem();
+        jmitNew.setAction(new NewProjectAction("New Map Project", parent, mapEditor, dataSet, preferences));
         fileMenu.add(jmitNew);
         JMenuItem jmitOpen = new JMenuItem();
         jmitOpen.setAction(new OpenDataFileAction("Open Map Project", null, parent, mapEditor, dataSet, preferences));
@@ -192,9 +194,8 @@ public class MagellanUI {
         jmitAppend.setAction(new AppendDataFileAction("Append Maps", parent, mapEditor, dataSet, preferences));
         fileMenu.add(jmitAppend);
         fileMenu.addSeparator();
-        JMenuItem jmitExit = new JMenuItem("Exit");
-        jmitExit.setActionCommand(Globals.CMD_EXIT);
-        jmitExit.addActionListener(parent);
+        JMenuItem jmitExit = new JMenuItem();
+        jmitExit.setAction(new ExitAction("Exit", parent, mapEditor, dataSet, preferences));
         fileMenu.add(jmitExit);
         // Add menu
         menuBar.add(fileMenu);
@@ -272,18 +273,15 @@ public class MagellanUI {
         menuBar.add(exportMenu);
 
         JMenu toolsMenu = new JMenu("Tools");
-        JMenuItem jmitSwapChars = new JMenuItem("Replace Characters");
-        jmitSwapChars.setActionCommand(Globals.CMD_SWAPCHARS);
-        jmitSwapChars.addActionListener(parent);
+        JMenuItem jmitSwapChars = new JMenuItem();
+        jmitSwapChars.setAction(new SwapCharactersAction("Replace Characters", parent, mapEditor, dataSet, preferences));
         toolsMenu.add(jmitSwapChars);
         toolsMenu.addSeparator();
-        JMenuItem jmitAnalyzeCharUsage = new JMenuItem("Analyze Character Usage");
-        jmitAnalyzeCharUsage.setActionCommand(Globals.CMD_ANALYZECHARUSAGE);
-        jmitAnalyzeCharUsage.addActionListener(parent);
+        JMenuItem jmitAnalyzeCharUsage = new JMenuItem();
+        jmitAnalyzeCharUsage.setAction(new AnalyzeCharUsageAction("Analyze Character Usage", parent, mapEditor, dataSet, preferences));
         toolsMenu.add(jmitAnalyzeCharUsage);
-        JMenuItem jmitAnalyzeCharTrans = new JMenuItem("Analyze Character Transitions");
-        jmitAnalyzeCharTrans.setActionCommand(Globals.CMD_ANALYZECHARTRANS);
-        jmitAnalyzeCharTrans.addActionListener(parent);
+        JMenuItem jmitAnalyzeCharTrans = new JMenuItem();
+        jmitAnalyzeCharTrans.setAction(new AnalyzeCharTransAction("Analyze Character Transitions", parent, mapEditor, dataSet, preferences));
         toolsMenu.add(jmitAnalyzeCharTrans);
         toolsMenu.addSeparator();
         toolsMenu.add(new LoadOverlayImageAction("Load Overlay Image", parent, mapEditor, dataSet, preferences));
@@ -292,81 +290,68 @@ public class MagellanUI {
         menuBar.add(toolsMenu);
 
         JMenu optionsMenu = new JMenu("Options");
-        JMenuItem jmitShowPos = new JCheckBoxMenuItem("Show Position", mapEditor.showPosIndic());
-        jmitShowPos.setActionCommand(Globals.CMD_SHOWPOS);
-        jmitShowPos.addActionListener(parent);
+        JMenuItem jmitShowPos = new JCheckBoxMenuItem(new ToggleShowPositionAction("Show Position", parent, mapEditor, dataSet, preferences));
+        jmitShowPos.setSelected(mapEditor.showPosIndic());
         optionsMenu.add(jmitShowPos);
-        JMenuItem jmitBase0Pos = new JCheckBoxMenuItem("Base 0 for Position", mapEditor.base0Position());
-        jmitBase0Pos.setActionCommand(Globals.CMD_BASE0POS);
-        jmitBase0Pos.addActionListener(parent);
+        JMenuItem jmitBase0Pos = new JCheckBoxMenuItem(new ToggleBase0PositionAction("Base 0 for Position", parent, mapEditor, dataSet, preferences));
+        jmitBase0Pos.setSelected(mapEditor.base0Position());
         optionsMenu.add(jmitBase0Pos);
 
         optionsMenu.addSeparator();
 
         characterSetSizeButtonGroup = new ButtonGroup();
 
-        characterSetBasicMenuItem = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_BASIC], preferences.getCharacterSetCapacity() == CHARACTER_SET_BASIC);
+        characterSetBasicMenuItem = new JRadioButtonMenuItem(new SetCharacterSetSizeAction(CHARACTER_SET_BASIC, CHARACTER_SET_SIZES[CHARACTER_SET_BASIC], parent, mapEditor, dataSet, preferences));
+        characterSetBasicMenuItem.setSelected(preferences.getCharacterSetCapacity() == CHARACTER_SET_BASIC);
         characterSetSizeButtonGroup.add(characterSetBasicMenuItem);
-        characterSetBasicMenuItem.setActionCommand(Globals.CMD_BASICCHARSETSIZE);
-        characterSetBasicMenuItem.addActionListener(parent);
         optionsMenu.add(characterSetBasicMenuItem);
 
-        characterSetExpandedMenuItem = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_EXPANDED], preferences.getCharacterSetCapacity() == CHARACTER_SET_EXPANDED);
+        characterSetExpandedMenuItem = new JRadioButtonMenuItem(new SetCharacterSetSizeAction(CHARACTER_SET_EXPANDED, CHARACTER_SET_SIZES[CHARACTER_SET_EXPANDED], parent, mapEditor, dataSet, preferences));
+        characterSetExpandedMenuItem.setSelected(preferences.getCharacterSetCapacity() == CHARACTER_SET_EXPANDED);
         characterSetSizeButtonGroup.add(characterSetExpandedMenuItem);
-        characterSetExpandedMenuItem.setActionCommand(Globals.CMD_EXPANDEDCHARSETSIZE);
-        characterSetExpandedMenuItem.addActionListener(parent);
         optionsMenu.add(characterSetExpandedMenuItem);
 
-        characterSetSuperMenuItem = new JRadioButtonMenuItem(CHARACTER_SET_SIZES[CHARACTER_SET_SUPER], preferences.getCharacterSetCapacity() == CHARACTER_SET_SUPER);
+        characterSetSuperMenuItem = new JRadioButtonMenuItem(new SetCharacterSetSizeAction(CHARACTER_SET_SUPER, CHARACTER_SET_SIZES[CHARACTER_SET_SUPER], parent, mapEditor, dataSet, preferences));
+        characterSetSuperMenuItem.setSelected(preferences.getCharacterSetCapacity() == CHARACTER_SET_SUPER);
         characterSetSizeButtonGroup.add(characterSetSuperMenuItem);
-        characterSetSuperMenuItem.setActionCommand(Globals.CMD_SUPERCHARSETSIZE);
-        characterSetSuperMenuItem.addActionListener(parent);
         optionsMenu.add(characterSetSuperMenuItem);
 
         optionsMenu.addSeparator();
 
         colorModeButtonGroup = new ButtonGroup();
-        graphicsColorModeMenuItem = new JRadioButtonMenuItem(COLOR_MODE_GRAPHICS_1.toString(), dataSet.getColorMode() == COLOR_MODE_GRAPHICS_1);
+        graphicsColorModeMenuItem = new JRadioButtonMenuItem(new SetColorModeAction(COLOR_MODE_GRAPHICS_1, COLOR_MODE_GRAPHICS_1.toString(), parent, mapEditor, dataSet, preferences));
+        graphicsColorModeMenuItem.setSelected(dataSet.getColorMode() == COLOR_MODE_GRAPHICS_1);
         colorModeButtonGroup.add(graphicsColorModeMenuItem);
-        graphicsColorModeMenuItem.setActionCommand(Globals.CMD_GRAPHICSCOLORMODE);
-        graphicsColorModeMenuItem.addActionListener(parent);
         optionsMenu.add(graphicsColorModeMenuItem);
-        bitmapColorModeMenuItem = new JRadioButtonMenuItem(COLOR_MODE_BITMAP.toString(), dataSet.getColorMode() == COLOR_MODE_BITMAP);
+        bitmapColorModeMenuItem = new JRadioButtonMenuItem(new SetColorModeAction(COLOR_MODE_BITMAP, COLOR_MODE_BITMAP.toString(), parent, mapEditor, dataSet, preferences));
+        bitmapColorModeMenuItem.setSelected(dataSet.getColorMode() == COLOR_MODE_BITMAP);
         colorModeButtonGroup.add(bitmapColorModeMenuItem);
-        bitmapColorModeMenuItem.setActionCommand(Globals.CMD_BITMAPCOLORMODE);
-        bitmapColorModeMenuItem.addActionListener(parent);
         optionsMenu.add(bitmapColorModeMenuItem);
-        ecm2ColorModeMenuItem = new JRadioButtonMenuItem(COLOR_MODE_ECM_2.toString(), dataSet.getColorMode() == COLOR_MODE_ECM_2);
+        ecm2ColorModeMenuItem = new JRadioButtonMenuItem(new SetColorModeAction(COLOR_MODE_ECM_2, COLOR_MODE_ECM_2.toString(), parent, mapEditor, dataSet, preferences));
+        ecm2ColorModeMenuItem.setSelected(dataSet.getColorMode() == COLOR_MODE_ECM_2);
         colorModeButtonGroup.add(ecm2ColorModeMenuItem);
-        ecm2ColorModeMenuItem.setActionCommand(Globals.CMD_ECM2COLORMODE);
-        ecm2ColorModeMenuItem.addActionListener(parent);
         optionsMenu.add(ecm2ColorModeMenuItem);
-        ecm3ColorModeMenuItem = new JRadioButtonMenuItem(COLOR_MODE_ECM_3.toString(), dataSet.getColorMode() == COLOR_MODE_ECM_3);
+        ecm3ColorModeMenuItem = new JRadioButtonMenuItem(new SetColorModeAction(COLOR_MODE_ECM_3, COLOR_MODE_ECM_3.toString(), parent, mapEditor, dataSet, preferences));
+        ecm3ColorModeMenuItem.setSelected(dataSet.getColorMode() == COLOR_MODE_ECM_3);
         colorModeButtonGroup.add(ecm3ColorModeMenuItem);
-        ecm3ColorModeMenuItem.setActionCommand(Globals.CMD_ECM3COLORMODE);
-        ecm3ColorModeMenuItem.addActionListener(parent);
         optionsMenu.add(ecm3ColorModeMenuItem);
 
         optionsMenu.addSeparator();
 
-        JMenuItem jmitViewCharLayer = new JCheckBoxMenuItem("View Character Layer", mapEditor.getViewCharLayer());
-        jmitViewCharLayer.setActionCommand(Globals.CMD_VIEW_CHAR_LAYER);
-        jmitViewCharLayer.addActionListener(parent);
+        JMenuItem jmitViewCharLayer = new JCheckBoxMenuItem(new ToggleViewCharLayerAction("View Character Layer", parent, mapEditor, dataSet, preferences));
+        jmitViewCharLayer.setSelected(mapEditor.getViewCharLayer());
         optionsMenu.add(jmitViewCharLayer);
-        JMenuItem jmitViewSpriteLayer = new JCheckBoxMenuItem("View Sprite Layer", mapEditor.getViewSpriteLayer());
-        jmitViewSpriteLayer.setActionCommand(Globals.CMD_VIEW_SPRITE_LAYER);
-        jmitViewSpriteLayer.addActionListener(parent);
+        JMenuItem jmitViewSpriteLayer = new JCheckBoxMenuItem(new ToggleViewSpriteLayerAction("View Sprite Layer", parent, mapEditor, dataSet, preferences));
+        jmitViewSpriteLayer.setSelected(mapEditor.getViewSpriteLayer());
         optionsMenu.add(jmitViewSpriteLayer);
 
         optionsMenu.addSeparator();
 
-        JMenuItem jmitMagnifySprites = new JCheckBoxMenuItem("Magnify Sprites", mapEditor.getMagnifySprites());
-        jmitMagnifySprites.setActionCommand(CMD_MAGNIFY_SPRITES);
-        jmitMagnifySprites.addActionListener(parent);
+        JMenuItem jmitMagnifySprites = new JCheckBoxMenuItem(new ToggleMagnifySpritesAction("Magnify Sprites", parent, mapEditor, dataSet, preferences));
+        jmitMagnifySprites.setSelected(mapEditor.getMagnifySprites());
         optionsMenu.add(jmitMagnifySprites);
-        JMenuItem jmitSnapSpritesToGrid = new JCheckBoxMenuItem("Snap Sprites to Grid", mapEditor.getSnapSpritesToGrid());
-        jmitSnapSpritesToGrid.setActionCommand(CMD_SNAP_SPRITES_TO_GRID);
-        jmitSnapSpritesToGrid.addActionListener(parent);
+        JMenuItem jmitSnapSpritesToGrid = new JCheckBoxMenuItem(new ToggleSnapSpritesToGridAction("Snap Sprites to Grid", parent, mapEditor, dataSet, preferences));
+        jmitSnapSpritesToGrid.setSelected(mapEditor.getSnapSpritesToGrid());
         optionsMenu.add(jmitSnapSpritesToGrid);
         JCheckBoxMenuItem showSpritePerLineMenuItem = new JCheckBoxMenuItem(new ShowSpritesPerLineAction("Show Number of Sprites per Line", parent, mapEditor, dataSet, preferences));
         showSpritePerLineMenuItem.setSelected(mapEditor.getShowSpritesPerLine());
@@ -376,9 +361,8 @@ public class MagellanUI {
         menuBar.add(optionsMenu);
 
         JMenu helpMenu = new JMenu("Help");
-        JMenuItem jmitHelpAbout = new JMenuItem("About Magellan");
-        jmitHelpAbout.setActionCommand(Globals.CMD_ABOUT);
-        jmitHelpAbout.addActionListener(parent);
+        JMenuItem jmitHelpAbout = new JMenuItem();
+        jmitHelpAbout.setAction(new AboutAction("About Magellan", parent, mapEditor, dataSet, preferences));
         helpMenu.add(jmitHelpAbout);
         // Add menu
         menuBar.add(helpMenu);
@@ -423,34 +407,34 @@ public class MagellanUI {
 
         // Create toolbar on the left side of character editor
         JPanel jpnlToolButtons = getPanel(new GridLayout(7, 1, 0, 2));
-        jpnlToolButtons.add(getToolButton(Globals.CMD_FILL_CHR, "Fill"));
-        jpnlToolButtons.add(getToolButton(Globals.CMD_CLEAR_CHR, "Clear"));
-        jpnlToolButtons.add(getToolButton(Globals.CMD_INVERT_CHR, "Invert Image"));
-        jpnlToolButtons.add(getToolButton(CMD_PROPERTIES_CHR, "Character Properties"));
-        jpnlToolButtons.add(getToolButton(Globals.CMD_GRID_CHR, "Toggle Grid"));
-        charUndoButton = getToolButton(Globals.CMD_UNDO_CHR, "Undo Edit");
+        jpnlToolButtons.add(getToolButton(Globals.CMD_FILL_CHR, "Fill", new FillCharAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlToolButtons.add(getToolButton(Globals.CMD_CLEAR_CHR, "Clear", new ClearCharAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlToolButtons.add(getToolButton(Globals.CMD_INVERT_CHR, "Invert Image", new InvertCharAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlToolButtons.add(getToolButton(CMD_PROPERTIES_CHR, "Character Properties", new CharacterPropertiesAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlToolButtons.add(getToolButton(Globals.CMD_GRID_CHR, "Toggle Grid", new ToggleGridCharAction("", parent, mapEditor, dataSet, preferences)));
+        charUndoButton = getToolButton(Globals.CMD_UNDO_CHR, "Undo Edit", new UndoCharAction("", parent, mapEditor, dataSet, preferences));
         charUndoButton.setEnabled(false);
         jpnlToolButtons.add(charUndoButton);
-        charRedoButton = getToolButton(Globals.CMD_REDO_CHR, "Redo Edit");
+        charRedoButton = getToolButton(Globals.CMD_REDO_CHR, "Redo Edit", new RedoCharAction("", parent, mapEditor, dataSet, preferences));
         charRedoButton.setEnabled(false);
         jpnlToolButtons.add(charRedoButton);
         jpnlCharTools.add(jpnlToolButtons, new GridBagConstraints(1, 1, 1, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.VERTICAL, insets, 2, 2));
 
         // Create character editor grid and surrounding buttons
-        jpnlCharTools.add(getToolButton(Globals.CMD_ROTATEL_CHR, "Rotate Left", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_ROTATEL_CHR, "Rotate Left", Globals.CLR_BUTTON_TRANS, new RotateLeftCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         charIntLabel = getLabel();
         charIntLabel.setPreferredSize(Globals.DM_TEXT);
         jpnlCharTools.add(charIntLabel, new GridBagConstraints(3, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTU_CHR, "Shift Up", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(4, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTU_CHR, "Shift Up", Globals.CLR_BUTTON_SHIFT, new ShiftUpCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(4, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         charHexLabel = getLabel();
         charHexLabel.setPreferredSize(Globals.DM_TEXT);
         jpnlCharTools.add(charHexLabel, new GridBagConstraints(5, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlCharTools.add(getToolButton(Globals.CMD_ROTATER_CHR, "Rotate Right", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(6, 1, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTL_CHR, "Shift Left", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(2, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTR_CHR, "Shift Right", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(6, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlCharTools.add(getToolButton(Globals.CMD_FLIPH_CHR, "Flip Horizontal", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(2, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTD_CHR, "Shift Down", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(4, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlCharTools.add(getToolButton(Globals.CMD_FLIPV_CHR, "Flip Vertical", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(6, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_ROTATER_CHR, "Rotate Right", Globals.CLR_BUTTON_TRANS, new RotateRightCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(6, 1, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTL_CHR, "Shift Left", Globals.CLR_BUTTON_SHIFT, new ShiftLeftCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(2, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTR_CHR, "Shift Right", Globals.CLR_BUTTON_SHIFT, new ShiftRightCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(6, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_FLIPH_CHR, "Flip Horizontal", Globals.CLR_BUTTON_TRANS, new FlipHorizontalCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(2, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_SHIFTD_CHR, "Shift Down", Globals.CLR_BUTTON_SHIFT, new ShiftDownCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(4, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlCharTools.add(getToolButton(Globals.CMD_FLIPV_CHR, "Flip Vertical", Globals.CLR_BUTTON_TRANS, new FlipVerticalCharAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(6, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
         JPanel jpnlChar = getPanel(new BorderLayout());
         charGridCanvas = new GridCanvas(TIGlobals.TI_PALETTE_OPAQUE, 8, 8, 8, parent, parent, dataSet.getColorMode());
         charGridCanvas.setColorScreen(TIGlobals.TI_PALETTE_OPAQUE[mapEditor.getColorScreen()]);
@@ -466,15 +450,13 @@ public class MagellanUI {
         transparencyCheckBox.setOpaque(false);
         transparencyCheckBox.setToolTipText("Toggle Transparency");
         transparencyCheckBox.setVisible(dataSet.getColorMode() == COLOR_MODE_ECM_2 || dataSet.getColorMode() == COLOR_MODE_ECM_3);
-        transparencyCheckBox.setActionCommand(Globals.CMD_TRANSPARENCY);
-        transparencyCheckBox.addActionListener(parent);
+        transparencyCheckBox.addActionListener(new TransparencyAction("", parent, mapEditor, dataSet, preferences));
         jpnlToolButtons.add(transparencyCheckBox);
         jpnlCharTool.add(transparencyCheckBox, BorderLayout.WEST);
         charTextField = new JTextField();
         jpnlCharTool.add(charTextField, BorderLayout.CENTER);
         JPanel jpnlCharToolbar = getPanel(new GridLayout(1, 3));
-        JButton jbtnUpdateChar = getToolButton(Globals.CMD_UPDATE_CHR, "Set Char");
-        jbtnUpdateChar.addActionListener(parent);
+        JButton jbtnUpdateChar = getToolButton(Globals.CMD_UPDATE_CHR, "Set Char", new UpdateCharAction("", parent, mapEditor, dataSet, preferences));
         jpnlCharToolbar.add(jbtnUpdateChar);
 
         Action copyCharAction = new CopyCharAction(getIcon(Globals.CMD_COPY_CHR), charTextField);
@@ -503,7 +485,7 @@ public class MagellanUI {
         charButtons = new JButton[(TIGlobals.MAX_CHAR - TIGlobals.MIN_CHAR) + 1];
         for (int ch = TIGlobals.MIN_CHAR; ch <= TIGlobals.MAX_CHAR; ch++) {
             int rowNum = ch / 8;
-            charButtons[ch] = getDockButton(((ch >= TIGlobals.CHARMAPSTART) && (ch <= TIGlobals.CHARMAPEND) ? "" + TIGlobals.CHARMAP[ch - TIGlobals.CHARMAPSTART] : "?"), Globals.CMD_EDIT_CHR + ch, TIGlobals.TI_PALETTE_OPAQUE[dataSet.getClrSets()[rowNum][Globals.INDEX_CLR_BACK]]);
+            charButtons[ch] = getDockButton(((ch >= TIGlobals.CHARMAPSTART) && (ch <= TIGlobals.CHARMAPEND) ? "" + TIGlobals.CHARMAP[ch - TIGlobals.CHARMAPSTART] : "?"), TIGlobals.TI_PALETTE_OPAQUE[dataSet.getClrSets()[rowNum][Globals.INDEX_CLR_BACK]], Globals.DM_TOOL, new EditCharAction(ch, "", parent, mapEditor, dataSet, preferences));
             charButtons[ch].setForeground(TIGlobals.TI_COLOR_UNUSED);
         }
 
@@ -525,33 +507,33 @@ public class MagellanUI {
 
         // Create toolbar on the left side of sprite editor
         JPanel jpnlSpriteToolButtons = getPanel(new GridLayout(6, 1, 0, 2));
-        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_FILL_SPR, "Fill"));
-        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_CLEAR_SPR, "Clear"));
-        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_INVERT_SPR, "Invert Image"));
-        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_GRID_SPR, "Toggle Grid"));
-        spriteUndoButton = getToolButton(Globals.CMD_UNDO_SPR, "Undo Edit");
+        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_FILL_SPR, "Fill", new FillSpriteAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_CLEAR_SPR, "Clear", new ClearSpriteAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_INVERT_SPR, "Invert Image", new InvertSpriteAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlSpriteToolButtons.add(getToolButton(Globals.CMD_GRID_SPR, "Toggle Grid", new ToggleGridSpriteAction("", parent, mapEditor, dataSet, preferences)));
+        spriteUndoButton = getToolButton(Globals.CMD_UNDO_SPR, "Undo Edit", new UndoSpriteAction("", parent, mapEditor, dataSet, preferences));
         spriteUndoButton.setEnabled(false);
         jpnlSpriteToolButtons.add(spriteUndoButton);
-        spriteRedoButton = getToolButton(Globals.CMD_REDO_SPR, "Redo Edit");
+        spriteRedoButton = getToolButton(Globals.CMD_REDO_SPR, "Redo Edit", new RedoSpriteAction("", parent, mapEditor, dataSet, preferences));
         spriteRedoButton.setEnabled(false);
         jpnlSpriteToolButtons.add(spriteRedoButton);
         jpnlSpriteTools.add(jpnlSpriteToolButtons, new GridBagConstraints(1, 1, 1, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.VERTICAL, insets, 2, 2));
 
         // Create sprite editor grid and surrounding buttons
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_ROTATEL_SPR, "Rotate Left", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_ROTATEL_SPR, "Rotate Left", Globals.CLR_BUTTON_TRANS, new RotateLeftSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(2, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         spriteIntLabel = getLabel();
         spriteIntLabel.setPreferredSize(Globals.DM_TEXT);
         jpnlSpriteTools.add(spriteIntLabel, new GridBagConstraints(3, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTU_SPR, "Shift Up", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(4, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTU_SPR, "Shift Up", Globals.CLR_BUTTON_SHIFT, new ShiftUpSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(4, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         spriteHexLabel = getLabel();
         spriteHexLabel.setPreferredSize(Globals.DM_TEXT);
         jpnlSpriteTools.add(spriteHexLabel, new GridBagConstraints(5, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_ROTATER_SPR, "Rotate Right", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(6, 1, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTL_SPR, "Shift Left", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(2, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTR_SPR, "Shift Right", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(6, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_FLIPH_SPR, "Flip Horizontal", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(2, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTD_SPR, "Shift Down", Globals.CLR_BUTTON_SHIFT), new GridBagConstraints(4, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
-        jpnlSpriteTools.add(getToolButton(Globals.CMD_FLIPV_SPR, "Flip Vertical", Globals.CLR_BUTTON_TRANS), new GridBagConstraints(6, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_ROTATER_SPR, "Rotate Right", Globals.CLR_BUTTON_TRANS, new RotateRightSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(6, 1, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTL_SPR, "Shift Left", Globals.CLR_BUTTON_SHIFT, new ShiftLeftSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(2, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTR_SPR, "Shift Right", Globals.CLR_BUTTON_SHIFT, new ShiftRightSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(6, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_FLIPH_SPR, "Flip Horizontal", Globals.CLR_BUTTON_TRANS, new FlipHorizontalSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(2, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_SHIFTD_SPR, "Shift Down", Globals.CLR_BUTTON_SHIFT, new ShiftDownSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(4, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlSpriteTools.add(getToolButton(Globals.CMD_FLIPV_SPR, "Flip Vertical", Globals.CLR_BUTTON_TRANS, new FlipVerticalSpriteAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(6, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
         JPanel jpnlSprite = getPanel(new BorderLayout());
         spriteGridCanvas = new GridCanvas(TIGlobals.TI_PALETTE_OPAQUE, 16, 16, 6, parent, parent, dataSet.getColorMode() == COLOR_MODE_BITMAP ? COLOR_MODE_GRAPHICS_1 : dataSet.getColorMode());
         spriteGridCanvas.setECMTransparency(true);
@@ -567,8 +549,7 @@ public class MagellanUI {
         spriteTextField = new JTextField();
         jpnlSpriteTool.add(spriteTextField, BorderLayout.CENTER);
         JPanel jpnlSpriteToolbar = getPanel(new GridLayout(1, 3));
-        JButton jbtnUpdateSprite = getToolButton(Globals.CMD_UPDATE_SPR, "Set Sprite");
-        jbtnUpdateSprite.addActionListener(parent);
+        JButton jbtnUpdateSprite = getToolButton(Globals.CMD_UPDATE_SPR, "Set Sprite", new UpdateSpriteAction("", parent, mapEditor, dataSet, preferences));
         jpnlSpriteToolbar.add(jbtnUpdateSprite);
 
         Action copySpriteAction = new CopySpriteAction(getIcon(Globals.CMD_COPY_SPR), spriteTextField);
@@ -596,7 +577,7 @@ public class MagellanUI {
         // Create Sprite Dock Buttons
         spriteButtons = new JButton[TIGlobals.MAX_SPRITE + 1];
         for (int i = TIGlobals.MIN_SPRITE; i <= TIGlobals.MAX_SPRITE; i++) {
-            spriteButtons[i] = getDockButton(Integer.toString(i), Globals.CMD_EDIT_SPR + i, TIGlobals.TI_PALETTE_OPAQUE[0], Globals.DM_SPRITE);
+            spriteButtons[i] = getDockButton(Integer.toString(i), TIGlobals.TI_PALETTE_OPAQUE[0], Globals.DM_SPRITE, new EditSpriteAction(i, "", parent, mapEditor, dataSet, preferences));
             spriteButtons[i].setForeground(TIGlobals.TI_COLOR_UNUSED);
         }
 
@@ -792,15 +773,14 @@ public class MagellanUI {
         return jbtnTool;
     }
 
-    protected JButton getToolButton(String buttonKey, String tooltip) {
-        return getToolButton(buttonKey, tooltip, Globals.CLR_BUTTON_NORMAL);
+    protected JButton getToolButton(String iconKey, String tooltip, Action action) {
+        return getToolButton(iconKey, tooltip, Globals.CLR_BUTTON_NORMAL, action);
     }
 
-    protected JButton getToolButton(String buttonKey, String tooltip, Color bgcolor) {
-        JButton jbtnTool = getToolButton(getIcon(buttonKey), bgcolor);
+    protected JButton getToolButton(String iconKey, String tooltip, Color bgcolor, Action action) {
+        JButton jbtnTool = getToolButton(getIcon(iconKey), bgcolor);
         jbtnTool.setToolTipText(tooltip);
-        jbtnTool.setActionCommand(buttonKey);
-        jbtnTool.addActionListener(parent);
+        jbtnTool.addActionListener(action);
         return jbtnTool;
     }
 
@@ -812,14 +792,9 @@ public class MagellanUI {
         return jbtnTool;
     }
 
-    protected JButton getDockButton(String buttonlabel, String actcmd, Color bgcolor) {
-        return getDockButton(buttonlabel, actcmd, bgcolor, Globals.DM_TOOL);
-    }
-
-    protected JButton getDockButton(String buttonlabel, String actcmd, Color bgcolor, Dimension size) {
+    protected JButton getDockButton(String buttonlabel, Color bgcolor, Dimension size, ActionListener listener) {
         JButton jbtnDock = new JButton(buttonlabel);
-        jbtnDock.setActionCommand(actcmd);
-        jbtnDock.addActionListener(parent);
+        jbtnDock.addActionListener(listener);
         jbtnDock.setOpaque(true);
         jbtnDock.setBackground(bgcolor);
         jbtnDock.setMargin(new Insets(0, 0, 0, 0));
