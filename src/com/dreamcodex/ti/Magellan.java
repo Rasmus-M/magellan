@@ -35,7 +35,7 @@ import static com.dreamcodex.ti.util.TIGlobals.*;
  * @author Rasmus Moustgaard
  */
 
-public class Magellan extends JFrame implements Runnable, WindowListener, ActionListener, MouseListener, MouseMotionListener, IconProvider, ScreenColorListener, UndoRedoListener, MapChangeListener {
+public class Magellan extends JFrame implements Runnable, WindowListener, MouseListener, MouseMotionListener, IconProvider, ScreenColorListener, UndoRedoListener, MapChangeListener {
 
 // Constants -------------------------------------------------------------------------------/
 
@@ -295,33 +295,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, Action
     }
 
 // Listeners -------------------------------------------------------------------------------/
-
-    /* ActionListener methods */
-    // Residual router: these commands are fired directly by DualClickButton/TripleClickButton/
-    // ECMPaletteComboBox (16-color palette dock and ECM palette combo), which construct
-    // ActionEvents with string commands and call actionPerformed(...) directly rather than
-    // going through a Swing Action. Everything else has been moved into dedicated Action
-    // classes wired directly from MagellanUI.
-    public void actionPerformed(ActionEvent ae) {
-        String command = ae.getActionCommand();
-        if (command.startsWith(Globals.CMD_CLRFORE_CHR)) {
-            new ColorForeCharAction(Integer.parseInt(command.substring(Globals.CMD_CLRFORE_CHR.length())), "", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        } else if (command.startsWith(Globals.CMD_CLRFORE_SPR)) {
-            new ColorForeSpriteAction(Integer.parseInt(command.substring(Globals.CMD_CLRFORE_SPR.length())), "", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        } else if (command.startsWith(Globals.CMD_CLRBACK_CHR)) {
-            new ColorBackCharAction(Integer.parseInt(command.substring(Globals.CMD_CLRBACK_CHR.length())), "", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        } else if (command.startsWith(Globals.CMD_CLRBACK_SPR)) {
-            new ColorBackSpriteAction(Integer.parseInt(command.substring(Globals.CMD_CLRBACK_SPR.length())), "", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        } else if (command.startsWith(Globals.CMD_CLRCHOOSE_CHR)) {
-            new ColorChooseCharAction(Integer.parseInt(command.substring(Globals.CMD_CLRCHOOSE_CHR.length())), "", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        } else if (command.startsWith(Globals.CMD_CLRCHOOSE_SPR)) {
-            new ColorChooseSpriteAction(Integer.parseInt(command.substring(Globals.CMD_CLRCHOOSE_SPR.length())), "", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        } else if (command.equals(Globals.CMD_PALSELECT_CHR)) {
-            new PaletteSelectCharAction("", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        } else if (command.equals(Globals.CMD_PALSELECT_SPR)) {
-            new PaletteSelectSpriteAction("", this, mapEditor, dataSet, preferences).actionPerformed(ae);
-        }
-    }
 
     /* WindowListener methods */
     public void windowClosing(WindowEvent we) {

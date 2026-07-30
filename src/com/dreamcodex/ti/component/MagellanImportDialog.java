@@ -4,8 +4,6 @@ import com.dreamcodex.ti.iface.IconProvider;
 import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
@@ -20,7 +18,7 @@ import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_ECM_3;
  * Date: 29-01-2015
  * Time: 21:12
  */
-public class MagellanImportDialog extends JDialog implements PropertyChangeListener, ActionListener, ItemListener {
+public class MagellanImportDialog extends JDialog implements PropertyChangeListener, ItemListener {
 
     public static final int TYPE_MAP_IMAGE = 0;
     public static final int TYPE_SPRITE_IMAGE = 1;
@@ -78,8 +76,8 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
         }
         jcmbStartSprite.setSelectedIndex(0);
 
-        jcmbStartPalette = colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? new ECMPaletteComboBox(palettes, -1, -1, this, type == TYPE_MAP_IMAGE) : null;
-        jcmbEndPalette = colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? new ECMPaletteComboBox(palettes, -1, -1, this, type == TYPE_MAP_IMAGE) : null;
+        jcmbStartPalette = colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? new ECMPaletteComboBox(palettes, -1, -1, null) : null;
+        jcmbEndPalette = colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? new ECMPaletteComboBox(palettes, -1, -1, null) : null;
 
         jspnGap = new JSpinner(new SpinnerNumberModel(0, 0, 8, 1));
         jsldTolerance = new JSlider(0, 16, 0);
@@ -156,9 +154,6 @@ public class MagellanImportDialog extends JDialog implements PropertyChangeListe
                 this.setVisible(false);
             }
         }
-    }
-
-    public void actionPerformed(ActionEvent e) {
     }
 
     public int getStartChar() {

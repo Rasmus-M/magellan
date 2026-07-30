@@ -52,10 +52,6 @@ public class Globals {
     public static final String CMD_UPDATE_CHR = "updatechr";
     public static final String CMD_COPY_CHR = "copychr";
     public static final String CMD_PASTE_CHR = "pastechr";
-    public static final String CMD_CLRFORE_CHR = "clrforechr";
-    public static final String CMD_CLRBACK_CHR = "clrbackchr";
-    public static final String CMD_CLRCHOOSE_CHR = "clrchoosechr";
-    public static final String CMD_PALSELECT_CHR = "palselectchr";
     public static final String CMD_ROTATEL_MAP = "rotatelmap";
     public static final String CMD_ROTATER_MAP = "rotatermap";
     public static final String CMD_FLIPH_MAP = "fliphmap";
@@ -79,10 +75,6 @@ public class Globals {
     public static final String CMD_UPDATE_SPR = "updatespr";
     public static final String CMD_COPY_SPR = "copyspr";
     public static final String CMD_PASTE_SPR = "pastespr";
-    public static final String CMD_CLRFORE_SPR = "clrforespr";
-    public static final String CMD_CLRBACK_SPR = "clrbackspr";
-    public static final String CMD_CLRCHOOSE_SPR = "clrchoosespr";
-    public static final String CMD_PALSELECT_SPR = "palselectspr";
 
     public static final String CMD_LOOK = "look";
     public static final String CMD_CLONE = "clone";

@@ -16,6 +16,7 @@ import com.dreamcodex.ti.component.*;
 import com.dreamcodex.ti.util.*;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.awt.*;
@@ -618,7 +619,11 @@ public class MagellanUI {
             }
             charColorDockButtons = new DualClickButton[16];
             for (int cd = 0; cd < 16; cd++) {
-                DualClickButton dbtnColorButton = getPaletteButton(Globals.CMD_CLRFORE_CHR + cd, Globals.CMD_CLRBACK_CHR + cd, TIGlobals.TI_PALETTE_OPAQUE[cd]);
+                DualClickButton dbtnColorButton = getPaletteButton(
+                    new ColorForeCharAction(cd, "", parent, mapEditor, dataSet, preferences),
+                    new ColorBackCharAction(cd, "", parent, mapEditor, dataSet, preferences),
+                    TIGlobals.TI_PALETTE_OPAQUE[cd]
+                );
                 if (cd == charGridCanvas.getColorBack()) {
                     dbtnColorButton.setText("B");
                 }
@@ -637,7 +642,7 @@ public class MagellanUI {
                 jPanel.removeAll();
                 jPanel.setLayout(new BorderLayout());
             }
-            charECMPaletteComboBox = new ECMPaletteComboBox(dataSet.getEcmPalettes(), charGridCanvas.getColorDraw(), charGridCanvas.getColorBack(), parent, true);
+            charECMPaletteComboBox = new ECMPaletteComboBox(dataSet.getEcmPalettes(), charGridCanvas.getColorDraw(), charGridCanvas.getColorBack(), new PaletteHandler(true));
             jPanel.add(charECMPaletteComboBox, BorderLayout.CENTER);
         }
         return jPanel;
@@ -654,7 +659,11 @@ public class MagellanUI {
             }
             spriteColorDockButtons = new DualClickButton[16];
             for (int cd = 0; cd < 16; cd++) {
-                DualClickButton dbtnColorButton = getPaletteButton(Globals.CMD_CLRFORE_SPR + cd, Globals.CMD_CLRBACK_SPR + cd, TIGlobals.TI_PALETTE_OPAQUE[cd]);
+                DualClickButton dbtnColorButton = getPaletteButton(
+                    new ColorForeSpriteAction(cd, "", parent, mapEditor, dataSet, preferences),
+                    new ColorBackSpriteAction(cd, "", parent, mapEditor, dataSet, preferences),
+                    TIGlobals.TI_PALETTE_OPAQUE[cd]
+                );
                 if (cd == spriteGridCanvas.getColorBack()) {
                     dbtnColorButton.setText("B");
                 }
@@ -673,7 +682,7 @@ public class MagellanUI {
                 jPanel.removeAll();
                 jPanel.setLayout(new BorderLayout());
             }
-            spriteECMPaletteComboBox = new ECMPaletteComboBox(dataSet.getEcmPalettes(), spriteGridCanvas.getColorDraw(), spriteGridCanvas.getColorBack(), parent, false);
+            spriteECMPaletteComboBox = new ECMPaletteComboBox(dataSet.getEcmPalettes(), spriteGridCanvas.getColorDraw(), spriteGridCanvas.getColorBack(), new PaletteHandler(false));
             jPanel.add(spriteECMPaletteComboBox, BorderLayout.CENTER);
         }
         return jPanel;
@@ -802,9 +811,8 @@ public class MagellanUI {
         return jbtnDock;
     }
 
-    protected DualClickButton getPaletteButton(String forecmd, String backcmd, Color bgcolor) {
-        DualClickButton dbtnPal = new DualClickButton("", forecmd, backcmd, parent);
-        dbtnPal.addActionListener(parent);
+    protected DualClickButton getPaletteButton(Action foreAction, Action backAction, Color bgcolor) {
+        DualClickButton dbtnPal = new DualClickButton("", foreAction, backAction);
         dbtnPal.setOpaque(true);
         dbtnPal.setBackground(bgcolor);
         dbtnPal.setMargin(new Insets(0, 0, 0, 0));
@@ -872,5 +880,46 @@ public class MagellanUI {
             spriteECMPaletteComboBox.setSelectedItem(dataSet.getEcmSpritePalettes()[activeSprite]);
         }
         spriteECMPaletteComboBox.setEditable(true);
+    }
+
+    /**
+     * Maps the ECM palette dock gestures onto the character or the sprite actions.
+     */
+    private class PaletteHandler implements ECMPaletteComboBox.PaletteHandler {
+
+        private final boolean chr;
+
+        PaletteHandler(boolean chr) {
+            this.chr = chr;
+        }
+
+        public void foreColorSelected(int index, ActionEvent e) {
+            (chr
+                ? new ColorForeCharAction(index, "", parent, mapEditor, dataSet, preferences)
+                : new ColorForeSpriteAction(index, "", parent, mapEditor, dataSet, preferences)
+            ).actionPerformed(e);
+        }
+
+        public void backColorSelected(int index, ActionEvent e) {
+            (chr
+                ? new ColorBackCharAction(index, "", parent, mapEditor, dataSet, preferences)
+                : new ColorBackSpriteAction(index, "", parent, mapEditor, dataSet, preferences)
+            ).actionPerformed(e);
+        }
+
+        public void colorChosen(int index, ActionEvent e) {
+            (chr
+                ? new ColorChooseCharAction(index, "", parent, mapEditor, dataSet, preferences)
+                : new ColorChooseSpriteAction(index, "", parent, mapEditor, dataSet, preferences)
+            ).actionPerformed(e);
+        }
+
+        public void paletteSelected() {
+            ActionEvent e = new ActionEvent(MagellanUI.this, ActionEvent.ACTION_PERFORMED, null);
+            (chr
+                ? new PaletteSelectCharAction("", parent, mapEditor, dataSet, preferences)
+                : new PaletteSelectSpriteAction("", parent, mapEditor, dataSet, preferences)
+            ).actionPerformed(e);
+        }
     }
 }

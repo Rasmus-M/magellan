@@ -1,7 +1,6 @@
 package com.dreamcodex.ti.component;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.Action;
 import java.awt.event.MouseEvent;
 
 /**
@@ -12,17 +11,16 @@ import java.awt.event.MouseEvent;
  */
 public class TripleClickButton extends DualClickButton {
 
-    private String dblClick;
+    private final Action dblClickAction;
 
-    public TripleClickButton(String textLabel, String leftCmd, String rightCmd, String dblClick, ActionListener actionListener) {
-        super(textLabel, leftCmd, rightCmd, actionListener);
-        this.dblClick = dblClick;
+    public TripleClickButton(String textLabel, Action leftClickAction, Action rightClickAction, Action dblClickAction) {
+        super(textLabel, leftClickAction, rightClickAction);
+        this.dblClickAction = dblClickAction;
     }
 
     public void mouseClicked(MouseEvent me) {
-        if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2 && dblClick != null) {
-            ActionEvent aeInit = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, dblClick);
-            parent.actionPerformed(aeInit);
+        if (me.getButton() == MouseEvent.BUTTON1 && me.getClickCount() == 2) {
+            fire(dblClickAction, me);
         }
     }
 }

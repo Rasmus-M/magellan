@@ -64,10 +64,19 @@ a subclass, constructed inline in `MagellanUI.createMenu()` / `createMainPanel()
   `vdp`, …). Export actions follow a fixed shape: show a `MagellanExportDialog`, copy the chosen options back
   into `Preferences`, pick a file, then delegate to an `Exporter`.
 
-`Magellan.actionPerformed` is *not* the dispatcher any more — it is a residual router for the handful of
-components that still fire raw string commands (`DualClickButton`, `TripleClickButton`, `ECMPaletteComboBox`
-in the color docks). **To add a command, write an Action subclass and wire it in `MagellanUI`**; don't extend
-the string-command switch. The `Globals.CMD_*` constants are legacy and only partly live.
+`Magellan` no longer dispatches actions at all. **To add a command, write an Action subclass and wire it in
+`MagellanUI`.** The remaining `Globals.CMD_*` constants are legacy and belong to `MapEditor`, which still has
+its own string-command router in `MapEditor.actionPerformed` (~40 branches; only the four shift-map operations
+have been extracted into `actions/map/`).
+
+The color docks can't use a plain `JButton` + `Action`, because one swatch maps three gestures to three
+commands. `DualClickButton` holds a left and a right `Action` and invokes them from its `MouseListener` —
+Swing fires no action event for the right mouse button — and `TripleClickButton` adds a double-click action.
+`ECMPaletteComboBox` exposes a `PaletteHandler` interface instead of an `ActionListener`; `MagellanUI`
+implements it and fires the char or sprite variant of each action. Note that these buttons dispatch from
+`mouseReleased`, so the `ActionEvent` they build must carry `MouseEvent.getModifiers()` — the four
+`Color(Fore|Back)(Char|Sprite)Action` classes branch on SHIFT/CTRL to swap palette entries instead of
+selecting a color.
 
 ### Canvases and the aliasing rule
 
