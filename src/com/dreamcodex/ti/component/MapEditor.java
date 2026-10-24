@@ -451,7 +451,12 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             setLookModeOn(false);
             setCloneModeOn(false);
             setTypeCellOn(false);
+            setFloodFillMode(false);
         }
+        jbtnLook.setEnabled(!enabled);
+        jbtnClone.setEnabled(!enabled);
+        jbtnTextCursor.setEnabled(!enabled);
+        jbtnFloodFillMode.setEnabled(!enabled);
         mapCanvas.setSpriteMode(enabled);
         updateComponents();
     }

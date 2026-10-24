@@ -20,7 +20,7 @@ public class AboutAction extends EditorAction {
             "About Magellan",
             "<html>" +
                 "<h1>Magellan, version " + Magellan.VERSION_NUMBER + "</h1>" +
-                "<p>Â© 2010 Howard Kistler/Dream Codex Retrogames (<a href=\"http://www.dreamcodex.com\">www.dreamcodex.com</a>)</p>" +
+                "<p>© 2010 Howard Kistler/Dream Codex Retrogames (<a href=\"http://www.dreamcodex.com\">www.dreamcodex.com</a>)</p>" +
                 "<p>Magellan is free software maintained by the TI-99/4A community.</p>" +
                 "<p>Modified by:</p>" +
                 "<ul>" +
