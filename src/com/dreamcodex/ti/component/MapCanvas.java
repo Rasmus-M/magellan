@@ -92,6 +92,11 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     private Rectangle rectClone = null;
     private final Point ptLastGrid = new Point(PT_OFFGRID);
     private boolean isTyping = false;
+    // Sprite under the mouse in sprite mode, which gets a small remove icon
+    private HashPoint hoverSpritePoint = null;
+    private int hoverSpriteNum = -1;
+    private boolean overRemoveIcon = false;
+    private boolean removeIconPressed = false;
 
 // Constructors ----------------------------------------------------------------------------/
 
@@ -192,6 +197,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setSpriteMap(HashMap<Point, ArrayList<Integer>> spriteMap) {
         this.spriteMap = spriteMap;
+        clearSpriteHover();
     }
 
     public void setColorGrid(Color clr) {
@@ -410,6 +416,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         this.spriteMode = enabled;
         if (enabled) {
             this.floodFillModeOn = false;
+        } else {
+            clearSpriteHover();
         }
     }
 
@@ -419,6 +427,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void clearSpriteMap() {
         spriteMap = new HashMap<>();
+        clearSpriteHover();
     }
 
     public boolean getViewCharLayer() {
@@ -436,6 +445,9 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setViewSpriteLayer(boolean viewSpriteLayer) {
         this.viewSpriteLayer = viewSpriteLayer;
+        if (!viewSpriteLayer) {
+            clearSpriteHover();
+        }
         redrawCanvas();
     }
 
@@ -624,12 +636,104 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             if (showSpritesPerLine && viewSpriteLayer && spritesPerLineImageScaled != null) {
                 g.drawImage(spritesPerLineImageScaled, gridOffsetX + width + 1, gridOffsetY, this);
             }
+            Rectangle removeIcon = getRemoveIconBounds();
+            if (removeIcon != null) {
+                paintRemoveIcon((Graphics2D) g, removeIcon);
+            }
             if (overlay != null) {
                 ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.33f));
                 g.drawImage(overlay, gridOffsetX, gridOffsetY, width, height, this);
             }
             g.dispose();
         } catch (NullPointerException npe) { /* component not yet initialised */ }
+    }
+
+    // Sprite remove icon ----------------------------------------------------------------------/
+
+    private boolean isSpriteHoverEnabled() {
+        return spriteMode && viewSpriteLayer && !cloneModeOn && !lookModeOn && !floodFillModeOn;
+    }
+
+    private void clearSpriteHover() {
+        hoverSpritePoint = null;
+        hoverSpriteNum = -1;
+        if (overRemoveIcon) {
+            setCursor(Cursor.getDefaultCursor());
+        }
+        overRemoveIcon = false;
+    }
+
+    /**
+     * Finds the topmost sprite under the given screen point and checks whether the point is on its remove icon.
+     * Uses unsnapped pixel coordinates and the same iteration order as the renderer, so the last hit is the one on top.
+     */
+    private void updateSpriteHover(Point screenPt) {
+        clearSpriteHover();
+        if (!isSpriteHoverEnabled() || screenPt == null || viewScale < 1) {
+            return;
+        }
+        int px = Math.floorDiv(screenPt.x - gridOffsetX, viewScale);
+        int py = Math.floorDiv(screenPt.y - gridOffsetY, viewScale);
+        int size = 16 * spriteMagnification;
+        for (Point p : spriteMap.keySet()) {
+            ArrayList<Integer> spriteList = spriteMap.get(p);
+            if (spriteList != null && !spriteList.isEmpty() && px >= p.x && px < p.x + size && py >= p.y && py < p.y + size) {
+                hoverSpritePoint = new HashPoint(p);
+                hoverSpriteNum = spriteList.get(spriteList.size() - 1);
+            }
+        }
+        Rectangle icon = getRemoveIconBounds();
+        overRemoveIcon = icon != null && icon.contains(screenPt);
+        if (overRemoveIcon) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+    }
+
+    /**
+     * Screen bounds of the remove icon, drawn at a fixed size inside the top-right corner of the hovered sprite.
+     */
+    private Rectangle getRemoveIconBounds() {
+        if (hoverSpritePoint == null || !isSpriteHoverEnabled()) {
+            return null;
+        }
+        ArrayList<Integer> spriteList = spriteMap.get(hoverSpritePoint);
+        if (spriteList == null || !spriteList.contains(hoverSpriteNum)) {
+            return null;
+        }
+        int spriteScreenSize = 16 * spriteMagnification * viewScale;
+        int iconSize = Math.max(9, Math.min(14, spriteScreenSize / 2));
+        int x = gridOffsetX + hoverSpritePoint.x * viewScale + spriteScreenSize - iconSize;
+        // Keep the icon inside the map when the sprite hangs over the right edge
+        x = Math.min(x, gridOffsetX + gridData[0].length * cellSize * viewScale - iconSize);
+        int y = gridOffsetY + hoverSpritePoint.y * viewScale;
+        return new Rectangle(x, y, iconSize, iconSize);
+    }
+
+    private void paintRemoveIcon(Graphics2D g2, Rectangle r) {
+        Object oldAntialias = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+        Stroke oldStroke = g2.getStroke();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(overRemoveIcon ? new Color(255, 64, 64) : new Color(200, 0, 0));
+        g2.fillOval(r.x, r.y, r.width - 1, r.height - 1);
+        g2.setColor(Color.WHITE);
+        g2.drawOval(r.x, r.y, r.width - 1, r.height - 1);
+        int inset = Math.max(3, r.width / 3);
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawLine(r.x + inset, r.y + inset, r.x + r.width - 1 - inset, r.y + r.height - 1 - inset);
+        g2.drawLine(r.x + r.width - 1 - inset, r.y + inset, r.x + inset, r.y + r.height - 1 - inset);
+        g2.setStroke(oldStroke);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldAntialias);
+    }
+
+    /**
+     * Removes the hovered sprite (the topmost one at its position) as an undoable edit.
+     */
+    private void removeHoveredSprite() {
+        ArrayList<Integer> spriteList = spriteMap.get(hoverSpritePoint);
+        if (spriteList != null && spriteList.remove(Integer.valueOf(hoverSpriteNum))) {
+            undoManager.undoableEditHappened(new UndoableEditEvent(this, new SpriteEdit(hoverSpritePoint.x, hoverSpritePoint.y, -1, hoverSpriteNum)));
+        }
+        clearSpriteHover();
     }
 
     private int getSpritesOnLine(int y) {
@@ -658,6 +762,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private void highlightCell(Graphics g, int x, int y) {
         Image image = spriteMode ? hmSpriteImages.get(activeSprite) : hmCharImages.get(activeChar);
+        if (overRemoveIcon) {
+            // No placement preview or outline while hovering the remove icon
+            return;
+        }
         if (lookModeOn || cloneModeOn || !paintOn || image == null) {
             outlineCell(g, x, y, clrHigh);
         } else {
@@ -845,6 +953,18 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     /* MouseListener methods */
 
     public void mousePressed(MouseEvent me) {
+        if (me.getButton() == MouseEvent.BUTTON1 && isSpriteHoverEnabled()) {
+            updateSpriteHover(me.getPoint());
+            if (overRemoveIcon) {
+                removeIconPressed = true;
+                removeHoveredSprite();
+                updateSpriteHover(me.getPoint());
+                redrawCanvas();
+                notifyMapChangedListeners();
+                parentMouseListener.mousePressed(me);
+                return;
+            }
+        }
         if (isFloodFillModeOn() && !spriteMode) {
             floodFillGrid();
         }
@@ -902,6 +1022,12 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void mouseReleased(MouseEvent me) {
+        if (removeIconPressed) {
+            removeIconPressed = false;
+            updateSpriteHover(me.getPoint());
+            redrawCanvas();
+            return;
+        }
         if (cloneModeOn) {
             if (cloneArray == null && rectClone == null && !cloneCell.equals(PT_OFFGRID)) {
                 // Set end of clone region
@@ -926,6 +1052,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 undoManager.undoableEditHappened(new UndoableEditEvent(this, strokeEdit));
             }
             strokeEdit = null;
+            updateSpriteHover(me.getPoint());
+            redrawCanvas();
         }
     }
 
@@ -933,6 +1061,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void mouseExited(MouseEvent me) {
+        clearSpriteHover();
         setHotCell(PT_OFFGRID);
         redrawCanvas();
     }
@@ -940,6 +1069,11 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     /* MouseMotionListener methods */
 
     public void mouseDragged(MouseEvent me) {
+        if (removeIconPressed) {
+            // Don't paint sprites while dragging away from a remove click
+            return;
+        }
+        clearSpriteHover();
         if (cloneModeOn) {
             setHotCell(getMouseCell(me.getPoint()));
             redrawCanvas();
@@ -959,6 +1093,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 setHotCell(getMouseCell(me.getPoint()));
             }
             ptLastGrid.setLocation(me.getPoint());
+            updateSpriteHover(me.getPoint());
             if (lookModeOn) {
                 if (!hotCell.equals(PT_OFFGRID)) {
                     lookChar = gridData[(int) (hotCell.getY())][(int) (hotCell.getX())];
