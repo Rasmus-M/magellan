@@ -146,7 +146,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
 
         // Create map editor panel (needs to initialise early for the listeners)
         mapEditor = new MapEditor(MAP_COLS, MAP_ROWS, MAP_CELL, this, this);
-        mapEditor.fillGrid(TIGlobals.SPACECHAR);
+        mapEditor.clearGrid();
         mapEditor.setBkgrndColor(Globals.CLR_COMPONENTBACK);
         mapEditor.resetUndoManager();
 
@@ -234,7 +234,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         mapEditor.addScreenColorListener(this);
         final JTabbedPane tabbedPane = ui.getEditorTabbedPane();
         tabbedPane.addChangeListener(e -> {
-            boolean spriteMode = tabbedPane.getSelectedIndex() == 1;
+            boolean spriteMode = ui.isSpriteTabSelected();
             mapEditor.setSpriteMode(spriteMode);
             if (spriteMode) {
                 mapEditor.getLookButton().setBackground(Globals.CLR_BUTTON_NORMAL);

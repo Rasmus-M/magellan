@@ -12,6 +12,7 @@ import javax.swing.undo.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,6 +22,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public static final Point PT_OFFGRID = new Point(-1, -1);
     public static final int NOCHAR = -1;
+
+    // Sprites are 16x16 pixels (32x32 when magnified), independent of the map cell size
+    private static final int SPRITE_SIZE = 16;
+    private static final int SPRITES_PER_LINE_WIDTH = 8;
 
     public static Color CLR_COPY = new Color(255, 128, 128, 128);
     public static Color CLR_PASTE = new Color(128, 128, 255, 128);
@@ -44,7 +49,10 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     protected boolean paintOn = true;
     protected HashMap<Integer, Image> hmCharImages;
     protected HashMap<Integer, Image> hmSpriteImages;
-    protected int activeChar = TIGlobals.SPACECHAR;
+    // Value painted into the map with the left mouse button
+    protected int paintValue = TIGlobals.SPACECHAR;
+    // Value representing an empty cell: used for erasing, clearing and new cells
+    protected int blankValue = TIGlobals.SPACECHAR;
     protected int activeSprite = 0;
     protected int viewScale = 1;
     protected int gridScale = 1;
@@ -84,7 +92,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private int gridOffsetX = 0;
     private int gridOffsetY = 0;
-    private final int cellSize;
+    private int cellSize;
     private boolean snapSpritesToGrid = false;
     private final Point hotCell = new Point(PT_OFFGRID);
     private final Point typeCell = new Point(PT_OFFGRID);
@@ -110,7 +118,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         gridData = new int[gridHeight][gridWidth];
         for (int y = 0; y < gridHeight; y++) {
             for (int x = 0; x < gridWidth; x++) {
-                gridData[y][x] = TIGlobals.SPACECHAR;
+                gridData[y][x] = blankValue;
             }
         }
         spriteMap = new HashMap<>();
@@ -146,8 +154,16 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         return spriteMap;
     }
 
-    public int getActiveChar() {
-        return activeChar;
+    public int getPaintValue() {
+        return paintValue;
+    }
+
+    public int getBlankValue() {
+        return blankValue;
+    }
+
+    public int getCellSize() {
+        return cellSize;
     }
 
     public int getViewScale() {
@@ -204,8 +220,16 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         clrGrid = clr;
     }
 
-    public void setActiveChar(int i) {
-        activeChar = i;
+    public void setPaintValue(int i) {
+        paintValue = i;
+    }
+
+    public void setBlankValue(int i) {
+        blankValue = i;
+    }
+
+    public void setCellSize(int cellSize) {
+        this.cellSize = cellSize;
     }
 
     public void setActiveSprite(int i) { activeSprite = i; }
@@ -274,7 +298,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 if (x < this.getGridWidth()) {
                     newGrid[y][x] = gridData[y][x];
                 } else {
-                    newGrid[y][x] = TIGlobals.SPACECHAR;
+                    newGrid[y][x] = blankValue;
                 }
             }
         }
@@ -290,7 +314,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 if (y < this.getGridHeight()) {
                     newGrid[y][x] = gridData[y][x];
                 } else {
-                    newGrid[y][x] = TIGlobals.SPACECHAR;
+                    newGrid[y][x] = blankValue;
                 }
             }
         }
@@ -560,7 +584,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                     for (int spriteNum : spriteList) {
                         Image spriteImage = hmSpriteImages.get(spriteNum);
                         if (spriteImage != null) {
-                            g.drawImage(spriteImage, p.x, p.y, 16 * spriteMagnification, 16 * spriteMagnification, this);
+                            g.drawImage(spriteImage, p.x, p.y, SPRITE_SIZE * spriteMagnification, SPRITE_SIZE * spriteMagnification, this);
                         }
                     }
                 }
@@ -594,17 +618,17 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         int scaledHeight = bufferHeight * viewScale;
         gridImageScaled = gridImage.getScaledInstance(scaledWidth, scaledHeight, BufferedImage.SCALE_REPLICATE);
         if (showSpritesPerLine) {
-            BufferedImage spritesPerLineImage = getImageBuffer(cellSize, bufferHeight);
+            BufferedImage spritesPerLineImage = getImageBuffer(SPRITES_PER_LINE_WIDTH, bufferHeight);
             g = spritesPerLineImage.getGraphics();
             for (int y = 0; y < bufferHeight; y++) {
                int spritesOnLine = getSpritesOnLine(y);
                g.setColor(SPRITE_PER_LINE_COLORS[Math.min(spritesOnLine, SPRITE_PER_LINE_COLORS.length - 1)]);
-               g.drawRect(0, y, cellSize, 1);
+               g.drawRect(0, y, SPRITES_PER_LINE_WIDTH, 1);
             }
             g.dispose();
-            spritesPerLineImageScaled = spritesPerLineImage.getScaledInstance(cellSize * viewScale, scaledHeight, BufferedImage.SCALE_REPLICATE);
+            spritesPerLineImageScaled = spritesPerLineImage.getScaledInstance(SPRITES_PER_LINE_WIDTH * viewScale, scaledHeight, BufferedImage.SCALE_REPLICATE);
         }
-        this.setPreferredSize(new Dimension(scaledWidth + (showSpritesPerLine ? cellSize * viewScale : 0) + 2, scaledHeight + 2));
+        this.setPreferredSize(new Dimension(scaledWidth + (showSpritesPerLine ? SPRITES_PER_LINE_WIDTH * viewScale : 0) + 2, scaledHeight + 2));
         this.repaint();
     }
 
@@ -674,7 +698,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         }
         int px = Math.floorDiv(screenPt.x - gridOffsetX, viewScale);
         int py = Math.floorDiv(screenPt.y - gridOffsetY, viewScale);
-        int size = 16 * spriteMagnification;
+        int size = SPRITE_SIZE * spriteMagnification;
         for (Point p : spriteMap.keySet()) {
             ArrayList<Integer> spriteList = spriteMap.get(p);
             if (spriteList != null && !spriteList.isEmpty() && px >= p.x && px < p.x + size && py >= p.y && py < p.y + size) {
@@ -700,7 +724,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         if (spriteList == null || !spriteList.contains(hoverSpriteNum)) {
             return null;
         }
-        int spriteScreenSize = 16 * spriteMagnification * viewScale;
+        int spriteScreenSize = SPRITE_SIZE * spriteMagnification * viewScale;
         int iconSize = Math.max(9, Math.min(14, spriteScreenSize / 2));
         int x = gridOffsetX + hoverSpritePoint.x * viewScale + spriteScreenSize - iconSize;
         // Keep the icon inside the map when the sprite hangs over the right edge
@@ -739,7 +763,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     private int getSpritesOnLine(int y) {
         int spritesOnLine = 0;
         for (Point p : spriteMap.keySet()) {
-            if (y >= p.y && y < p.y + 16) {
+            if (y >= p.y && y < p.y + SPRITE_SIZE * spriteMagnification) {
                 spritesOnLine += spriteMap.get(p).size();
             }
         }
@@ -748,7 +772,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private void outlineCell(Graphics g, int x, int y, Color clr) {
         g.setColor(clr);
-        int size = (cellSize << (spriteMode ? spriteMagnification : 0)) - 1;
+        int size = (spriteMode ? SPRITE_SIZE * spriteMagnification : cellSize) - 1;
         if (spriteMode) {
             g.drawRect(x, y, size, size);
         } else {
@@ -761,7 +785,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     private void highlightCell(Graphics g, int x, int y) {
-        Image image = spriteMode ? hmSpriteImages.get(activeSprite) : hmCharImages.get(activeChar);
+        Image image = spriteMode ? hmSpriteImages.get(activeSprite) : hmCharImages.get(paintValue);
         if (overRemoveIcon) {
             // No placement preview or outline while hovering the remove icon
             return;
@@ -769,7 +793,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         if (lookModeOn || cloneModeOn || !paintOn || image == null) {
             outlineCell(g, x, y, clrHigh);
         } else {
-            int size = cellSize << (spriteMode ? spriteMagnification : 0);
+            int size = spriteMode ? SPRITE_SIZE * spriteMagnification : cellSize;
             if (spriteMode) {
                 g.drawImage(image, x, y, size, size, this);
             } else {
@@ -792,7 +816,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void clearGrid() {
-        setAllGrid(TIGlobals.SPACECHAR);
+        setAllGrid(blankValue);
     }
 
     public void fillGrid(int v) {
@@ -803,7 +827,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         int oldChar = getGridAtHotCell();
         if (oldChar != NOCHAR) {
             int[][] oldValue = getGridDataCopy();
-            int charsFilled = floodFill(getHotCell(), oldChar, getActiveChar());
+            int charsFilled = floodFill(getHotCell(), oldChar, paintValue);
             if (charsFilled > 0) {
                 redrawCanvas();
                 undoManager.undoableEditHappened(new UndoableEditEvent(this, new AllMapEdit(oldValue)));
@@ -811,15 +835,24 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    int floodFill(Point p, int oldChar, int newChar) {
+    // Iterative, so large maps can't overflow the stack
+    int floodFill(Point start, int oldChar, int newChar) {
         int charsFilled = 0;
-        if (oldChar != newChar && getGridAt(p) == oldChar) {
-            setGridAt(p, newChar);
-            charsFilled++;
-            charsFilled += floodFill(new Point(p.x + 1, p.y), oldChar, newChar);
-            charsFilled += floodFill(new Point(p.x - 1, p.y), oldChar, newChar);
-            charsFilled += floodFill(new Point(p.x, p.y + 1), oldChar, newChar);
-            charsFilled += floodFill(new Point(p.x, p.y - 1), oldChar, newChar);
+        if (oldChar == newChar) {
+            return 0;
+        }
+        ArrayDeque<Point> queue = new ArrayDeque<>();
+        queue.add(start);
+        while (!queue.isEmpty()) {
+            Point p = queue.poll();
+            if (getGridAt(p) == oldChar) {
+                setGridAt(p, newChar);
+                charsFilled++;
+                queue.add(new Point(p.x + 1, p.y));
+                queue.add(new Point(p.x - 1, p.y));
+                queue.add(new Point(p.x, p.y + 1));
+                queue.add(new Point(p.x, p.y - 1));
+            }
         }
         return charsFilled;
     }
@@ -906,7 +939,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 boolean change = false;
                 if (!spriteMode) {
                     oldValue = gridData[y][x];
-                    int newChar = paintOn ? activeChar : TIGlobals.SPACECHAR;
+                    int newChar = paintOn ? paintValue : blankValue;
                     if (gridData[y][x] != newChar) {
                         gridData[y][x] = newChar;
                         change = true;
@@ -1115,7 +1148,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     /* KeyListener methods */
     public void keyTyped(KeyEvent ke) {
-        if (!typeCell.equals(PT_OFFGRID) && !isTyping) {
+        // Only type when the text cursor is on; in sprite mode typeCell holds pixel coordinates
+        if (typeCellOn && !spriteMode && !typeCell.equals(PT_OFFGRID) && !isTyping) {
             isTyping = true;
             typeCharToGrid(typeCell, ke.getKeyChar());
             isTyping = false;

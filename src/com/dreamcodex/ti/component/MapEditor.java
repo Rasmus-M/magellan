@@ -298,8 +298,16 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         mapCanvas.setColorGrid(clr);
     }
 
-    public void setActiveChar(int i) {
-        mapCanvas.setActiveChar(i);
+    public void setPaintValue(int i) {
+        mapCanvas.setPaintValue(i);
+    }
+
+    public int getBlankValue() {
+        return mapCanvas.getBlankValue();
+    }
+
+    public void setBlankValue(int i) {
+        mapCanvas.setBlankValue(i);
     }
 
     public void setActiveSprite(int i) {
@@ -527,7 +535,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     public void addBlankMap(int w, int h) {
         int[][] newMap = new int[h][w];
         for (int[] ints : newMap) {
-            Arrays.fill(ints, TIGlobals.SPACECHAR);
+            Arrays.fill(ints, mapCanvas != null ? mapCanvas.getBlankValue() : TIGlobals.SPACECHAR);
         }
         arMaps.add(newMap);
         arClrs.add((mapCanvas != null ? getColorScreen() : 15));
@@ -766,16 +774,17 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                 jlblPosIndic.setText("(X, Y) = ( - , - ) = ( - , - )    (PX, PY) = ( - , - ) = ( - , - )");
             } else {
                 int posx, posy, pixx, pixy;
+                int cellSize = mapCanvas.getCellSize();
                 if (mapCanvas.isSpriteMode()) {
                     pixx = (int) getHotCell().getX();
                     pixy = (int) getHotCell().getY();
-                    posx = pixx / 8;
-                    posy = pixy / 8;
+                    posx = pixx / cellSize;
+                    posy = pixy / cellSize;
                 } else {
                     posx = (int) getHotCell().getX();
                     posy = (int) getHotCell().getY();
-                    pixx = posx * 8;
-                    pixy = posy * 8;
+                    pixx = posx * cellSize;
+                    pixy = posy * cellSize;
                 }
                 if (!base0forPosition) {
                     posx++;
@@ -871,7 +880,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     }
                 } else if (command.equals(Globals.CMD_FILL_CHR)) {
                     if (confirmationAction("Confirm Fill", "Are you sure you want to fill the map with the active character?") == JOptionPane.YES_OPTION) {
-                        fillGrid(mapCanvas.getActiveChar());
+                        fillGrid(mapCanvas.getPaintValue());
                         updateComponents();
                     }
                 } else if (command.equals(Globals.CMD_FLOOD_FILL)) {
@@ -987,11 +996,17 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     private void updateWidth() {
         try {
             int newWidth = Integer.parseInt(jtxtWidth.getText());
-            int oldWidth = mapCanvas.getWidth();
-            mapCanvas.setGridWidth(newWidth);
-            jsclCanvas.revalidate();
-            if (newWidth < oldWidth) {
-                undoManager.discardAllEdits();
+            int oldWidth = mapCanvas.getGridWidth();
+            if (newWidth < 1) {
+                throw new NumberFormatException();
+            }
+            if (newWidth != oldWidth) {
+                mapCanvas.setGridWidth(newWidth);
+                jsclCanvas.revalidate();
+                // Edits may refer to cells that no longer exist
+                if (newWidth < oldWidth) {
+                    undoManager.discardAllEdits();
+                }
             }
         } catch (NumberFormatException nfe) {
             jtxtWidth.setText("" + mapCanvas.getGridWidth());
@@ -1001,11 +1016,17 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     private void updateHeight() {
         try {
             int newHeight = Integer.parseInt(jtxtHeight.getText());
-            int oldHeight = mapCanvas.getHeight();
-            mapCanvas.setGridHeight(newHeight);
-            jsclCanvas.revalidate();
-            if (newHeight < oldHeight) {
-                undoManager.discardAllEdits();
+            int oldHeight = mapCanvas.getGridHeight();
+            if (newHeight < 1) {
+                throw new NumberFormatException();
+            }
+            if (newHeight != oldHeight) {
+                mapCanvas.setGridHeight(newHeight);
+                jsclCanvas.revalidate();
+                // Edits may refer to cells that no longer exist
+                if (newHeight < oldHeight) {
+                    undoManager.discardAllEdits();
+                }
             }
         } catch (NumberFormatException nfe) {
             jtxtHeight.setText("" + mapCanvas.getGridHeight());

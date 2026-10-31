@@ -64,7 +64,7 @@ public class EditCharAction extends EditorAction {
         }
         charCanvas.setECMTransparency(dataSet.getEcmCharTransparency()[charNum]);
         charCanvas.redrawCanvas();
-        mapEditor.setActiveChar(charNum);
+        mapEditor.setPaintValue(charNum);
         mapEditor.setCloneModeOn(false);
         parent.updateComponents();
     }

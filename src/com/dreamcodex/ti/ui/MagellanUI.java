@@ -83,6 +83,7 @@ public class MagellanUI {
 
     // Tabbed pane
     private JTabbedPane editorTabbedPane;
+    private JPanel spriteEditorPanel;
 
     public MagellanUI(Magellan parent, MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
 
@@ -170,6 +171,11 @@ public class MagellanUI {
 
     public JTabbedPane getEditorTabbedPane() {
         return editorTabbedPane;
+    }
+
+    // Identify tabs by component, so inserting tabs doesn't break the checks
+    public boolean isSpriteTabSelected() {
+        return editorTabbedPane.getSelectedComponent() == spriteEditorPanel;
     }
 
     public JMenuBar createMenu() {
@@ -593,6 +599,7 @@ public class MagellanUI {
         jpnlSpriteEdit.add(jsclSpriteDock, new GridBagConstraints(1, 3, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, insets2, 1, 1));
 
         // Tabs
+        spriteEditorPanel = jpnlSpriteEdit;
         editorTabbedPane.add("Characters", jpnlCharEdit);
         editorTabbedPane.add("Sprites", jpnlSpriteEdit);
 
