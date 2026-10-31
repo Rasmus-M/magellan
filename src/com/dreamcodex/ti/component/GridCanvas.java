@@ -474,8 +474,6 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
                 gridData[y][x] = v;
             }
         }
-        redrawCanvas();
-        saveUndoState();
     }
 
     private void setAllColors(int back, int fore) {
@@ -483,7 +481,6 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
             gridColors[y][0] = back;
             gridColors[y][1] = fore;
         }
-        saveUndoState();
     }
 
     public void clearGrid() {
@@ -491,6 +488,9 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
         if (colorMode == COLOR_MODE_BITMAP) {
             setAllColors(clrBack, clrDraw);
         }
+        // Redraw only after the bitmap row colors are set, and record a single undo step
+        redrawCanvas();
+        saveUndoState();
     }
 
     public void fillGrid() {
@@ -498,6 +498,8 @@ public class GridCanvas extends JPanel implements MouseListener, MouseMotionList
         if (colorMode == COLOR_MODE_BITMAP) {
             setAllColors(clrBack, clrDraw);
         }
+        redrawCanvas();
+        saveUndoState();
     }
 
     protected BufferedImage getImageBuffer(int width, int height) {
