@@ -26,7 +26,6 @@ public class CharacterPropertiesDialog extends JDialog implements ActionListener
         this.charNames = charNames;
         this.charProperties = charProperties;
         this.charPropertyLabels = charPropertyLabels;
-        setLocationRelativeTo(this);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -87,8 +86,10 @@ public class CharacterPropertiesDialog extends JDialog implements ActionListener
         buttonPanel.add(cancelButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // pack();
-        setSize(400, 300);
+        pack();
+        setSize(Math.max(400, getWidth()), getHeight());
+        setMinimumSize(getSize());
+        setLocationRelativeTo(parent);
         setVisible(true);
     }
 
