@@ -13,8 +13,11 @@ import java.util.StringTokenizer;
 
 public class AppendDataFileImporter extends Importer {
 
+    private final int metatileSize;
+
     public AppendDataFileImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
+        metatileSize = dataSet.getMetatileSize();
     }
 
     public void readAppendDataFile(File mapDataFile) throws IOException {
@@ -36,6 +39,14 @@ public class AppendDataFileImporter extends Importer {
                 if (lineIn.startsWith(Globals.KEY_COLORSET)) {
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARDATA)) {
+                }
+                else if (lineIn.startsWith(Globals.KEY_METATILE_SIZE)) {
+                    // Comes before the maps, so nothing has been appended yet
+                    int fileMetatileSize = DataFileImporter.parseMetatileSize(lineIn.substring(Globals.KEY_METATILE_SIZE.length()));
+                    if (fileMetatileSize != metatileSize) {
+                        br.close();
+                        throw new IOException("The maps in this file use " + fileMetatileSize + "x" + fileMetatileSize + " metatiles, which doesn't match the current project.");
+                    }
                 }
                 else if (lineIn.startsWith(Globals.KEY_SCRBACK)) {
                     lineIn = lineIn.substring(Globals.KEY_SCRBACK.length());

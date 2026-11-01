@@ -50,6 +50,7 @@ public class OpenDataFileAction extends FileAction {
                 e.printStackTrace(System.err);
                 showError("Error opening data file", e.getMessage());
             }
+            parent.applyMetatileMode();
         }
         mapEditor.goToMap(0);
         parent.updateAll();

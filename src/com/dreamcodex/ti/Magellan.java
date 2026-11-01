@@ -134,10 +134,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
             int result = showConfirmation("Confirm save on exit", "Do you want to save your changes first?", true);
             if (result == JOptionPane.YES_OPTION) {
                 new SaveDataFileAction("", this, mapEditor, dataSet, preferences).actionPerformed(null);
-                if (dataSet.isMetatileMode()) {
-                    // Saving isn't supported in metatile mode yet: stay open rather than lose the changes
-                    return;
-                }
             }
             else if (result == JOptionPane.CANCEL_OPTION) {
                 return;
@@ -1287,6 +1283,26 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         setModified(true);
         updateComponents();
         return true;
+    }
+
+    /**
+     * Sets up the editor for the metatile mode in the data set, after a project has been loaded.
+     * The maps are not converted.
+     */
+    public void applyMetatileMode() {
+        int size = dataSet.getMetatileSize();
+        ui.setMetatileMode(size);
+        mapEditor.setMetatileMode(size);
+        mapEditor.resetUndoManager();
+        activeMetatile = MIN_METATILE;
+        if (size != 0) {
+            ui.getMetatileCanvas().setScreenColor(getScreenColorPalette()[mapEditor.getColorScreen()]);
+            updateMetatileImages();
+            new EditMetatileAction(activeMetatile, "", this, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
+        }
+        else {
+            mapEditor.setPaintValue(activeChar);
+        }
     }
 
     /**

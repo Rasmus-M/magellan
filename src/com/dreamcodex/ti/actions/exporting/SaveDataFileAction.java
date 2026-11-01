@@ -18,9 +18,6 @@ public class SaveDataFileAction extends SaveDataFileAsAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!checkNotMetatileMode()) {
-            return;
-        }
         File file = parent.getMapDataFile();
         if (file != null && file.isFile()) {
             DataFileExporter magIO = new DataFileExporter(mapEditor, dataSet, preferences);

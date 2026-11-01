@@ -16,8 +16,11 @@ import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class DataFileImporter extends Importer {
 
+    private final DataSet dataSet;
+
     public DataFileImporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
+        this.dataSet = dataSet;
     }
 
     public int readDataFile(File mapDataFile) throws IOException {
@@ -50,6 +53,9 @@ public class DataFileImporter extends Importer {
         int spritePalNo = 0;
         int spriteColNo = 0;
         int spriteCoordinateScale = 8;
+        int metatileSize = 0;
+        int metatileRead = TIGlobals.MIN_METATILE;
+        HashMap<Integer, int[][]> metatiles = new HashMap<>();
         do {
             lineIn = br.readLine();
             if (lineIn == null) {
@@ -156,6 +162,14 @@ public class DataFileImporter extends Importer {
                     mapColor = Integer.parseInt(lineIn);
                     mapEditor.setColorScreen(mapColor);
                 }
+                else if (lineIn.startsWith(Globals.KEY_METATILE_SIZE)) {
+                    metatileSize = parseMetatileSize(lineIn.substring(Globals.KEY_METATILE_SIZE.length()));
+                }
+                else if (lineIn.startsWith(Globals.KEY_METATILE)) {
+                    if (metatileSize != 0 && metatileRead <= TIGlobals.MAX_METATILE) {
+                        metatiles.put(metatileRead++, parseMetatile(lineIn.substring(Globals.KEY_METATILE.length()), metatileSize));
+                    }
+                }
                 else if (lineIn.startsWith(Globals.KEY_MAPCOUNT)) {
                     lineIn = lineIn.substring(Globals.KEY_MAPCOUNT.length());
                     mapCount = Integer.parseInt(lineIn);
@@ -255,6 +269,16 @@ public class DataFileImporter extends Importer {
             }
         } while (lineIn != null);
         br.close();
+        // Metatile mode: the maps hold metatile numbers. The caller switches the editor to the mode.
+        if (metatileSize != 0) {
+            for (int i = TIGlobals.MIN_METATILE; i <= TIGlobals.MAX_METATILE; i++) {
+                if (!metatiles.containsKey(i)) {
+                    metatiles.put(i, MetatileConverter.createBlankMetatile(metatileSize, TIGlobals.SPACECHAR));
+                }
+            }
+            dataSet.setMetatiles(metatileSize, metatiles);
+        }
+        dataSet.setMetatileSize(metatileSize);
         if (colorMode == COLOR_MODE_BITMAP && charColorRead == charStart) {
             // Bitmap color mode but no bitmap colors found - use color sets
             for (int i = charStart; i <= charEnd; i++) {
@@ -272,5 +296,36 @@ public class DataFileImporter extends Importer {
             }
         }
         return charStart;
+    }
+
+    /**
+     * @return 2 or 4, or 0 (no metatiles) for anything else
+     */
+    static int parseMetatileSize(String value) {
+        try {
+            int size = Integer.parseInt(value.trim());
+            return size == 2 || size == 4 ? size : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Parses the characters of a metatile, row by row. Missing or invalid values become spaces.
+     */
+    private int[][] parseMetatile(String value, int size) {
+        int[][] metatile = MetatileConverter.createBlankMetatile(size, TIGlobals.SPACECHAR);
+        String[] values = value.split("\\|");
+        for (int i = 0; i < Math.min(values.length, size * size); i++) {
+            try {
+                int charNum = Integer.parseInt(values[i].trim());
+                if (charNum >= TIGlobals.MIN_CHAR && charNum <= TIGlobals.MAX_CHAR) {
+                    metatile[i / size][i % size] = charNum;
+                }
+            } catch (NumberFormatException e) {
+                // Keep the space
+            }
+        }
+        return metatile;
     }
 }

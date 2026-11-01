@@ -20,9 +20,6 @@ public class SaveDataFileAsAction extends FileAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (!checkNotMetatileMode()) {
-            return;
-        }
         File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, FILEEXTS, "Map Data Files");
         if (file != null) {
             if (!file.getAbsolutePath().toLowerCase().endsWith("." + FILEEXT)) {
@@ -41,16 +38,5 @@ public class SaveDataFileAsAction extends FileAction {
             preferences.addRecentFile(file.getAbsolutePath());
         }
 
-    }
-
-    /**
-     * The file format doesn't support metatiles yet, and saving would store metatile numbers as characters.
-     */
-    protected boolean checkNotMetatileMode() {
-        if (dataSet.isMetatileMode()) {
-            showError("Save Map Project", "Saving is not available in metatile mode yet.\nSwitch to 'No metatiles' in the Options menu to save the project.");
-            return false;
-        }
-        return true;
     }
 }

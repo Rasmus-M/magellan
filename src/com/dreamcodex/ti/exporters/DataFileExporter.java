@@ -17,8 +17,13 @@ import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class DataFileExporter extends Exporter {
 
+    private final int metatileSize;
+    private final HashMap<Integer, int[][]> metatiles;
+
     public DataFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
+        metatileSize = dataSet.getMetatileSize();
+        metatiles = dataSet.getMetatiles();
     }
 
     public void writeDataFile(File mapDataFile, int characterSetSize) throws IOException {
@@ -42,6 +47,13 @@ public class DataFileExporter extends Exporter {
         bw.newLine();
         bw.write(Globals.KEY_CHARRANG + TIGlobals.MIN_CHAR + "|" + getCharacterSetEnd(characterSetSize));
         bw.newLine();
+        // Metatile mode, early in the file so readers know how to interpret the maps
+        if (metatileSize != 0) {
+            bw.write("* METATILE SIZE");
+            bw.newLine();
+            bw.write(Globals.KEY_METATILE_SIZE + metatileSize);
+            bw.newLine();
+        }
         // save colorsets
         bw.write("* COLORSET");
         bw.newLine();
@@ -169,7 +181,24 @@ public class DataFileExporter extends Exporter {
             bw.write(label != null ? label : "");
             bw.newLine();
         }
-        // save map parameters
+        // save metatile definitions
+        if (metatileSize != 0) {
+            bw.write("* METATILES");
+            bw.newLine();
+            for (int i = TIGlobals.MIN_METATILE; i <= TIGlobals.MAX_METATILE; i++) {
+                bw.write(Globals.KEY_METATILE);
+                int[][] metatile = metatiles.get(i);
+                StringBuilder sb = new StringBuilder();
+                for (int[] row : metatile) {
+                    for (int charNum : row) {
+                        sb.append(sb.length() > 0 ? "|" : "").append(charNum);
+                    }
+                }
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        }
+        // save map parameters (in metatile mode, map sizes and data are in metatiles)
         bw.write("* MAPS");
         bw.newLine();
         bw.write(Globals.KEY_MAPCOUNT + mapEditor.getMapCount());

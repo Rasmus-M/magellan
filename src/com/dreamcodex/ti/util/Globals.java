@@ -132,6 +132,8 @@ public class Globals {
     public static final String KEY_SPRITE_LOCATION = "SL:";
     public static final String KEY_SPRITE_LOCATION_PIXELS = "SX:";
     public static final String KEY_MAPEND = "M-";
+    public static final String KEY_METATILE_SIZE = "MT:"; // Metatile width/height in characters; absent or 0 = no metatiles
+    public static final String KEY_METATILE = "MD:"; // Characters of a metatile, row by row
 
     public static final Color CLR_COMPONENTBACK = new Color(255, 255, 255);
     public static final Color CLR_BUTTON_NORMAL = new Color(255, 255, 255);

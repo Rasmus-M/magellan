@@ -422,9 +422,9 @@ public class MagellanUI {
         menuBar.add(helpMenu);
 
         // These read or write maps as character numbers, so they are disabled in metatile mode
-        // until the file formats support metatiles
+        // until they support metatiles
         charMapMenuItems = new JMenuItem[] {
-            jmitSave, jmitSaveAs, jmitAppend,
+            jmitAppend,
             jmitImportVramDump, jmitImportBinaryMap, jmitImportMapImage,
             jmitExportData, jmitExportBasic, jmitExportExec, jmitExportXB256, jmitExportXBDisMer, jmitExportCVB,
             jmitExportAsm, jmitExportScrollMap, jmitExportBin, jmitExportBinMap,
