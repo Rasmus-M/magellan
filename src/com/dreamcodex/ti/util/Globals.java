@@ -119,7 +119,7 @@ public class Globals {
     public static final String KEY_CHARRANG = "CR:";
     public static final String KEY_CHARNAME = "CN:";
     public static final String KEY_CHARPROP = "PR:";
-    public static final String KEY_CHARPROPLABEL = "PL:";
+    public static final String KEY_CHARPROPLABEL = "CL:";
     public static final String KEY_MAPCOUNT = "MC:";
     public static final String KEY_MAPSTART = "M+";
     public static final String KEY_MAPSIZE = "MS:";

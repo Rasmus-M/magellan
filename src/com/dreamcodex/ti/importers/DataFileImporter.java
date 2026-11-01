@@ -114,21 +114,30 @@ public class DataFileImporter extends Importer {
                     charRead4++;
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARPROPLABEL)) {
-                    String label = lineIn.substring(Globals.KEY_CHARPROP.length());
+                    String label = lineIn.substring(Globals.KEY_CHARPROPLABEL.length());
+                    charPropertyLabels[labelRead++] = label;
+                }
+                // Workaround for earlier bug where char property labels were saved with the same key as palettes (PL:)
+                // Files saved with the bug in ECM2/ECM3 mode may lose their labels
+                else if (lineIn.startsWith(Globals.KEY_PALETTE) && (colorMode != COLOR_MODE_ECM_2 && colorMode != COLOR_MODE_ECM_3 || !lineIn.contains("|"))) {
+                    String label = lineIn.substring(Globals.KEY_PALETTE.length());
                     charPropertyLabels[labelRead++] = label;
                 }
                 else if (lineIn.startsWith(Globals.KEY_PALETTE) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
                     lineIn = lineIn.substring(Globals.KEY_PALETTE.length());
-                    ECMPalette ecmPalette = ecmPalettes[palNo++];
-                    String[] hexCols = lineIn.split("\\|");
-                    for (int i = 0; i < Math.min(hexCols.length, ecmPalette.getSize()); i++) {
-                        Color color;
-                        try {
-                            color = new Color(Integer.parseInt(hexCols[i].substring(2), 16));
-                        } catch (NumberFormatException e) {
-                            color = TIGlobals.TI_COLOR_TRANSOPAQUE;
+                    if (lineIn.contains("|")) {
+                        ECMPalette ecmPalette = ecmPalettes[palNo++];
+                        String[] hexCols = lineIn.split("\\|");
+                        for (int i = 0; i < Math.min(hexCols.length, ecmPalette.getSize()); i++) {
+                            Color color;
+                            try {
+                                color = new Color(Integer.parseInt(hexCols[i].substring(2), 16));
+                            } catch (NumberFormatException e) {
+                                color = TIGlobals.TI_COLOR_TRANSOPAQUE;
+                            }
+                            ecmPalette.setColor(i, color);
                         }
-                        ecmPalette.setColor(i, color);
+
                     }
                 }
                 else if (lineIn.startsWith(Globals.KEY_CHARPALS) && (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3)) {
