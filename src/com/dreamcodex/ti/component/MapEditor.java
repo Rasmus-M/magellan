@@ -461,12 +461,41 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
             setTypeCellOn(false);
             setFloodFillMode(false);
         }
-        jbtnLook.setEnabled(!enabled);
-        jbtnClone.setEnabled(!enabled);
-        jbtnTextCursor.setEnabled(!enabled);
-        jbtnFloodFillMode.setEnabled(!enabled);
         mapCanvas.setSpriteMode(enabled);
+        updateToolStates();
         updateComponents();
+    }
+
+    public void setMetatileImage(int metatileNum, Image img) {
+        mapCanvas.setMetatileImage(metatileNum, img);
+    }
+
+    /**
+     * Switches between character cells (size 0) and metatile cells of size x size characters.
+     * The map data must already have been converted by the caller.
+     */
+    public void setMetatileMode(int size) {
+        boolean enabled = size != 0;
+        setCloneModeOn(false);
+        setLookModeOn(false);
+        if (enabled) {
+            setTypeCellOn(false);
+        }
+        mapCanvas.setMetatileMode(enabled);
+        mapCanvas.setCellSize(8 * Math.max(size, 1));
+        mapCanvas.setBlankValue(enabled ? TIGlobals.MIN_METATILE : TIGlobals.SPACECHAR);
+        updateToolStates();
+        mapCanvas.revalidate();
+        jsclCanvas.revalidate();
+        updateComponents();
+    }
+
+    private void updateToolStates() {
+        boolean spriteMode = mapCanvas.isSpriteMode();
+        jbtnLook.setEnabled(!spriteMode);
+        jbtnClone.setEnabled(!spriteMode);
+        jbtnTextCursor.setEnabled(!spriteMode && !mapCanvas.isMetatileMode());
+        jbtnFloodFillMode.setEnabled(!spriteMode);
     }
 
     public boolean getViewCharLayer() {
@@ -906,7 +935,7 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
                     updateComponents();
                     return;
                 } else if (command.equals(Globals.CMD_TCURSOR)) {
-                    if (!mapCanvas.isSpriteMode()) {
+                    if (!mapCanvas.isSpriteMode() && !mapCanvas.isMetatileMode()) {
                         toggleTypeCell();
                         updateComponents();
                     }

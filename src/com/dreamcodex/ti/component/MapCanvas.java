@@ -49,6 +49,9 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     protected boolean paintOn = true;
     protected HashMap<Integer, Image> hmCharImages;
     protected HashMap<Integer, Image> hmSpriteImages;
+    protected HashMap<Integer, Image> hmMetatileImages;
+    // When on, map values are metatile numbers
+    protected boolean metatileMode = false;
     // Value painted into the map with the left mouse button
     protected int paintValue = TIGlobals.SPACECHAR;
     // Value representing an empty cell: used for erasing, clearing and new cells
@@ -129,6 +132,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
         hmCharImages = new HashMap<>();
         hmSpriteImages = new HashMap<>();
+        hmMetatileImages = new HashMap<>();
 
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
@@ -411,6 +415,23 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         hmCharImages.put(charnum, img);
     }
 
+    public void setMetatileImage(int metatileNum, Image img) {
+        hmMetatileImages.put(metatileNum, img);
+    }
+
+    public boolean isMetatileMode() {
+        return metatileMode;
+    }
+
+    public void setMetatileMode(boolean metatileMode) {
+        this.metatileMode = metatileMode;
+    }
+
+    // Image for a map value: a metatile in metatile mode, otherwise a character
+    private Image getCellImage(int value) {
+        return metatileMode ? hmMetatileImages.get(value) : hmCharImages.get(value);
+    }
+
     public int setSprite(Point p, int spriteNum) {
         HashPoint hp = new HashPoint(p);
         ArrayList<Integer> spriteList = spriteMap.computeIfAbsent(hp, k -> new ArrayList<>());
@@ -560,7 +581,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                 for (int x = 0; x < gridWidth; x++) {
                     painted = false;
                     if (gridData[y][x] != NOCHAR) {
-                        Image charImage = hmCharImages.get(gridData[y][x]);
+                        Image charImage = getCellImage(gridData[y][x]);
                         if (charImage != null) {
                             g.drawImage(charImage, x * cellSize, y * cellSize, cellSize, cellSize, this);
                             painted = true;
@@ -785,7 +806,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     private void highlightCell(Graphics g, int x, int y) {
-        Image image = spriteMode ? hmSpriteImages.get(activeSprite) : hmCharImages.get(paintValue);
+        Image image = spriteMode ? hmSpriteImages.get(activeSprite) : getCellImage(paintValue);
         if (overRemoveIcon) {
             // No placement preview or outline while hovering the remove icon
             return;
@@ -1149,7 +1170,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     /* KeyListener methods */
     public void keyTyped(KeyEvent ke) {
         // Only type when the text cursor is on; in sprite mode typeCell holds pixel coordinates
-        if (typeCellOn && !spriteMode && !typeCell.equals(PT_OFFGRID) && !isTyping) {
+        if (typeCellOn && !spriteMode && !metatileMode && !typeCell.equals(PT_OFFGRID) && !isTyping) {
             isTyping = true;
             typeCharToGrid(typeCell, ke.getKeyChar());
             isTyping = false;

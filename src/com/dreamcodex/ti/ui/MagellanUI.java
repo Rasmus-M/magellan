@@ -9,6 +9,7 @@ import com.dreamcodex.ti.actions.clipboard.PasteCharAction;
 import com.dreamcodex.ti.actions.clipboard.PasteSpriteAction;
 import com.dreamcodex.ti.actions.exporting.*;
 import com.dreamcodex.ti.actions.importing.*;
+import com.dreamcodex.ti.actions.metatile.*;
 import com.dreamcodex.ti.actions.options.*;
 import com.dreamcodex.ti.actions.sprite.*;
 import com.dreamcodex.ti.actions.tools.*;
@@ -54,6 +55,11 @@ public class MagellanUI {
     private JMenuItem characterSetExpandedMenuItem;
     private JMenuItem characterSetSuperMenuItem;
 
+    private static final int[] METATILE_SIZES = {0, 2, 4};
+    private ButtonGroup metatileModeButtonGroup;
+    private final JMenuItem[] metatileModeMenuItems = new JMenuItem[METATILE_SIZES.length];
+    private JMenuItem[] charMapMenuItems = new JMenuItem[0];
+
     // Character editor
     private GridCanvas charGridCanvas;
     private JTextField charTextField;
@@ -80,6 +86,15 @@ public class MagellanUI {
     private ECMPaletteComboBox spriteECMPaletteComboBox;
     private JPanel spriteDockPanel;
     private JButton[] spriteButtons;
+
+    // Metatile editor
+    private JPanel metatileEditorPanel;
+    private MetatileCanvas metatileCanvas;
+    private JLabel metatileIntLabel;
+    private JLabel metatileHexLabel;
+    private CharacterPicker characterPicker;
+    private JPanel metatileDockPanel;
+    private JButton[] metatileButtons = new JButton[0];
 
     // Tabbed pane
     private JTabbedPane editorTabbedPane;
@@ -167,6 +182,26 @@ public class MagellanUI {
 
     public JButton[] getSpriteButtons() {
         return spriteButtons;
+    }
+
+    public MetatileCanvas getMetatileCanvas() {
+        return metatileCanvas;
+    }
+
+    public JLabel getMetatileIntLabel() {
+        return metatileIntLabel;
+    }
+
+    public JLabel getMetatileHexLabel() {
+        return metatileHexLabel;
+    }
+
+    public CharacterPicker getCharacterPicker() {
+        return characterPicker;
+    }
+
+    public JButton[] getMetatileButtons() {
+        return metatileButtons;
     }
 
     public JTabbedPane getEditorTabbedPane() {
@@ -325,6 +360,18 @@ public class MagellanUI {
 
         optionsMenu.addSeparator();
 
+        metatileModeButtonGroup = new ButtonGroup();
+        for (int i = 0; i < METATILE_SIZES.length; i++) {
+            int size = METATILE_SIZES[i];
+            String name = size == 0 ? "No metatiles" : size + "x" + size + " metatiles";
+            metatileModeMenuItems[i] = new JRadioButtonMenuItem(new SetMetatileModeAction(size, name, parent, mapEditor, dataSet, preferences));
+            metatileModeMenuItems[i].setSelected(dataSet.getMetatileSize() == size);
+            metatileModeButtonGroup.add(metatileModeMenuItems[i]);
+            optionsMenu.add(metatileModeMenuItems[i]);
+        }
+
+        optionsMenu.addSeparator();
+
         colorModeButtonGroup = new ButtonGroup();
         graphicsColorModeMenuItem = new JRadioButtonMenuItem(new SetColorModeAction(COLOR_MODE_GRAPHICS_1, COLOR_MODE_GRAPHICS_1.toString(), parent, mapEditor, dataSet, preferences));
         graphicsColorModeMenuItem.setSelected(dataSet.getColorMode() == COLOR_MODE_GRAPHICS_1);
@@ -374,6 +421,16 @@ public class MagellanUI {
         // Add menu
         menuBar.add(helpMenu);
 
+        // These read or write maps as character numbers, so they are disabled in metatile mode
+        // until the file formats support metatiles
+        charMapMenuItems = new JMenuItem[] {
+            jmitSave, jmitSaveAs, jmitAppend,
+            jmitImportVramDump, jmitImportBinaryMap, jmitImportMapImage,
+            jmitExportData, jmitExportBasic, jmitExportExec, jmitExportXB256, jmitExportXBDisMer, jmitExportCVB,
+            jmitExportAsm, jmitExportScrollMap, jmitExportBin, jmitExportBinMap,
+            jmitAnalyzeCharUsage, jmitAnalyzeCharTrans
+        };
+
         return menuBar;
     }
 
@@ -396,6 +453,41 @@ public class MagellanUI {
 
     public void setSuperCharacterSetOption() {
         characterSetSizeButtonGroup.setSelected(characterSetSuperMenuItem.getModel(), true);
+    }
+
+    public void setMetatileModeOption(int size) {
+        for (int i = 0; i < METATILE_SIZES.length; i++) {
+            if (METATILE_SIZES[i] == size) {
+                metatileModeButtonGroup.setSelected(metatileModeMenuItems[i].getModel(), true);
+            }
+        }
+    }
+
+    /**
+     * Shows or hides the Metatiles tab and enables the menu items that only work with character maps.
+     * Size is 0 for no metatiles, otherwise the metatile width/height in characters.
+     */
+    public void setMetatileMode(int size) {
+        boolean enabled = size != 0;
+        for (JMenuItem menuItem : charMapMenuItems) {
+            menuItem.setEnabled(!enabled);
+        }
+        setMetatileModeOption(size);
+        int tabIndex = editorTabbedPane.indexOfComponent(metatileEditorPanel);
+        if (enabled) {
+            buildMetatileDock(size);
+            if (tabIndex < 0) {
+                editorTabbedPane.insertTab("Metatiles", null, metatileEditorPanel, null, 1);
+            }
+            editorTabbedPane.setSelectedComponent(metatileEditorPanel);
+        }
+        else if (tabIndex >= 0) {
+            // Removing the selected tab would leave the Sprites tab selected, so go to Characters first
+            if (editorTabbedPane.getSelectedIndex() == tabIndex) {
+                editorTabbedPane.setSelectedIndex(0);
+            }
+            editorTabbedPane.remove(tabIndex);
+        }
     }
 
     public JPanel createMainPanel() {
@@ -598,6 +690,9 @@ public class MagellanUI {
         jpnlSpriteEdit.add(spriteColorDockPanel, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, insets2, 1, 1));
         jpnlSpriteEdit.add(jsclSpriteDock, new GridBagConstraints(1, 3, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, insets2, 1, 1));
 
+        // Metatile editor, only shown as a tab in metatile mode
+        metatileEditorPanel = createMetatileEditorPanel(insets, insets2);
+
         // Tabs
         spriteEditorPanel = jpnlSpriteEdit;
         editorTabbedPane.add("Characters", jpnlCharEdit);
@@ -608,6 +703,85 @@ public class MagellanUI {
         jpnlMain.add(editorTabbedPane, BorderLayout.WEST);
 
         return jpnlMain;
+    }
+
+    private JPanel createMetatileEditorPanel(Insets insets, Insets insets2) {
+        JPanel jpnlMetatileTools = getPanel(new GridBagLayout());
+
+        // Toolbar on the left side of the metatile editor
+        JPanel jpnlToolButtons = getPanel(new GridLayout(3, 1, 0, 2));
+        jpnlToolButtons.add(getToolButton(Globals.CMD_FILL_CHR, "Fill with active character", new FillMetatileAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlToolButtons.add(getToolButton(Globals.CMD_CLEAR_CHR, "Clear", new ClearMetatileAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlToolButtons.add(getToolButton(Globals.CMD_GRID_CHR, "Toggle Grid", new ToggleGridMetatileAction("", parent, mapEditor, dataSet, preferences)));
+        jpnlMetatileTools.add(jpnlToolButtons, new GridBagConstraints(1, 1, 1, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+
+        // Metatile number
+        JPanel jpnlLabels = getPanel(new FlowLayout(FlowLayout.CENTER));
+        metatileIntLabel = getLabel();
+        metatileIntLabel.setPreferredSize(Globals.DM_TEXT);
+        jpnlLabels.add(metatileIntLabel);
+        metatileHexLabel = getLabel();
+        metatileHexLabel.setPreferredSize(Globals.DM_TEXT);
+        jpnlLabels.add(metatileHexLabel);
+        jpnlMetatileTools.add(jpnlLabels, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, insets, 2, 2));
+
+        // Editor: left click sets a cell to the active character, right click picks the character from a cell
+        metatileCanvas = new MetatileCanvas(dataSet.getCharImages(), (x, y, e) -> {
+            if (SwingUtilities.isRightMouseButton(e)) {
+                int charNum = dataSet.getMetatiles().get(parent.getActiveMetatile())[y][x];
+                new EditCharAction(charNum, "", parent, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(metatileCanvas, ActionEvent.ACTION_PERFORMED, ""));
+            }
+            else {
+                parent.setMetatileCell(x, y, parent.getActiveChar());
+            }
+        });
+        metatileCanvas.setToolTipText("Left click: set character, right click: pick character");
+        Dimension editorDimension = new Dimension(EDITOR_GRID_SIZE, EDITOR_GRID_SIZE);
+        metatileCanvas.setPreferredSize(editorDimension);
+        metatileCanvas.setMinimumSize(editorDimension);
+        jpnlMetatileTools.add(metatileCanvas, new GridBagConstraints(2, 2, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+
+        // Character picker, in place of the color dock
+        characterPicker = new CharacterPicker(dataSet.getCharImages(), preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), (charNum, e) ->
+            new EditCharAction(charNum, "", parent, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(characterPicker, ActionEvent.ACTION_PERFORMED, ""))
+        );
+        JScrollPane jsclCharacterPicker = new JScrollPane(characterPicker, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jsclCharacterPicker.getVerticalScrollBar().setUnitIncrement(CharacterPicker.CELL_SIZE);
+        Dimension pickerDimension = new Dimension(CharacterPicker.COLS * CharacterPicker.CELL_SIZE + jsclCharacterPicker.getVerticalScrollBar().getPreferredSize().width + 4, 6 * CharacterPicker.CELL_SIZE + 4);
+        jsclCharacterPicker.setPreferredSize(pickerDimension);
+        jsclCharacterPicker.setMinimumSize(pickerDimension);
+
+        // Metatile dock, filled when metatile mode is switched on
+        metatileDockPanel = getPanel(new GridLayout(1, 1));
+        JScrollPane jsclMetatileDock = new JScrollPane(metatileDockPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jsclMetatileDock.getVerticalScrollBar().setUnitIncrement(Globals.DM_TOOL.height);
+
+        // Assemble Metatile Editor Panel
+        JPanel jpnlMetatileEdit = getPanel(new GridBagLayout());
+        jpnlMetatileEdit.add(jpnlMetatileTools, new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, insets2, 1, 1));
+        jpnlMetatileEdit.add(jsclCharacterPicker, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets2, 1, 1));
+        jpnlMetatileEdit.add(jsclMetatileDock, new GridBagConstraints(1, 3, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, insets2, 1, 1));
+        return jpnlMetatileEdit;
+    }
+
+    /**
+     * Rebuilds the metatile dock. Characters keep the same size as in the character dock,
+     * so a row holds 4 metatiles of 2x2 or 2 metatiles of 4x4.
+     */
+    private void buildMetatileDock(int size) {
+        int cols = FONT_COLS / size;
+        Dimension buttonSize = new Dimension(Globals.DM_TOOL.width * size, Globals.DM_TOOL.height * size);
+        metatileButtons = new JButton[TIGlobals.N_METATILES];
+        metatileDockPanel.removeAll();
+        metatileDockPanel.setLayout(new GridLayout(TIGlobals.N_METATILES / cols, cols));
+        for (int i = TIGlobals.MIN_METATILE; i <= TIGlobals.MAX_METATILE; i++) {
+            metatileButtons[i] = getDockButton("", TIGlobals.TI_PALETTE_OPAQUE[0], buttonSize, new EditMetatileAction(i, "", parent, mapEditor, dataSet, preferences));
+            metatileButtons[i].setToolTipText("Metatile " + i + " (>" + Integer.toHexString(i).toUpperCase() + ")");
+            metatileButtons[i].setBorder(Globals.bordButtonNormal);
+            metatileDockPanel.add(metatileButtons[i]);
+        }
+        metatileDockPanel.revalidate();
+        metatileDockPanel.repaint();
     }
 
     public void buildColorDocks() {
@@ -698,6 +872,7 @@ public class MagellanUI {
     public void buildDocks() {
         characterDockPanel = buildCharacterDock(characterDockPanel);
         spriteDockPanel = buildSpriteDock(spriteDockPanel);
+        characterPicker.setRange(preferences.getCharacterSetStart(), preferences.getCharacterSetEnd());
     }
 
     protected JPanel buildCharacterDock(JPanel jPanel) {

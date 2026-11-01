@@ -64,8 +64,11 @@ public class EditCharAction extends EditorAction {
         }
         charCanvas.setECMTransparency(dataSet.getEcmCharTransparency()[charNum]);
         charCanvas.redrawCanvas();
-        mapEditor.setPaintValue(charNum);
-        mapEditor.setCloneModeOn(false);
+        // In metatile mode the map paints metatiles, not characters
+        if (!dataSet.isMetatileMode()) {
+            mapEditor.setPaintValue(charNum);
+            mapEditor.setCloneModeOn(false);
+        }
         parent.updateComponents();
     }
 }

@@ -3,6 +3,7 @@ package com.dreamcodex.ti;
 import com.dreamcodex.ti.actions.character.*;
 import com.dreamcodex.ti.actions.exporting.*;
 import com.dreamcodex.ti.actions.importing.*;
+import com.dreamcodex.ti.actions.metatile.EditMetatileAction;
 import com.dreamcodex.ti.actions.sprite.*;
 import com.dreamcodex.ti.component.*;
 import com.dreamcodex.ti.iface.IconProvider;
@@ -16,6 +17,7 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.io.*;
@@ -85,6 +87,21 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     public void setActiveSprite(int activeSprite) {
         this.activeSprite = activeSprite;
     }
+
+    protected int activeMetatile = MIN_METATILE;
+    protected int lastActiveMetatile = MapCanvas.NOCHAR;
+    // Set while all character buttons are regenerated, so metatile images are rebuilt once at the end
+    private boolean updatingAllChars = false;
+    // Pixels of each character image, used to rebuild metatile images only when a character's look changes
+    private final HashMap<Integer, int[]> charPixelCache = new HashMap<>();
+
+    public int getActiveMetatile() {
+        return activeMetatile;
+    }
+
+    public void setActiveMetatile(int activeMetatile) {
+        this.activeMetatile = activeMetatile;
+    }
     protected HashMap<Integer, int[][]> defaultChars;
     protected Preferences preferences = new Preferences();
     private final String openFilePath;        // File to open upon startup
@@ -117,6 +134,10 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
             int result = showConfirmation("Confirm save on exit", "Do you want to save your changes first?", true);
             if (result == JOptionPane.YES_OPTION) {
                 new SaveDataFileAction("", this, mapEditor, dataSet, preferences).actionPerformed(null);
+                if (dataSet.isMetatileMode()) {
+                    // Saving isn't supported in metatile mode yet: stay open rather than lose the changes
+                    return;
+                }
             }
             else if (result == JOptionPane.CANCEL_OPTION) {
                 return;
@@ -327,7 +348,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     public void mousePressed(MouseEvent me) {
         if (mapEditor.isLookModeOn()) {
             if (mapEditor.getLookChar() != MapCanvas.NOCHAR) {
-                new EditCharAction(mapEditor.getLookChar(), "", this, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
+                editLookValue();
                 // Turn look mode off
                 mapEditor.setLookModeOn(false);
             }
@@ -355,7 +376,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     public void mouseMoved(MouseEvent me) {
         if (mapEditor.isLookModeOn()) {
             if (mapEditor.getLookChar() != MapCanvas.NOCHAR) {
-                new EditCharAction(mapEditor.getLookChar(), "", this, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
+                editLookValue();
                 mapEditor.requestFocus();
             }
         }
@@ -365,7 +386,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     public void mouseDragged(MouseEvent me) {
         if (mapEditor.isLookModeOn()) {
             if (mapEditor.getLookChar() != MapCanvas.NOCHAR) {
-                new EditCharAction(mapEditor.getLookChar(), "", this, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
+                editLookValue();
                 mapEditor.setLookModeOn(false);
             }
         }
@@ -373,6 +394,17 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
             mapEditor.requestFocus();
         }
         updateComponents();
+    }
+
+    // Edits the character or metatile under the mouse in look mode
+    private void editLookValue() {
+        ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "");
+        if (dataSet.isMetatileMode()) {
+            new EditMetatileAction(mapEditor.getLookChar(), "", this, mapEditor, dataSet, preferences).actionPerformed(e);
+        }
+        else {
+            new EditCharAction(mapEditor.getLookChar(), "", this, mapEditor, dataSet, preferences).actionPerformed(e);
+        }
     }
 
 /* IconProvider methods */
@@ -396,6 +428,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     /* ScreenColorListener methods */
     public void screenColorChanged(int screenColor, boolean modified) {
         ui.getCharGridCanvas().setColorScreen(getScreenColorPalette()[screenColor]);
+        ui.getMetatileCanvas().setScreenColor(getScreenColorPalette()[screenColor]);
         updateCharButtons();
         ui.getSpriteGridCanvas().setColorScreen(getScreenColorPalette()[screenColor]);
         updateSpriteButtons();
@@ -644,7 +677,22 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         if (baseChar != swapChar) {
             int charCount = repeatCount + 1;
             while (charCount > 0) {
-                if (doSwapChars) {
+                if (doSwapChars && dataSet.isMetatileMode()) {
+                    // Maps hold metatile numbers, so swap the characters in the metatile definitions
+                    for (int[][] metatile : dataSet.getMetatiles().values()) {
+                        for (int[] row : metatile) {
+                            for (int x = 0; x < row.length; x++) {
+                                if (row[x] == baseChar) {
+                                    row[x] = swapChar;
+                                }
+                                else if (row[x] == swapChar) {
+                                    row[x] = baseChar;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (doSwapChars) {
                     for (int m = (doAllMaps ? 0 : mapEditor.getCurrentMapId()); m < (doAllMaps ? mapEditor.getMapCount() : mapEditor.getCurrentMapId() + 1); m++) {
                         int[][] arrayToProc = mapEditor.getMapData(m);
                         for (int y = 0; y < arrayToProc.length; y++) {
@@ -686,6 +734,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
                 swapChar++;
                 baseChar++;
                 charCount--;
+            }
+            if (dataSet.isMetatileMode()) {
+                updateMetatileImages();
+                ui.getMetatileCanvas().repaint();
+                mapEditor.redrawCanvas();
             }
             setModified(true);
         }
@@ -862,6 +915,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         ui.getSpriteGridCanvas().clearGrid();
         activeSprite = 0;
         // Maps
+        resetMetatileMode();
         mapEditor.delAllMaps();
         mapEditor.setGridWidth(32);
         mapEditor.setGridHeight(24);
@@ -1044,13 +1098,26 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
             + (colorMode == COLOR_MODE_ECM_2 || colorMode == COLOR_MODE_ECM_3 ? Globals.toHexString(getECMPaletteIndex(dataSet.getEcmSpritePalettes()[activeSprite]), 4) : "")
         ).toUpperCase());
         ui.getSpriteTextField().setCaretPosition(0);
+        // Metatile editor
+        if (dataSet.isMetatileMode()) {
+            updateActiveMetatileButton();
+            ui.getCharacterPicker().setSelectedChar(activeChar);
+        }
         // Map
         mapEditor.updateComponents();
     }
 
     public void updateCharButtons() {
-        for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
-            updateCharButton(i, false);
+        updatingAllChars = true;
+        try {
+            for (int i = TIGlobals.MIN_CHAR; i <= TIGlobals.MAX_CHAR; i++) {
+                updateCharButton(i, false);
+            }
+        } finally {
+            updatingAllChars = false;
+        }
+        if (dataSet.isMetatileMode()) {
+            updateMetatileImages();
         }
         mapEditor.redrawCanvas();
     }
@@ -1087,6 +1154,14 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         // Save image
         dataSet.getCharImages().put(charNum, iconImage.getImage());
         mapEditor.setCharImage(charNum, iconImage.getImage());
+        // Rebuild the metatiles that use this character if it looks different
+        if (charImageChanged(charNum, iconImage.getImage()) && dataSet.isMetatileMode() && !updatingAllChars) {
+            updateMetatileImagesUsing(charNum);
+        }
+        if (dataSet.isMetatileMode()) {
+            ui.getCharacterPicker().repaint();
+            ui.getMetatileCanvas().repaint();
+        }
         // Display a question mark if image is empty (only some modes)
         if (iconImage.isEmpty()) {
             charButtons[charNum].setIcon(null);
@@ -1141,6 +1216,187 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         g.dispose();
         boolean empty = Globals.isGridEmpty(charGrid) && (colorMode == COLOR_MODE_GRAPHICS_1 && dataSet.getClrSets()[cset][Globals.INDEX_CLR_BACK] == 0 || colorMode == COLOR_MODE_BITMAP && Globals.isColorGridEmpty(charColors));
         return new IconImage(image, empty);
+    }
+
+    /**
+     * Compares the image with the previous image of the character, and remembers it.
+     */
+    private boolean charImageChanged(int charNum, Image image) {
+        if (!(image instanceof BufferedImage)) {
+            charPixelCache.remove(charNum);
+            return true;
+        }
+        BufferedImage bufferedImage = (BufferedImage) image;
+        int[] pixels = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), null, 0, bufferedImage.getWidth());
+        int[] oldPixels = charPixelCache.put(charNum, pixels);
+        return !Arrays.equals(pixels, oldPixels);
+    }
+
+// Metatile Methods -------------------------------------------------------------------/
+
+    /**
+     * Switches metatile mode and converts all maps. Size is 0 for no metatiles,
+     * otherwise the metatile width/height in characters.
+     *
+     * @return false if the maps couldn't be converted, in which case nothing is changed
+     */
+    public boolean setMetatileMode(int size) {
+        int oldSize = dataSet.getMetatileSize();
+        if (size == oldSize) {
+            return true;
+        }
+        mapEditor.storeCurrentMap();
+        // Convert via character maps
+        ArrayList<int[][]> charMaps = new ArrayList<>();
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            int[][] map = mapEditor.getMapData(m);
+            charMaps.add(oldSize == 0 ? map : MetatileConverter.expand(map, dataSet.getMetatiles(oldSize), oldSize, SPACECHAR));
+        }
+        java.util.List<int[][]> newMaps;
+        if (size == 0) {
+            newMaps = charMaps;
+        }
+        else {
+            // Reuses the definitions from the last time this size was used
+            MetatileConverter.Result result = MetatileConverter.compress(charMaps, size, dataSet.getMetatiles(size), N_METATILES, SPACECHAR);
+            if (result == null) {
+                showError("Metatile Mode", "The maps need more than " + N_METATILES + " different " + size + "x" + size + " metatiles.");
+                return false;
+            }
+            newMaps = result.getMaps();
+            dataSet.setMetatiles(size, result.getMetatiles());
+        }
+        dataSet.setMetatileSize(size);
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            mapEditor.storeMap(m, newMaps.get(m), mapEditor.getScreenColor(m), mapEditor.getSpriteMap(m));
+        }
+        mapEditor.updateState(mapEditor.getCurrentMapId());
+        ui.setMetatileMode(size);
+        if (size != 0) {
+            ui.getMetatileCanvas().setScreenColor(getScreenColorPalette()[mapEditor.getColorScreen()]);
+            updateMetatileImages();
+        }
+        mapEditor.setMetatileMode(size);
+        mapEditor.resetUndoManager();
+        if (size != 0) {
+            new EditMetatileAction(activeMetatile, "", this, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
+        }
+        else {
+            mapEditor.setPaintValue(activeChar);
+        }
+        setModified(true);
+        updateComponents();
+        return true;
+    }
+
+    /**
+     * Switches metatile mode off without converting the maps, for a new project.
+     */
+    private void resetMetatileMode() {
+        if (dataSet.isMetatileMode()) {
+            dataSet.setMetatileSize(0);
+            ui.setMetatileMode(0);
+            mapEditor.setMetatileMode(0);
+            mapEditor.setPaintValue(activeChar);
+        }
+        dataSet.clearMetatiles();
+        activeMetatile = MIN_METATILE;
+    }
+
+    /**
+     * Sets a character of the active metatile.
+     */
+    public void setMetatileCell(int x, int y, int charNum) {
+        int[][] metatile = dataSet.getMetatiles().get(activeMetatile);
+        if (metatile[y][x] != charNum) {
+            metatile[y][x] = charNum;
+            updateMetatile(activeMetatile);
+        }
+    }
+
+    /**
+     * Call after changing a metatile definition.
+     */
+    public void updateMetatile(int metatileNum) {
+        updateMetatileImage(metatileNum);
+        ui.getMetatileCanvas().repaint();
+        mapEditor.redrawCanvas();
+        setModified(true);
+    }
+
+    public void updateMetatileImages() {
+        for (int i = MIN_METATILE; i <= MAX_METATILE; i++) {
+            updateMetatileImage(i);
+        }
+    }
+
+    private void updateMetatileImagesUsing(int charNum) {
+        for (int i = MIN_METATILE; i <= MAX_METATILE; i++) {
+            if (metatileUses(dataSet.getMetatiles().get(i), charNum)) {
+                updateMetatileImage(i);
+            }
+        }
+    }
+
+    private boolean metatileUses(int[][] metatile, int charNum) {
+        for (int[] row : metatile) {
+            for (int ch : row) {
+                if (ch == charNum) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void updateMetatileImage(int metatileNum) {
+        Image image = generateMetatileImage(metatileNum);
+        dataSet.getMetatileImages().put(metatileNum, image);
+        mapEditor.setMetatileImage(metatileNum, image);
+        JButton[] metatileButtons = ui.getMetatileButtons();
+        if (metatileNum < metatileButtons.length) {
+            metatileButtons[metatileNum].setIcon(new ImageIcon(image));
+        }
+    }
+
+    /**
+     * Draws a metatile from the character images, at the same scale as the character images.
+     */
+    private Image generateMetatileImage(int metatileNum) {
+        int[][] metatile = dataSet.getMetatiles().get(metatileNum);
+        int charSize = 16;
+        BufferedImage image = new BufferedImage(metatile[0].length * charSize, metatile.length * charSize, BufferedImage.TYPE_INT_RGB);
+        Graphics g = image.getGraphics();
+        Color screenColor = getScreenColorPalette()[mapEditor.getColorScreen()];
+        for (int y = 0; y < metatile.length; y++) {
+            for (int x = 0; x < metatile[y].length; x++) {
+                int charNum = metatile[y][x];
+                Image charImage = dataSet.getCharImages().get(charNum);
+                if (charImage != null && dataSet.getCharGrids().get(charNum) != null) {
+                    g.drawImage(charImage, x * charSize, y * charSize, charSize, charSize, null);
+                }
+                else {
+                    g.setColor(screenColor);
+                    g.fillRect(x * charSize, y * charSize, charSize, charSize);
+                }
+            }
+        }
+        g.dispose();
+        return image;
+    }
+
+    private void updateActiveMetatileButton() {
+        JButton[] metatileButtons = ui.getMetatileButtons();
+        if (activeMetatile >= metatileButtons.length) {
+            return;
+        }
+        if (lastActiveMetatile != activeMetatile && lastActiveMetatile != MapCanvas.NOCHAR && lastActiveMetatile < metatileButtons.length) {
+            metatileButtons[lastActiveMetatile].setBorder(Globals.bordButtonNormal);
+        }
+        lastActiveMetatile = activeMetatile;
+        metatileButtons[activeMetatile].setBorder(Globals.bordButtonActive);
+        ui.getMetatileIntLabel().setText((activeMetatile < 100 ? " " : "") + activeMetatile);
+        ui.getMetatileHexLabel().setText(">" + Integer.toHexString(activeMetatile).toUpperCase());
     }
 
     public void updateSpriteButtons() {

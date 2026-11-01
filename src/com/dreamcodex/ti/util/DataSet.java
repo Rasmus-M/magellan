@@ -27,6 +27,52 @@ public class DataSet {
     private HashMap<Integer, Image> spriteImages;
     private int[] spriteColors = new int[TIGlobals.MAX_SPRITE + 1];
 
+    // Metatile mode: 0 = off, otherwise the width/height of a metatile in characters (2 or 4).
+    // When on, map entries are metatile numbers instead of character numbers.
+    private int metatileSize = 0;
+    // Metatile definitions per metatile size, so switching between 2x2 and 4x4 keeps both sets.
+    // A set maps metatile number -> [y][x] grid of character numbers.
+    private final HashMap<Integer, HashMap<Integer, int[][]>> metatileSets = new HashMap<>();
+    private HashMap<Integer, Image> metatileImages = new HashMap<>();
+
+    public boolean isMetatileMode() {
+        return metatileSize != 0;
+    }
+
+    public int getMetatileSize() {
+        return metatileSize;
+    }
+
+    public void setMetatileSize(int metatileSize) {
+        this.metatileSize = metatileSize;
+    }
+
+    /**
+     * Definitions for the current metatile size.
+     */
+    public HashMap<Integer, int[][]> getMetatiles() {
+        return metatileSets.get(metatileSize);
+    }
+
+    /**
+     * Definitions for the given metatile size, or null if that size hasn't been used.
+     */
+    public HashMap<Integer, int[][]> getMetatiles(int size) {
+        return metatileSets.get(size);
+    }
+
+    public void setMetatiles(int size, HashMap<Integer, int[][]> metatiles) {
+        metatileSets.put(size, metatiles);
+    }
+
+    public void clearMetatiles() {
+        metatileSets.clear();
+    }
+
+    public HashMap<Integer, Image> getMetatileImages() {
+        return metatileImages;
+    }
+
     public ColorMode getColorMode() {
         return colorMode;
     }

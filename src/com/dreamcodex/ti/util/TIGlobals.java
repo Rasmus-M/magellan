@@ -224,6 +224,9 @@ public class TIGlobals
 	public static final int MAX_CHAR = 2047;
     public static final int MIN_SPRITE = 0;
     public static final int MAX_SPRITE = 511;
+    public static final int MIN_METATILE = 0;
+    public static final int MAX_METATILE = 255;
+    public static final int N_METATILES = (MAX_METATILE - MIN_METATILE) + 1;
 	public static final int BASIC_FIRST_CHAR = 32;
 	public static final int BASIC_LAST_CHAR = BASIC_FIRST_CHAR + (8 * 16) - 1;
 	public static final int EXP_FIRST_CHAR = 0;
