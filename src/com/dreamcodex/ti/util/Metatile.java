@@ -6,12 +6,12 @@ package com.dreamcodex.ti.util;
  * Date: 03-07-2014
  * Time: 20:16
  */
-public class MetaTile {
+public class Metatile {
 
     int number;
     int[] tiles;
 
-    public MetaTile(int number, int[] tiles) {
+    public Metatile(int number, int[] tiles) {
         this.number = number;
         this.tiles = tiles;
     }

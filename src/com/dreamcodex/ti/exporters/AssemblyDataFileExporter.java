@@ -18,8 +18,13 @@ import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class AssemblyDataFileExporter extends Exporter {
 
+    private final int metatileSize;
+    private final HashMap<Integer, int[][]> metatiles;
+
     public AssemblyDataFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
+        metatileSize = dataSet.getMetatileSize();
+        metatiles = dataSet.getMetatiles();
     }
 
     public void writeAssemblyDataFile(File mapDataFile, Preferences preferences) throws Exception{
@@ -307,270 +312,395 @@ public class AssemblyDataFileExporter extends Exporter {
             printPaddedLine(bw, "* Map Data", false);
             printPaddedLine(bw, "****************************************", false);
         }
+        int lastMetatile = -1;
+        if (metatileSize != 0) {
+            lastMetatile = getLastMetatileUsed(currMapOnly);
+            checkMetatileCharacters(lastMetatile);
+        }
         printPaddedLine(bw, "MCOUNT DATA " + (currMapOnly ? 1 : mapEditor.getMapCount()), includeComments);
         for (int m = 0; m < mapEditor.getMapCount(); m++) {
             if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
                 int[][] mapToSave = mapEditor.getMapData(m);
-                if (includeComments) {
-                    printPaddedLine(bw, "* == Map #" + m + " == ", false);
-                }
-                printPaddedLine(bw, "MC" + rightPad(m, 4) + " DATA " + mapEditor.getScreenColor(m), includeComments);
-                sbLine.delete(0, sbLine.length());
-                sbLine.append("MS").append(rightPad(m, 4)).append(" DATA >");
-                sbLine.append(Globals.toHexString(mapToSave[0].length, 4));
-                sbLine.append(",>").append(Globals.toHexString(mapToSave.length, 4));
-                sbLine.append(",>").append(Globals.toHexString(mapToSave[0].length * mapToSave.length, 4));
-                printPaddedLine(bw, sbLine.toString(), includeComments ? "Width, Height, Size" : null);
-                sbLine.delete(0, sbLine.length());
-                if (compression == MagellanExportDialog.COMPRESSION_NONE) {
-                    boolean isByteContent = Globals.isByteGrid(mapToSave);
-                    boolean isFirstByte;
-                    isFirstByte = true;
-                    for (int y = 0; y < mapToSave.length; y++) {
-                        if (includeComments) {
-                            printPaddedLine(bw, "* -- Map Row " + y + " -- ", false);
-                        }
-                        int rowLength = mapToSave[y].length;
-                        boolean useBytes = rowLength % 2 == 1 && isByteContent;
-                        String directive = useBytes ? "BYTE" : "DATA";
-                        for (int cl = 0; cl < Math.ceil((double) rowLength / 8); cl++) {
-                            if (y == 0 && cl == 0) {
-                                sbLine.append("MD").append(rightPad(m, 4)).append(" ").append(directive).append(" ");
-                            }
-                            else {
-                                sbLine.append("       ").append(directive).append(" ");
-                            }
-                            for (int colpos = (cl * 8); colpos < Math.min((cl + 1) * 8, rowLength); colpos++) {
-                                if (isFirstByte) {
-                                    if (colpos > (cl * 8)) {
-                                        sbLine.append(",");
-                                    }
-                                    sbLine.append(">");
-                                }
-                                int value = mapToSave[y][colpos];
-                                if (value == MapCanvas.NOCHAR) {
-                                    value = 0;
-                                }
-                                sbLine.append(Globals.toHexString(value, isByteContent ? 2 : 4));
-                                if (!useBytes && isByteContent) {
-                                    isFirstByte = !isFirstByte;
-                                }
-                            }
-                            printPaddedLine(bw, sbLine.toString(), includeComments);
-                            sbLine.delete(0, sbLine.length());
-                        }
-                    }
-                }
-                else if (compression == MagellanExportDialog.COMPRESSION_RLE_BYTE) {
-                    // RLE compression (byte)
-                    // We assume all characters are < 128. If msb is set, the next byte determines
-                    // how many times (2 - 256) the current byte (with msb cleared) should be repeated.
-                    // A repeat count of 0 is used as end marker.
-                    System.out.println("Uncompressed size: " + (mapToSave.length * mapToSave[0].length));
-                    int i = 0;
-                    int n = 0;
-                    int last = -1;
-                    int count = 0;
-                    for (int[] row : mapToSave) {
-                        for (int current : row) {
-                            if (last != -1) {
-                                if (current == last && count < 255) {
-                                    // Same byte, increment count
-                                    count++;
-                                } else if (count > 0) {
-                                    // End of run of bytes
-                                    i = printByte(bw, sbLine, i, last | 128);
-                                    i = printByte(bw, sbLine, i, count);
-                                    count = 0;
-                                    n += 2;
-                                } else {
-                                    // Different byte
-                                    i = printByte(bw, sbLine, i, last);
-                                    n++;
-                                }
-                            }
-                            last = current;
-                        }
-                    }
-                    if (count > 0) {
-                        i = printByte(bw, sbLine, i, last | 128);
-                        i = printByte(bw, sbLine, i, count);
-                        n += 2;
-                    }
-                    else {
-                        // Different byte
-                        i = printByte(bw, sbLine, i, last);
-                        n++;
-                    }
-                    // End marker
-                    i = printByte(bw, sbLine, i, 128);
-                    i = printByte(bw, sbLine, i, 0);
-                    n += 2;
-                    printPaddedLine(bw, sbLine.toString(), false);
-                    n += i;
-                    System.out.println("Compressed size: " + n);
-                }
-                else if (compression == MagellanExportDialog.COMPRESSION_RLE_WORD) {
-                    // RLE compression (word)
-                    // We assume all characters are < 128. If msb of the MSB is set, the byte following the
-                    // current word determines how many times (2 - 256) the current word (with msb cleared)
-                    // should be repeated. A repeat count of 0 is used as end marker.
-                    System.out.println("Uncompressed size: " + (mapToSave.length * mapToSave[0].length));
-                    int i = 0;
-                    int n = 0;
-                    int current;
-                    int last = -1;
-                    int count = 0;
-                    for (int[] row : mapToSave) {
-                        for (int x = 0; x < mapToSave[0].length - 1; x += 2) {
-                            current = row[x] << 8 | row[x + 1];
-                            if (last != -1) {
-                                if (current == last && count < 255) {
-                                    // Same word, increment count
-                                    count++;
-                                } else if (count > 0) {
-                                    // End of run of words
-                                    i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8 | 128);
-                                    i = printByte(bw, sbLine, i, last & 0x00FF);
-                                    i = printByte(bw, sbLine, i, count);
-                                    count = 0;
-                                    n += 3;
-                                } else {
-                                    // Different byte
-                                    i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8);
-                                    i = printByte(bw, sbLine, i, last & 0x00FF);
-                                    n += 2;
-                                }
-                            }
-                            last = current;
-                        }
-                    }
-                    if (count > 0) {
-                        i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8 | 128);
-                        i = printByte(bw, sbLine, i, last & 0x00FF);
-                        i = printByte(bw, sbLine, i, count);
-                        n += 2;
-                    }
-                    else {
-                        // Different byte
-                        i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8);
-                        i = printByte(bw, sbLine, i, last & 0x00FF);
-                        n++;
-                    }
-                    // End marker
-                    i = printByte(bw, sbLine, i, 128);
-                    i = printByte(bw, sbLine, i, 0);
-                    i = printByte(bw, sbLine, i, 0);
-                    n += 3;
-                    printPaddedLine(bw, sbLine.toString(), false);
-                    n += i;
-                    System.out.println("Compressed size: " + n);
-                }
-                else if (compression == MagellanExportDialog.COMPRESSION_META_2 || compression == MagellanExportDialog.COMPRESSION_META_4 || compression == MagellanExportDialog.COMPRESSION_META_8) {
-                    int size = compression == MagellanExportDialog.COMPRESSION_META_2 ? 2 : compression == MagellanExportDialog.COMPRESSION_META_4 ? 4 : 8;
-                    if (mapToSave.length % size != 0) {
-                        throw new Exception("Map height is not a multiple of " + compression);
-                    }
-                    if (mapToSave[0].length % size != 0) {
-                        throw new Exception("Map width is not a multiple of " + compression);
-                    }
-                    int height = mapToSave.length / size;
-                    int width = mapToSave[0].length / size;
-                    Map<String, MetaTile> metaTileLookup = new HashMap<>();
-                    MetaTile[][] metaTileMap = new MetaTile[height][width];
-                    int n = 0;
-                    for (int y = 0; y < height; y++) {
-                        for (int x = 0; x < width; x++) {
-                            StringBuilder keyBuffer = new StringBuilder();
-                            int[] tiles = new int[size * size];
-                            for (int y1 = 0; y1 < size; y1++) {
-                                for (int x1 = 0; x1 < size; x1++) {
-                                    int tile = mapToSave[y * size + y1][x * size + x1];
-                                    keyBuffer.append(Globals.toHexString(tile, 2));
-                                    tiles[y1 * size + x1] = tile;
-                                }
-                            }
-                            String key = keyBuffer.toString();
-                            MetaTile metaTile = metaTileLookup.get(key);
-                            if (metaTile == null) {
-                                metaTile = new MetaTile(n++, tiles);
-                                metaTileLookup.put(key, metaTile);
-                            }
-                            metaTileMap[y][x] = metaTile;
-                        }
-                    }
-                    System.out.println("Number of meta tiles: " + metaTileLookup.size());
-                    if (metaTileLookup.size() > 256) {
-                        throw new Exception("Cannot support more than 256 meta tiles (" + metaTileLookup.size() + " found)");
-                    }
-                    boolean first = true;
-                    n = 0;
-                    for (MetaTile[] row : metaTileMap) {
-                        for (MetaTile metaTile : row) {
-                            n = printByte(bw, sbLine, n, metaTile.getNumber(), first ? "MD" + m : null);
-                            first = false;
-                        }
-                    }
-                    printPaddedLine(bw, sbLine.toString(), false);
-                    if (includeComments) {
-                        printPaddedLine(bw, "****************************************", false);
-                        printPaddedLine(bw, "* Meta Tiles", false);
-                        printPaddedLine(bw, "****************************************", false);
-                    }
-                    ArrayList<MetaTile> metaTiles = new ArrayList<>(metaTileLookup.values());
-                    metaTiles.sort(Comparator.comparingInt(MetaTile::getNumber));
-                    for (MetaTile metaTile : metaTiles) {
-                        sbLine.delete(0, sbLine.length());
-                        n = 0;
-                        first = true;
-                        int[] tiles = metaTile.getTiles();
-                        for (int tile : tiles) {
-                            n = printByte(bw, sbLine, n, tile, first ? "MT" + m + Globals.padl(metaTile.getNumber(), 3) : null);
-                            first = false;
-                        }
-                        if (metaTile.getTiles().length < 8) {
-                            printPaddedLine(bw, sbLine.toString(), false);
-                        }
-                    }
-                }
-                else if (compression == MagellanExportDialog.COMPRESSION_NYBBLES) {
-                    String hexChunk;
-                    for (int y = 0; y < mapToSave.length; y++) {
-                        if (includeComments) {
-                            printPaddedLine(bw, "* -- Map Row " + y + " -- ", false);
-                        }
-                        for (int cl = 0; cl < Math.ceil((double) mapToSave[y].length / 16); cl++) {
-                            if (y == 0 && cl == 0) {
-                                sbLine.append("MD").append(rightPad(m, 4)).append(" DATA ");
-                            }
-                            else {
-                                sbLine.append("       DATA ");
-                            }
-                            for (int colpos = (cl * 16); colpos < Math.min((cl + 1) * 16, mapToSave[y].length); colpos++) {
-                                if (colpos % 4 == 0) {
-                                    if (colpos > (cl * 16)) {
-                                        sbLine.append(",");
-                                    }
-                                    sbLine.append(">");
-                                }
-                                int value = mapToSave[y][colpos];
-                                if (value >= 16) {
-                                    throw new RuntimeException("Compression mode not supported for characters >= 16");
-                                }
-                                hexChunk = value != MapCanvas.NOCHAR ? Integer.toHexString(value).toUpperCase() : "0";
-                                sbLine.append(hexChunk);
-                            }
-                            printPaddedLine(bw, sbLine.toString(), includeComments);
-                            sbLine.delete(0, sbLine.length());
-                        }
-                    }
+                if (metatileSize != 0) {
+                    // Metatile mode: the map holds the project's metatile numbers, the size is given in characters
+                    writeMapHeader(m, mapToSave[0].length * metatileSize, mapToSave.length * metatileSize, includeComments, sbLine, bw);
+                    writeMetatileNumbers(m, mapToSave, sbLine, bw);
                 }
                 else {
-                    throw new RuntimeException("Compression mode not yet supported.");
+                    writeMapHeader(m, mapToSave[0].length, mapToSave.length, includeComments, sbLine, bw);
+                    writeCompressedMap(m, mapToSave, compression, includeComments, sbLine, bw);
                 }
                 if (includeSpriteData) {
                     writeSpriteLocations(includeComments, paletteMap, bw, m);
                 }
+            }
+        }
+        if (metatileSize != 0) {
+            writeMetatileTable(lastMetatile, includeComments, sbLine, bw);
+        }
+    }
+
+    private void writeCompressedMap(int m, int[][] mapToSave, int compression, boolean includeComments, StringBuilder sbLine, BufferedWriter bw) throws Exception {
+        if (compression == MagellanExportDialog.COMPRESSION_NONE) {
+            writeMapUncompressed(m, mapToSave, includeComments, sbLine, bw);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_RLE_BYTE) {
+            writeMapRLEBytes(mapToSave, sbLine, bw);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_RLE_WORD) {
+            writeMapRLEWords(mapToSave, sbLine, bw);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_META_2 || compression == MagellanExportDialog.COMPRESSION_META_4 || compression == MagellanExportDialog.COMPRESSION_META_8) {
+            int size = compression == MagellanExportDialog.COMPRESSION_META_2 ? 2 : compression == MagellanExportDialog.COMPRESSION_META_4 ? 4 : 8;
+            writeMapMetatiles(m, mapToSave, size, includeComments, sbLine, bw);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_NYBBLES) {
+            writeMapNybbles(m, mapToSave, includeComments, sbLine, bw);
+        }
+        else {
+            throw new RuntimeException("Compression mode not yet supported.");
+        }
+    }
+
+    private void writeMapHeader(int m, int width, int height, boolean includeComments, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        if (includeComments) {
+            printPaddedLine(bw, "* == Map #" + m + " == ", false);
+        }
+        printPaddedLine(bw, "MC" + rightPad(m, 4) + " DATA " + mapEditor.getScreenColor(m), includeComments);
+        sbLine.delete(0, sbLine.length());
+        sbLine.append("MS").append(rightPad(m, 4)).append(" DATA >");
+        sbLine.append(Globals.toHexString(width, 4));
+        sbLine.append(",>").append(Globals.toHexString(height, 4));
+        sbLine.append(",>").append(Globals.toHexString(width * height, 4));
+        printPaddedLine(bw, sbLine.toString(), includeComments ? "Width, Height, Size" : null);
+        sbLine.delete(0, sbLine.length());
+    }
+
+    // Metatile mode ---------------------------------------------------------------------------/
+
+    private int getLastMetatileUsed(boolean currMapOnly) {
+        int last = 0;
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
+                for (int[] row : mapEditor.getMapData(m)) {
+                    for (int metatileNum : row) {
+                        last = Math.max(last, metatileNum);
+                    }
+                }
+            }
+        }
+        return last;
+    }
+
+    /**
+     * Metatile definitions are written as bytes, so their characters must be < 256.
+     */
+    private void checkMetatileCharacters(int lastMetatile) throws Exception {
+        for (int i = TIGlobals.MIN_METATILE; i <= lastMetatile; i++) {
+            for (int[] row : metatiles.get(i)) {
+                for (int charNum : row) {
+                    if (charNum > 255) {
+                        throw new Exception("Metatile " + i + " uses character " + charNum + ", but metatile data only supports characters up to 255.");
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Writes the definitions of metatiles 0 up to the last one used, shared by all maps,
+     * so a metatile's characters are at MT000 + number * size * size.
+     */
+    private void writeMetatileTable(int lastMetatile, boolean includeComments, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        if (includeComments) {
+            printPaddedLine(bw, "****************************************", false);
+            printPaddedLine(bw, "* Metatiles", false);
+            printPaddedLine(bw, "****************************************", false);
+        }
+        for (int i = TIGlobals.MIN_METATILE; i <= lastMetatile; i++) {
+            int[][] metatile = metatiles.get(i);
+            int[] tiles = new int[metatileSize * metatileSize];
+            for (int y = 0; y < metatileSize; y++) {
+                System.arraycopy(metatile[y], 0, tiles, y * metatileSize, metatileSize);
+            }
+            writeMetatile("MT" + Globals.padl(i, 3), tiles, sbLine, bw);
+        }
+    }
+
+    private void writeMapUncompressed(int m, int[][] mapToSave, boolean includeComments, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        boolean isByteContent = Globals.isByteGrid(mapToSave);
+        boolean isFirstByte = true;
+        for (int y = 0; y < mapToSave.length; y++) {
+            if (includeComments) {
+                printPaddedLine(bw, "* -- Map Row " + y + " -- ", false);
+            }
+            int rowLength = mapToSave[y].length;
+            boolean useBytes = rowLength % 2 == 1 && isByteContent;
+            String directive = useBytes ? "BYTE" : "DATA";
+            for (int cl = 0; cl < Math.ceil((double) rowLength / 8); cl++) {
+                if (y == 0 && cl == 0) {
+                    sbLine.append("MD").append(rightPad(m, 4)).append(" ").append(directive).append(" ");
+                }
+                else {
+                    sbLine.append("       ").append(directive).append(" ");
+                }
+                for (int colpos = (cl * 8); colpos < Math.min((cl + 1) * 8, rowLength); colpos++) {
+                    if (isFirstByte) {
+                        if (colpos > (cl * 8)) {
+                            sbLine.append(",");
+                        }
+                        sbLine.append(">");
+                    }
+                    int value = mapToSave[y][colpos];
+                    if (value == MapCanvas.NOCHAR) {
+                        value = 0;
+                    }
+                    sbLine.append(Globals.toHexString(value, isByteContent ? 2 : 4));
+                    if (!useBytes && isByteContent) {
+                        isFirstByte = !isFirstByte;
+                    }
+                }
+                printPaddedLine(bw, sbLine.toString(), includeComments);
+                sbLine.delete(0, sbLine.length());
+            }
+        }
+    }
+
+    /**
+     * RLE compression (byte)
+     * We assume all characters are < 128. If msb is set, the next byte determines
+     * how many times (2 - 256) the current byte (with msb cleared) should be repeated.
+     * A repeat count of 0 is used as end marker.
+     */
+    private void writeMapRLEBytes(int[][] mapToSave, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        System.out.println("Uncompressed size: " + (mapToSave.length * mapToSave[0].length));
+        int i = 0;
+        int n = 0;
+        int last = -1;
+        int count = 0;
+        for (int[] row : mapToSave) {
+            for (int current : row) {
+                if (last != -1) {
+                    if (current == last && count < 255) {
+                        // Same byte, increment count
+                        count++;
+                    } else if (count > 0) {
+                        // End of run of bytes
+                        i = printByte(bw, sbLine, i, last | 128);
+                        i = printByte(bw, sbLine, i, count);
+                        count = 0;
+                        n += 2;
+                    } else {
+                        // Different byte
+                        i = printByte(bw, sbLine, i, last);
+                        n++;
+                    }
+                }
+                last = current;
+            }
+        }
+        if (count > 0) {
+            i = printByte(bw, sbLine, i, last | 128);
+            i = printByte(bw, sbLine, i, count);
+            n += 2;
+        }
+        else {
+            // Different byte
+            i = printByte(bw, sbLine, i, last);
+            n++;
+        }
+        // End marker
+        i = printByte(bw, sbLine, i, 128);
+        i = printByte(bw, sbLine, i, 0);
+        n += 2;
+        printPaddedLine(bw, sbLine.toString(), false);
+        n += i;
+        System.out.println("Compressed size: " + n);
+    }
+
+    /**
+     * RLE compression (word)
+     * We assume all characters are < 128. If msb of the MSB is set, the byte following the
+     * current word determines how many times (2 - 256) the current word (with msb cleared)
+     * should be repeated. A repeat count of 0 is used as end marker.
+     */
+    private void writeMapRLEWords(int[][] mapToSave, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        System.out.println("Uncompressed size: " + (mapToSave.length * mapToSave[0].length));
+        int i = 0;
+        int n = 0;
+        int current;
+        int last = -1;
+        int count = 0;
+        for (int[] row : mapToSave) {
+            for (int x = 0; x < mapToSave[0].length - 1; x += 2) {
+                current = row[x] << 8 | row[x + 1];
+                if (last != -1) {
+                    if (current == last && count < 255) {
+                        // Same word, increment count
+                        count++;
+                    } else if (count > 0) {
+                        // End of run of words
+                        i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8 | 128);
+                        i = printByte(bw, sbLine, i, last & 0x00FF);
+                        i = printByte(bw, sbLine, i, count);
+                        count = 0;
+                        n += 3;
+                    } else {
+                        // Different byte
+                        i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8);
+                        i = printByte(bw, sbLine, i, last & 0x00FF);
+                        n += 2;
+                    }
+                }
+                last = current;
+            }
+        }
+        if (count > 0) {
+            i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8 | 128);
+            i = printByte(bw, sbLine, i, last & 0x00FF);
+            i = printByte(bw, sbLine, i, count);
+            n += 2;
+        }
+        else {
+            // Different byte
+            i = printByte(bw, sbLine, i, (last & 0xFF00) >> 8);
+            i = printByte(bw, sbLine, i, last & 0x00FF);
+            n++;
+        }
+        // End marker
+        i = printByte(bw, sbLine, i, 128);
+        i = printByte(bw, sbLine, i, 0);
+        i = printByte(bw, sbLine, i, 0);
+        n += 3;
+        printPaddedLine(bw, sbLine.toString(), false);
+        n += i;
+        System.out.println("Compressed size: " + n);
+    }
+
+    /**
+     * Splits the map into size x size metatiles, numbered in order of first appearance,
+     * and writes the metatile numbers followed by the metatile table for this map.
+     */
+    private void writeMapMetatiles(int m, int[][] mapToSave, int size, boolean includeComments, StringBuilder sbLine, BufferedWriter bw) throws Exception {
+        if (mapToSave.length % size != 0) {
+            throw new Exception("Map height is not a multiple of " + size);
+        }
+        if (mapToSave[0].length % size != 0) {
+            throw new Exception("Map width is not a multiple of " + size);
+        }
+        Map<String, Metatile> metatileLookup = new HashMap<>();
+        Metatile[][] metatileMap = buildMetatileMap(mapToSave, size, metatileLookup);
+        System.out.println("Number of metatiles: " + metatileLookup.size());
+        if (metatileLookup.size() > 256) {
+            throw new Exception("Cannot support more than 256 metatiles (" + metatileLookup.size() + " found)");
+        }
+        int[][] numbers = new int[metatileMap.length][metatileMap[0].length];
+        for (int y = 0; y < metatileMap.length; y++) {
+            for (int x = 0; x < metatileMap[y].length; x++) {
+                numbers[y][x] = metatileMap[y][x].getNumber();
+            }
+        }
+        writeMetatileNumbers(m, numbers, sbLine, bw);
+        if (includeComments) {
+            printPaddedLine(bw, "****************************************", false);
+            printPaddedLine(bw, "* Metatiles", false);
+            printPaddedLine(bw, "****************************************", false);
+        }
+        ArrayList<Metatile> sortedMetatiles = new ArrayList<>(metatileLookup.values());
+        sortedMetatiles.sort(Comparator.comparingInt(Metatile::getNumber));
+        for (Metatile metatile : sortedMetatiles) {
+            writeMetatile("MT" + m + Globals.padl(metatile.getNumber(), 3), metatile.getTiles(), sbLine, bw);
+        }
+    }
+
+    private Metatile[][] buildMetatileMap(int[][] mapToSave, int size, Map<String, Metatile> metatileLookup) {
+        int height = mapToSave.length / size;
+        int width = mapToSave[0].length / size;
+        Metatile[][] metatileMap = new Metatile[height][width];
+        int n = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                StringBuilder keyBuffer = new StringBuilder();
+                int[] tiles = new int[size * size];
+                for (int y1 = 0; y1 < size; y1++) {
+                    for (int x1 = 0; x1 < size; x1++) {
+                        int tile = mapToSave[y * size + y1][x * size + x1];
+                        keyBuffer.append(Globals.toHexString(tile, 2));
+                        tiles[y1 * size + x1] = tile;
+                    }
+                }
+                String key = keyBuffer.toString();
+                Metatile metatile = metatileLookup.get(key);
+                if (metatile == null) {
+                    metatile = new Metatile(n++, tiles);
+                    metatileLookup.put(key, metatile);
+                }
+                metatileMap[y][x] = metatile;
+            }
+        }
+        return metatileMap;
+    }
+
+    /**
+     * Writes the metatile numbers of a map as bytes, 8 per line.
+     */
+    private void writeMetatileNumbers(int m, int[][] numbers, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        boolean first = true;
+        int n = 0;
+        for (int[] row : numbers) {
+            for (int number : row) {
+                n = printByte(bw, sbLine, n, number, first ? "MD" + m : null);
+                first = false;
+            }
+        }
+        printPaddedLine(bw, sbLine.toString(), false);
+    }
+
+    /**
+     * Writes the characters of a metatile as bytes, 8 per line.
+     */
+    private void writeMetatile(String label, int[] tiles, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        sbLine.delete(0, sbLine.length());
+        int n = 0;
+        boolean first = true;
+        for (int tile : tiles) {
+            n = printByte(bw, sbLine, n, tile, first ? label : null);
+            first = false;
+        }
+        if (tiles.length < 8) {
+            printPaddedLine(bw, sbLine.toString(), false);
+        }
+    }
+
+    private void writeMapNybbles(int m, int[][] mapToSave, boolean includeComments, StringBuilder sbLine, BufferedWriter bw) throws IOException {
+        String hexChunk;
+        for (int y = 0; y < mapToSave.length; y++) {
+            if (includeComments) {
+                printPaddedLine(bw, "* -- Map Row " + y + " -- ", false);
+            }
+            for (int cl = 0; cl < Math.ceil((double) mapToSave[y].length / 16); cl++) {
+                if (y == 0 && cl == 0) {
+                    sbLine.append("MD").append(rightPad(m, 4)).append(" DATA ");
+                }
+                else {
+                    sbLine.append("       DATA ");
+                }
+                for (int colpos = (cl * 16); colpos < Math.min((cl + 1) * 16, mapToSave[y].length); colpos++) {
+                    if (colpos % 4 == 0) {
+                        if (colpos > (cl * 16)) {
+                            sbLine.append(",");
+                        }
+                        sbLine.append(">");
+                    }
+                    int value = mapToSave[y][colpos];
+                    if (value >= 16) {
+                        throw new RuntimeException("Compression mode not supported for characters >= 16");
+                    }
+                    hexChunk = value != MapCanvas.NOCHAR ? Integer.toHexString(value).toUpperCase() : "0";
+                    sbLine.append(hexChunk);
+                }
+                printPaddedLine(bw, sbLine.toString(), includeComments);
+                sbLine.delete(0, sbLine.length());
             }
         }
     }
@@ -583,7 +713,9 @@ public class AssemblyDataFileExporter extends Exporter {
                 printPaddedLine(bw, "* Sprite Locations", false);
                 printPaddedLine(bw, "****************************************", false);
             }
-            boolean smallMap = mapEditor.getGridWidth() <= 32 && mapEditor.getGridHeight() <= 32;
+            // Map size in characters (in metatile mode the grid is in metatiles)
+            int charsPerCell = Math.max(metatileSize, 1);
+            boolean smallMap = mapEditor.getGridWidth() * charsPerCell <= 32 && mapEditor.getGridHeight() * charsPerCell <= 32;
             boolean first = true;
             List<Point> sortedPoints = new ArrayList<>(spriteMap.keySet());
             sortedPoints.sort(Comparator.comparingInt(p -> ((Point) p).y).thenComparingInt(p -> ((Point) p).x));

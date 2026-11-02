@@ -363,7 +363,7 @@ public class MagellanUI {
         metatileModeButtonGroup = new ButtonGroup();
         for (int i = 0; i < METATILE_SIZES.length; i++) {
             int size = METATILE_SIZES[i];
-            String name = size == 0 ? "No metatiles" : size + "x" + size + " metatiles";
+            String name = size == 0 ? "No Metatiles" : size + "x" + size + " Metatiles";
             metatileModeMenuItems[i] = new JRadioButtonMenuItem(new SetMetatileModeAction(size, name, parent, mapEditor, dataSet, preferences));
             metatileModeMenuItems[i].setSelected(dataSet.getMetatileSize() == size);
             metatileModeButtonGroup.add(metatileModeMenuItems[i]);
@@ -427,7 +427,7 @@ public class MagellanUI {
             jmitAppend,
             jmitImportVramDump, jmitImportBinaryMap, jmitImportMapImage,
             jmitExportData, jmitExportBasic, jmitExportExec, jmitExportXB256, jmitExportXBDisMer, jmitExportCVB,
-            jmitExportAsm, jmitExportScrollMap, jmitExportBin, jmitExportBinMap,
+            jmitExportScrollMap, jmitExportBin, jmitExportBinMap,
             jmitAnalyzeCharUsage, jmitAnalyzeCharTrans
         };
 

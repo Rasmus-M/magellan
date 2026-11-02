@@ -55,12 +55,20 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     private JCheckBox jchkWrap;
     private JComboBox frameComboBox;
     private JComboBox compressComboBox;
+    private boolean compressionLocked = false;
     private JSpinner offsetSpinner;
     private boolean clickedOkay = false;
     private int minChar = 0;
     private int maxChar = 0;
 
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, Preferences preferences) {
+        this(type, parent, ip, preferences, -1);
+    }
+
+    /**
+     * @param lockedCompression compression option to select and lock, or -1 to let the user choose
+     */
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, Preferences preferences, int lockedCompression) {
         this(
             type,
                 parent,
@@ -84,15 +92,16 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
                 preferences.getCompression(),
                 preferences.getTransitionType(),
                 preferences.getScrollFrames(),
-                preferences.getOffset()
+                preferences.getOffset(),
+                lockedCompression
         );
     }
 
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int maxSprite, boolean currentMapOnly, boolean excludeBlank) {
-        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, true, true, false, true, 0, TransitionType.BOTTOM_TO_TOP, -1, 0);
+        this(type, parent, ip, setCommentsOn, startChar, endChar, minc, maxc, TIGlobals.MIN_SPRITE, maxSprite, maxSprite, currentMapOnly, excludeBlank, false, false, true, true, false, true, 0, TransitionType.BOTTOM_TO_TOP, -1, 0, -1);
     }
 
-    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeMapData, boolean includeCharData, boolean includeSpriteData, boolean includeColorData, int compression, TransitionType transitionType, int scrollFrames, int offset) {
+    public MagellanExportDialog(int type, JFrame parent, IconProvider ip, boolean setCommentsOn, int startChar, int endChar, int minc, int maxc, int startSprite, int endsprite, int maxSprite, boolean currentMapOnly, boolean excludeBlank, boolean includeCharNumbers, boolean wrap, boolean includeMapData, boolean includeCharData, boolean includeSpriteData, boolean includeColorData, int compression, TransitionType transitionType, int scrollFrames, int offset, int lockedCompression) {
         super(parent, "Export Settings", true);
         minChar = minc;
         maxChar = maxc;
@@ -134,9 +143,16 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
 
         jchkWrap = new JCheckBox("Wrap Edges", wrap);
 
-        compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Meta tiles", "4x4 Meta tiles", "8x8 Meta tiles", "Pack in nybbles (16 characters max)", "Unique row index"});
+        compressComboBox = new JComboBox(new String[] {"No compression", "RLE Compress Maps (bytes)", "RLE Compress Maps (words)", "2x2 Metatiles", "4x4 Metatiles", "8x8 Metatiles", "Pack in nybbles (16 characters max)", "Unique row index"});
         compressComboBox.setSelectedIndex(Math.min(compression, compressComboBox.getItemCount() - 1));
         compressComboBox.setEnabled(type != TYPE_ASM || includeMapData);
+        if (lockedCompression != -1) {
+            // In metatile mode the map can only be exported as metatiles of the project's size
+            compressionLocked = true;
+            compressComboBox.setSelectedIndex(lockedCompression);
+            compressComboBox.setEnabled(false);
+            compressComboBox.setToolTipText("Set by the metatile mode");
+        }
 
         frameComboBox = new JComboBox(new String[] {"0", "2", "4", "8"});
         if (transitionType == TransitionType.TOP_TO_BOTTOM || transitionType == TransitionType.BOTTOM_TO_TOP) {
@@ -384,7 +400,7 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
             }
         }
         else if (e.getSource() == jchkIncludeMapData) {
-            compressComboBox.setEnabled(jchkIncludeMapData.isSelected());
+            compressComboBox.setEnabled(jchkIncludeMapData.isSelected() && !compressionLocked);
             jchkCurrentMapOnly.setEnabled(jchkIncludeMapData.isSelected());
         }
         else if (e.getSource() == jchkIncludeCharData) {

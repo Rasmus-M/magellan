@@ -20,7 +20,15 @@ public class ExportAssemblyDataFileAction extends FileAction {
 
     @Override
     public void actionPerformed(ActionEvent evt) {
-        MagellanExportDialog exportDialog = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, parent, preferences);
+        // In metatile mode the compression is the project's metatile size
+        int lockedCompression = -1;
+        if (dataSet.getMetatileSize() == 2) {
+            lockedCompression = MagellanExportDialog.COMPRESSION_META_2;
+        }
+        else if (dataSet.getMetatileSize() == 4) {
+            lockedCompression = MagellanExportDialog.COMPRESSION_META_4;
+        }
+        MagellanExportDialog exportDialog = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, parent, preferences, lockedCompression);
         if (exportDialog.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, ASMEXTS, "Assembler Source Files");
             if (file != null) {
@@ -48,7 +56,9 @@ public class ExportAssemblyDataFileAction extends FileAction {
                 preferences.setIncludeMapData(exportDialog.includeMapData());
                 preferences.setDefStartSprite(Math.min(sSprite, eSprite));
                 preferences.setDefEndSprite(Math.max(sSprite, eSprite));
-                preferences.setCompression(exportDialog.getCompression());
+                if (lockedCompression == -1) {
+                    preferences.setCompression(exportDialog.getCompression());
+                }
                 AssemblyDataFileExporter exporter = new AssemblyDataFileExporter(mapEditor, dataSet, preferences);
                 try {
                     exporter.writeAssemblyDataFile(file, preferences);

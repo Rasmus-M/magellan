@@ -134,7 +134,7 @@ that flattens `DataSet` + `Preferences` into protected fields (`charGrids`, `clr
   format documented in `dist/magellan_binary.txt`.
 - **Scroll data** (`ScrollFileExporter`, the largest exporter) generates character sets for smooth scrolling:
   `TransitionType` (top-to-bottom, left-to-right, two-dimensional, isometric …) drives `TransChar`, which
-  records for each source character the characters it must transition into, plus `MetaTile` for 8×8 metatiles.
+  records for each source character the characters it must transition into, plus `Metatile` for 8×8 metatiles.
   `AnalyzeCharTransDialog` is the interactive view of the same data.
 - Export options come from `MagellanExportDialog` (`TYPE_BASIC`, `TYPE_ASM`, `TYPE_BINARY`, `TYPE_XBSCRMER`,
   `TYPE_SCROLL`, `TYPE_BINARY_MAP`), which also owns the `COMPRESSION_*` constants.

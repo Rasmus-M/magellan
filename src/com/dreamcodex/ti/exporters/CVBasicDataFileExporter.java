@@ -400,7 +400,7 @@ private void writeColors(
                   || compression == MagellanExportDialog.COMPRESSION_META_8) {
                 int size = (compression == MagellanExportDialog.COMPRESSION_META_2) ? 2
                         : (compression == MagellanExportDialog.COMPRESSION_META_4) ? 4 : 8;
-                writeMetaTileData(size, mapGrid, mid, bw, includeComments);
+                writeMetatileData(size, mapGrid, mid, bw, includeComments);
             }
             else if (compression == MagellanExportDialog.COMPRESSION_NYBBLES) {
                 writeNybblesData(mapGrid, mid, bw, includeComments);
@@ -530,9 +530,9 @@ private void writeColors(
         return printByte(bw, buf, countOnLine, repeat, null);
     }
 
-    // ---------- Meta-Tile ----------
+    // ---------- Metatile ----------
 
-private void writeMetaTileData(
+private void writeMetatileData(
     int blockSize,
     int[][] mapGrid,
     int mapId,
@@ -543,7 +543,7 @@ private void writeMetaTileData(
     if (mapGrid.length % blockSize != 0
         || mapGrid[0].length % blockSize != 0) {
         throw new Exception(
-            "Map dimensions must be a multiple of meta-tile size "
+            "Map dimensions must be a multiple of metatile size "
             + blockSize
         );
     }
@@ -552,11 +552,11 @@ private void writeMetaTileData(
     int metaCols = mapGrid[0].length / blockSize;
 
     // Deduplication lookup: key = concatenated hex of each sub-tile
-    Map<String,MetaTile> lookup = new LinkedHashMap<>();
-    MetaTile[][] metaGrid   = new MetaTile[metaRows][metaCols];
+    Map<String,Metatile> lookup = new LinkedHashMap<>();
+    Metatile[][] metaGrid   = new Metatile[metaRows][metaCols];
     int nextMetaId = 0;
 
-    // Build & dedupe meta-tiles
+    // Build & dedupe metatiles
     for (int ry = 0; ry < metaRows; ry++) {
         for (int cx = 0; cx < metaCols; cx++) {
             StringBuilder keyBuilder = new StringBuilder(blockSize * blockSize * 2);
@@ -572,9 +572,9 @@ private void writeMetaTileData(
             }
 
             String key = keyBuilder.toString();
-            MetaTile mt = lookup.get(key);
+            Metatile mt = lookup.get(key);
             if (mt == null) {
-                mt = new MetaTile(nextMetaId++, block);
+                mt = new Metatile(nextMetaId++, block);
                 lookup.put(key, mt);
             }
             metaGrid[ry][cx] = mt;
@@ -583,31 +583,31 @@ private void writeMetaTileData(
 
     if (lookup.size() > 256) {
         throw new Exception(
-            "Cannot support more than 256 meta-tiles (found "
+            "Cannot support more than 256 metatiles (found "
             + lookup.size() + ")"
         );
     }
 
-    // Emit the meta-tile map (indices into the deduped set)
+    // Emit the metatile map (indices into the deduped set)
     if (includeComments) {
-        printSectionHeader(bw, " Meta Tile Map");
+        printSectionHeader(bw, " Metatile Map");
     }
-    writeMetaTileMap(bw, metaGrid, mapId);
+    writeMetatileMap(bw, metaGrid, mapId);
 
-    // Emit the meta-tile definitions themselves
+    // Emit the metatile definitions themselves
     if (includeComments) {
-        printSectionHeader(bw, " Meta Tile Definitions");
+        printSectionHeader(bw, " Metatile Definitions");
     }
-    writeMetaTileDefinitions(bw, lookup.values(), mapId, blockSize);
+    writeMetatileDefinitions(bw, lookup.values(), mapId, blockSize);
 }
 
-    private void writeMetaTileMap(
-        BufferedWriter bw, MetaTile[][] grid, int mapId
+    private void writeMetatileMap(
+        BufferedWriter bw, Metatile[][] grid, int mapId
     ) throws IOException {
         int lineCount = 0;
         boolean first = true;
-        for (MetaTile[] row : grid) {
-            for (MetaTile mt : row) {
+        for (Metatile[] row : grid) {
+            for (Metatile mt : row) {
                 lineCount = printByte(bw, lineBuffer, lineCount,
                                       mt.getNumber(),
                                       first ? "MD" + mapId : null);
@@ -617,12 +617,12 @@ private void writeMetaTileData(
         printLine(bw, lineBuffer.toString(), null);
     }
 
-    private void writeMetaTileDefinitions(
-        BufferedWriter bw, Collection<MetaTile> tiles, int mapId, int blockSize
+    private void writeMetatileDefinitions(
+        BufferedWriter bw, Collection<Metatile> tiles, int mapId, int blockSize
     ) throws IOException {
-        List<MetaTile> list = new ArrayList<>(tiles);
-        list.sort(Comparator.comparingInt(MetaTile::getNumber));
-        for (MetaTile mt : list) {
+        List<Metatile> list = new ArrayList<>(tiles);
+        list.sort(Comparator.comparingInt(Metatile::getNumber));
+        for (Metatile mt : list) {
             lineBuffer.setLength(0);
             int cnt = 0;
             boolean first = true;
