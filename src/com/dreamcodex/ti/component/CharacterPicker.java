@@ -1,17 +1,18 @@
 package com.dreamcodex.ti.component;
 
 import com.dreamcodex.ti.util.Globals;
-import com.dreamcodex.ti.util.TIGlobals;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.function.IntFunction;
 
 /**
- * Grid of character images for picking a character, drawn on a single component
- * so it doesn't need a button per character.
+ * Character picker that looks like the character dock. Each cell is painted with a single
+ * "rubber stamp" button that copies the icon, text, colors and border of the corresponding
+ * character dock button, so there's no need for a second set of buttons.
  */
 public class CharacterPicker extends JPanel {
 
@@ -19,22 +20,36 @@ public class CharacterPicker extends JPanel {
         void characterPicked(int charNum, MouseEvent e);
     }
 
+    // Characters per row, as in the character dock. The first column holds the row labels.
     public static final int COLS = 8;
-    public static final int CELL_SIZE = 24;
-    private static final int IMAGE_SIZE = 16;
+    public static final int CELL_HEIGHT = Globals.DM_TOOL.height;
 
-    private final HashMap<Integer, Image> charImages;
+    private final JButton[] charButtons;
+    private final IntFunction<JLabel> rowLabelFactory;
     private final Listener listener;
+    private final CellRendererPane rendererPane = new CellRendererPane();
+    private final JButton stamp = new JButton();
+    // Row labels by the first character of the row
+    private final HashMap<Integer, JLabel> rowLabels = new HashMap<>();
     private int firstChar;
     private int lastChar;
     private int selectedChar = -1;
 
-    public CharacterPicker(HashMap<Integer, Image> charImages, int firstChar, int lastChar, Listener listener) {
-        this.charImages = charImages;
+    /**
+     * @param charButtons     the character dock buttons, whose look is copied
+     * @param rowLabelFactory creates the label for the row starting at the given character
+     */
+    public CharacterPicker(JButton[] charButtons, IntFunction<JLabel> rowLabelFactory, int firstChar, int lastChar, Listener listener) {
+        super(null);
+        this.charButtons = charButtons;
+        this.rowLabelFactory = rowLabelFactory;
         this.listener = listener;
         setOpaque(true);
         setBackground(Globals.CLR_COMPONENTBACK);
         setToolTipText("");
+        add(rendererPane);
+        stamp.setOpaque(true);
+        stamp.setMargin(new Insets(0, 0, 0, 0));
         setRange(firstChar, lastChar);
         addMouseListener(new MouseAdapter() {
             @Override
@@ -50,9 +65,9 @@ public class CharacterPicker extends JPanel {
     public void setRange(int firstChar, int lastChar) {
         this.firstChar = firstChar;
         this.lastChar = lastChar;
+        rowLabels.clear();
         int rows = ((lastChar - firstChar) / COLS) + 1;
-        Dimension size = new Dimension(COLS * CELL_SIZE, rows * CELL_SIZE);
-        setPreferredSize(size);
+        setPreferredSize(new Dimension((COLS + 1) * Globals.DM_TOOL.width, rows * CELL_HEIGHT));
         revalidate();
         repaint();
     }
@@ -60,13 +75,13 @@ public class CharacterPicker extends JPanel {
     public void setSelectedChar(int charNum) {
         if (charNum != selectedChar) {
             selectedChar = charNum;
-            repaint();
-            // Keep the selection in view
-            Point p = getCellOrigin(charNum);
-            if (p != null) {
-                scrollRectToVisible(new Rectangle(p.x, p.y, CELL_SIZE, CELL_SIZE));
+            Rectangle bounds = getCellBounds(charNum);
+            if (bounds != null) {
+                scrollRectToVisible(bounds);
             }
         }
+        // The selection is shown by the border copied from the dock button
+        repaint();
     }
 
     @Override
@@ -75,9 +90,18 @@ public class CharacterPicker extends JPanel {
         return charNum != -1 ? charNum + " (>" + Integer.toHexString(charNum).toUpperCase() + ")" : null;
     }
 
+    // Cells stretch to fill the width like the dock's GridLayout, which centers any remainder
+    private int getCellWidth() {
+        return Math.max(1, getWidth() / (COLS + 1));
+    }
+
+    private int getOffsetX() {
+        return (getWidth() - getCellWidth() * (COLS + 1)) / 2;
+    }
+
     private int getCharAt(Point p) {
-        int col = p.x / CELL_SIZE;
-        int row = p.y / CELL_SIZE;
+        int col = Math.floorDiv(p.x - getOffsetX(), getCellWidth()) - 1;
+        int row = p.y / CELL_HEIGHT;
         if (col < 0 || col >= COLS || row < 0) {
             return -1;
         }
@@ -85,38 +109,43 @@ public class CharacterPicker extends JPanel {
         return charNum <= lastChar ? charNum : -1;
     }
 
-    private Point getCellOrigin(int charNum) {
+    private Rectangle getCellBounds(int charNum) {
         if (charNum < firstChar || charNum > lastChar) {
             return null;
         }
         int i = charNum - firstChar;
-        return new Point((i % COLS) * CELL_SIZE, (i / COLS) * CELL_SIZE);
+        int cellWidth = getCellWidth();
+        return new Rectangle(getOffsetX() + (i % COLS + 1) * cellWidth, (i / COLS) * CELL_HEIGHT, cellWidth, CELL_HEIGHT);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        int offset = (CELL_SIZE - IMAGE_SIZE) / 2;
-        for (int charNum = firstChar; charNum <= lastChar; charNum++) {
-            Point p = getCellOrigin(charNum);
-            Image image = charImages.get(charNum);
-            if (image != null) {
-                g.drawImage(image, p.x + offset, p.y + offset, IMAGE_SIZE, IMAGE_SIZE, this);
+        Rectangle clip = g.getClipBounds();
+        int cellWidth = getCellWidth();
+        int offsetX = getOffsetX();
+        int rows = ((lastChar - firstChar) / COLS) + 1;
+        int firstRow = clip != null ? Math.max(0, clip.y / CELL_HEIGHT) : 0;
+        int lastRow = clip != null ? Math.min(rows - 1, (clip.y + clip.height) / CELL_HEIGHT) : rows - 1;
+        for (int row = firstRow; row <= lastRow; row++) {
+            int rowFirstChar = firstChar + row * COLS;
+            int y = row * CELL_HEIGHT;
+            JLabel label = rowLabels.computeIfAbsent(rowFirstChar, rowLabelFactory::apply);
+            rendererPane.paintComponent(g, label, this, offsetX, y, cellWidth, CELL_HEIGHT, true);
+            for (int col = 0; col < COLS; col++) {
+                int charNum = rowFirstChar + col;
+                if (charNum > lastChar) {
+                    break;
+                }
+                JButton button = charButtons[charNum];
+                stamp.setIcon(button.getIcon());
+                stamp.setText(button.getText());
+                stamp.setFont(button.getFont());
+                stamp.setBackground(button.getBackground());
+                stamp.setForeground(button.getForeground());
+                stamp.setBorder(button.getBorder());
+                rendererPane.paintComponent(g, stamp, this, offsetX + (col + 1) * cellWidth, y, cellWidth, CELL_HEIGHT, true);
             }
-            else {
-                // Undefined character
-                g.setColor(TIGlobals.TI_COLOR_UNUSED);
-                int charMapIndex = charNum - TIGlobals.CHARMAPSTART;
-                String text = charMapIndex >= 0 && charMapIndex < TIGlobals.CHARMAP.length ? "" + TIGlobals.CHARMAP[charMapIndex] : "?";
-                FontMetrics fm = g.getFontMetrics();
-                g.drawString(text, p.x + (CELL_SIZE - fm.stringWidth(text)) / 2, p.y + (CELL_SIZE + fm.getAscent()) / 2 - 2);
-            }
-        }
-        Point p = getCellOrigin(selectedChar);
-        if (p != null) {
-            g.setColor(Globals.CLR_HIGHLIGHT);
-            g.drawRect(p.x + 1, p.y + 1, CELL_SIZE - 3, CELL_SIZE - 3);
-            g.drawRect(p.x + 2, p.y + 2, CELL_SIZE - 5, CELL_SIZE - 5);
         }
     }
 }

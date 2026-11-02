@@ -741,13 +741,14 @@ public class MagellanUI {
         metatileCanvas.setMinimumSize(editorDimension);
         jpnlMetatileTools.add(metatileCanvas, new GridBagConstraints(2, 2, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
 
-        // Character picker, in place of the color dock
-        characterPicker = new CharacterPicker(dataSet.getCharImages(), preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), (charNum, e) ->
+        // Character picker, in place of the color dock, drawn like the character dock
+        characterPicker = new CharacterPicker(charButtons, this::getCharacterRowLabel, preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), (charNum, e) ->
             new EditCharAction(charNum, "", parent, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(characterPicker, ActionEvent.ACTION_PERFORMED, ""))
         );
         JScrollPane jsclCharacterPicker = new JScrollPane(characterPicker, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        jsclCharacterPicker.getVerticalScrollBar().setUnitIncrement(CharacterPicker.CELL_SIZE);
-        Dimension pickerDimension = new Dimension(CharacterPicker.COLS * CharacterPicker.CELL_SIZE + jsclCharacterPicker.getVerticalScrollBar().getPreferredSize().width + 4, 6 * CharacterPicker.CELL_SIZE + 4);
+        jsclCharacterPicker.getVerticalScrollBar().setUnitIncrement(CharacterPicker.CELL_HEIGHT);
+        // Width comes from the layout; show 6 rows
+        Dimension pickerDimension = new Dimension(characterPicker.getPreferredSize().width, 6 * CharacterPicker.CELL_HEIGHT + 4);
         jsclCharacterPicker.setPreferredSize(pickerDimension);
         jsclCharacterPicker.setMinimumSize(pickerDimension);
 
@@ -759,7 +760,7 @@ public class MagellanUI {
         // Assemble Metatile Editor Panel
         JPanel jpnlMetatileEdit = getPanel(new GridBagLayout());
         jpnlMetatileEdit.add(jpnlMetatileTools, new GridBagConstraints(1, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, insets2, 1, 1));
-        jpnlMetatileEdit.add(jsclCharacterPicker, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets2, 1, 1));
+        jpnlMetatileEdit.add(jsclCharacterPicker, new GridBagConstraints(1, 2, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, insets2, 1, 1));
         jpnlMetatileEdit.add(jsclMetatileDock, new GridBagConstraints(1, 3, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.BOTH, insets2, 1, 1));
         return jpnlMetatileEdit;
     }
@@ -883,57 +884,49 @@ public class MagellanUI {
         } else {
             jPanel = getPanel(new GridLayout(dockFontRows, FONT_COLS + 1));
         }
+        int capacity = preferences.getCharacterSetCapacity();
         int col = FONT_COLS;
-        int ccount = 1;
-        int lcount = 1;
-        int ucount = 1;
         for (int c = TIGlobals.MIN_CHAR; c <= MAX_CHAR; c++) {
+            boolean shown;
             if (c < TIGlobals.BASIC_FIRST_CHAR) {
-                if (preferences.getCharacterSetCapacity() >= CHARACTER_SET_EXPANDED) {
-                    if (col >= FONT_COLS) {
-                        jPanel.add(getLabel("L" + lcount + " ", JLabel.RIGHT, CLR_CHARS_LOWER));
-                        lcount++;
-                        col = 0;
-                    }
-                    jPanel.add(charButtons[c]);
-                    col++;
-                }
+                shown = capacity >= CHARACTER_SET_EXPANDED;
             } else if (c <= TIGlobals.BASIC_LAST_CHAR) {
-                if (col >= 8) {
-                    if (c > TIGlobals.FINALXBCHAR) {
-                        jPanel.add(getLabel(ccount + " ", JLabel.RIGHT, CLR_CHARS_BASE2));
-                    } else {
-                        jPanel.add(getLabel(ccount + " ", JLabel.RIGHT, CLR_CHARS_BASE1));
-                    }
-                    ccount++;
+                shown = true;
+            } else if (c <= EXP_LAST_CHAR) {
+                shown = capacity >= CHARACTER_SET_EXPANDED;
+            } else {
+                shown = capacity >= CHARACTER_SET_SUPER;
+            }
+            if (shown) {
+                if (col >= FONT_COLS) {
+                    jPanel.add(getCharacterRowLabel(c));
                     col = 0;
                 }
                 jPanel.add(charButtons[c]);
                 col++;
-            } else if (c <= EXP_LAST_CHAR) {
-                if (preferences.getCharacterSetCapacity() >= CHARACTER_SET_EXPANDED) {
-                    if (col >= FONT_COLS) {
-                        jPanel.add(getLabel("U" + ucount + " ", JLabel.RIGHT, CLR_CHARS_UPPER));
-                        ucount++;
-                        col = 0;
-                    }
-                    jPanel.add(charButtons[c]);
-                    col++;
-                }
-            } else {
-                if (preferences.getCharacterSetCapacity() >= CHARACTER_SET_SUPER) {
-                    if (col >= FONT_COLS) {
-                        jPanel.add(getLabel((ucount < 100 ? "U" : "") + ucount + " ", JLabel.RIGHT, CLR_CHARS_UPPER));
-                        ucount++;
-                        col = 0;
-                    }
-                    jPanel.add(charButtons[c]);
-                    col++;
-                }
             }
         }
         jPanel.revalidate();
         return jPanel;
+    }
+
+    /**
+     * Label for the character dock row starting at character c: L1, L2 ... below the basic
+     * character set, 1, 2 ... in it (shaded differently above the last XB character), and
+     * U1, U2 ... above it.
+     */
+    private JLabel getCharacterRowLabel(int c) {
+        if (c < TIGlobals.BASIC_FIRST_CHAR) {
+            return getLabel("L" + (c / FONT_COLS + 1) + " ", JLabel.RIGHT, CLR_CHARS_LOWER);
+        }
+        else if (c <= TIGlobals.BASIC_LAST_CHAR) {
+            int row = (c - TIGlobals.BASIC_FIRST_CHAR) / FONT_COLS + 1;
+            return getLabel(row + " ", JLabel.RIGHT, c > TIGlobals.FINALXBCHAR ? CLR_CHARS_BASE2 : CLR_CHARS_BASE1);
+        }
+        else {
+            int row = (c - TIGlobals.BASIC_LAST_CHAR - 1) / FONT_COLS + 1;
+            return getLabel((row < 100 ? "U" : "") + row + " ", JLabel.RIGHT, CLR_CHARS_UPPER);
+        }
     }
 
     protected JPanel buildSpriteDock(JPanel jPanel) {
