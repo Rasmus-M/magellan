@@ -425,7 +425,7 @@ public class MagellanUI {
         // support metatiles. (Exports and Analyze tools that work on characters expand the metatiles.)
         charMapMenuItems = new JMenuItem[] {
             jmitAppend,
-            jmitImportVramDump, jmitImportBinaryMap, jmitImportMapImage
+            jmitImportVramDump, jmitImportMapImage
         };
 
         return menuBar;
