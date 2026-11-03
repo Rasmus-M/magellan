@@ -427,7 +427,7 @@ public class MagellanUI {
             jmitAppend,
             jmitImportVramDump, jmitImportBinaryMap, jmitImportMapImage,
             jmitExportData, jmitExportBasic, jmitExportExec, jmitExportXB256, jmitExportXBDisMer,
-            jmitExportScrollMap, jmitExportBin, jmitExportBinMap,
+            jmitExportScrollMap, jmitExportBin,
             jmitAnalyzeCharUsage, jmitAnalyzeCharTrans
         };
 

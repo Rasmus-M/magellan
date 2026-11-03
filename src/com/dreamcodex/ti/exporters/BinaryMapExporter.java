@@ -19,7 +19,7 @@ public class BinaryMapExporter extends Exporter {
         mapEditor.storeCurrentMap();
         // get file output buffer
         FileOutputStream fos = new FileOutputStream(mapDataFile);
-        // write map
+        // write map (in metatile mode the map holds metatile numbers, which are written as they are)
         int[][] mapToSave = mapEditor.getMapData(mapEditor.getCurrentMapId());
         boolean has16BitValues = false;
         for (int[] mapRow : mapToSave) {
