@@ -434,8 +434,11 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         mapCanvas.setGridHeight(i);
     }
 
-    public void highlightCell(int x, int y) {
-        mapCanvas.highlightCell(x, y);
+    /**
+     * Highlights a character position (in metatile mode, a character within a metatile).
+     */
+    public void highlightCharacter(int x, int y) {
+        mapCanvas.highlightCharacter(x, y);
     }
 
     public void removeAllHighlights() {

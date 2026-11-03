@@ -25,6 +25,8 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     // Sprites are 16x16 pixels (32x32 when magnified), independent of the map cell size
     private static final int SPRITE_SIZE = 16;
+    // Size of a character in map pixels
+    private static final int CHAR_SIZE = 8;
     private static final int SPRITES_PER_LINE_WIDTH = 8;
 
     public static Color CLR_COPY = new Color(255, 128, 128, 128);
@@ -141,7 +143,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         parentMouseListener = mlParent;
         parentMouseMotionListener = mmlParent;
 
-        highlightLayer = new boolean[gridHeight][gridWidth];
+        removeAllHighlights();
     }
 
 // Accessors -------------------------------------------------------------------------------/
@@ -212,7 +214,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setGridData(int[][] gd) {
         gridData = gd;
-        highlightLayer = new boolean[gd.length][gd[0].length];
+        removeAllHighlights();
     }
 
     public void setSpriteMap(HashMap<Point, ArrayList<Integer>> spriteMap) {
@@ -234,6 +236,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setCellSize(int cellSize) {
         this.cellSize = cellSize;
+        removeAllHighlights();
     }
 
     public void setActiveSprite(int i) { activeSprite = i; }
@@ -307,7 +310,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        highlightLayer = new boolean[getGridHeight()][i];
+        removeAllHighlights();
         redrawCanvas();
     }
 
@@ -323,7 +326,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        highlightLayer = new boolean[i][getGridWidth()];
+        removeAllHighlights();
         redrawCanvas();
     }
 
@@ -335,7 +338,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        highlightLayer = new boolean[getGridHeight()][getGridWidth()];
+        removeAllHighlights();
         redrawCanvas();
         if (withUndo) {
             undoManager.undoableEditHappened(new UndoableEditEvent(this, new RotationEdit(true)));
@@ -350,7 +353,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         gridData = newGrid;
-        highlightLayer = new boolean[getGridHeight()][getGridWidth()];
+        removeAllHighlights();
         redrawCanvas();
         if (withUndo) {
             undoManager.undoableEditHappened(new UndoableEditEvent(this, new RotationEdit(false)));
@@ -534,12 +537,24 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    public void highlightCell(int x, int y) {
-        highlightLayer[y][x] = true;
+    /**
+     * Highlights a character position. In metatile mode a cell holds several characters,
+     * so the highlight layer is in characters, not cells.
+     */
+    public void highlightCharacter(int x, int y) {
+        if (y >= 0 && y < highlightLayer.length && x >= 0 && x < highlightLayer[y].length) {
+            highlightLayer[y][x] = true;
+        }
     }
 
     public void removeAllHighlights() {
-        highlightLayer = new boolean[getGridHeight()][getGridWidth()];
+        int charsPerCell = getCharsPerCell();
+        highlightLayer = new boolean[getGridHeight() * charsPerCell][getGridWidth() * charsPerCell];
+    }
+
+    // Characters per cell in each direction: 1, or the metatile size in metatile mode
+    private int getCharsPerCell() {
+        return Math.max(1, cellSize / CHAR_SIZE);
     }
 
     private int[][] getGridDataCopy() {
@@ -591,9 +606,14 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                         g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
                         g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
                     }
+                }
+            }
+            // Highlighted characters
+            g.setColor(CLR_COPY);
+            for (int y = 0; y < highlightLayer.length; y++) {
+                for (int x = 0; x < highlightLayer[y].length; x++) {
                     if (highlightLayer[y][x]) {
-                        g.setColor(CLR_COPY);
-                        g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        g.fillRect(x * CHAR_SIZE, y * CHAR_SIZE, CHAR_SIZE, CHAR_SIZE);
                     }
                 }
             }

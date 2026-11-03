@@ -778,7 +778,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
             charUsageDialog.transferFocus();
         }
         else {
-            charUsageDialog = new AnalyzeCharUsageDialog(this, mapEditor, dataSet.getCharImages(), preferences.getCharacterSetEnd());
+            charUsageDialog = new AnalyzeCharUsageDialog(this, mapEditor, dataSet, dataSet.getCharImages(), preferences.getCharacterSetEnd());
         }
     }
 
@@ -787,7 +787,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
             charTransDialog.transferFocus();
         }
         else {
-            charTransDialog = new AnalyzeCharTransDialog(this, mapEditor, dataSet.getCharImages(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getClrSets(), dataSet.getColorMode());
+            charTransDialog = new AnalyzeCharTransDialog(this, mapEditor, dataSet, dataSet.getCharImages(), dataSet.getCharGrids(), dataSet.getCharColors(), dataSet.getClrSets(), dataSet.getColorMode());
         }
     }
 

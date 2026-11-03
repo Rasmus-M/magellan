@@ -3,7 +3,9 @@ package com.dreamcodex.ti.component;
 import com.dreamcodex.ti.Magellan;
 import com.dreamcodex.ti.iface.MapChangeListener;
 import com.dreamcodex.ti.iface.MapSelectListener;
+import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Globals;
+import com.dreamcodex.ti.util.MetatileConverter;
 import com.dreamcodex.ti.util.TransChar;
 
 import javax.swing.*;
@@ -32,6 +34,7 @@ import java.util.Map;
 public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, MapChangeListener, MapSelectListener, WindowListener, ListSelectionListener {
 
     private final MapEditor mapEditor;
+    private final DataSet dataSet;
     private final HashMap<Integer, Image> charImages;
     private final int maxChar;
     private int[] charCounts;
@@ -56,10 +59,11 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
         }
 
         public void buildMap() {
-            charCounts = new int[maxChar];
+            // maxChar is the last character of the set, inclusive
+            charCounts = new int[maxChar + 1];
             for (int i = 0; i < mapEditor.getMapCount(); i++) {
                 if (!currentMapCheckBox.isSelected() || i == mapEditor.getCurrentMapId()) {
-                    int[][] mapData = mapEditor.getMapData(i);
+                    int[][] mapData = getCharacterMapData(i);
                     for (int y = 0; y < mapData.length; y++) {
                         int[] row  = mapData[y];
                         for (int x = 0; x < row.length; x++) {
@@ -133,11 +137,13 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
     public AnalyzeCharUsageDialog(
         JFrame parent,
         MapEditor mapEditor,
+        DataSet dataSet,
         HashMap<Integer, Image> charImages,
         int maxChar
     ) {
         super(parent, "Analyze Character Usage");
         this.mapEditor = mapEditor;
+        this.dataSet = dataSet;
         this.charImages = charImages;
         this.maxChar = maxChar;
         setLayout(new BorderLayout());
@@ -181,6 +187,11 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
         mapEditor.addMapSelectListener(this);
     }
 
+    // Map as characters, also in metatile mode
+    private int[][] getCharacterMapData(int mapIndex) {
+        return MetatileConverter.toCharacterMap(mapEditor.getMapData(mapIndex), dataSet.getMetatileSize(), dataSet.getMetatiles());
+    }
+
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == currentMapCheckBox) {
             currentMapOnly = currentMapCheckBox.isSelected();
@@ -200,13 +211,13 @@ public class AnalyzeCharUsageDialog extends JDialog implements ActionListener, M
         if (jTable.getSelectedRow() != -1) {
             mapEditor.removeAllHighlights();
             int ch =  jTable.convertRowIndexToModel(jTable.getSelectedRow());
-            int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
+            int[][] mapData = getCharacterMapData(mapEditor.getCurrentMapId());
             if (mapData.length > 1 && mapData[0].length > 1) {
                 for (int y = 0; y < mapData.length; y++) {
                     int[] row = mapData[y];
                     for (int x = 0; x < row.length; x++) {
                         if (row[x] == ch) {
-                            mapEditor.highlightCell(x, y);
+                            mapEditor.highlightCharacter(x, y);
                         }
                     }
                 }

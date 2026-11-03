@@ -21,6 +21,7 @@ import static java.lang.Math.floorMod;
 public class AnalyzeCharTransDialog extends JDialog implements ActionListener, MapChangeListener, WindowListener, ListSelectionListener {
 
     private final MapEditor mapEditor;
+    private final DataSet dataSet;
     private final HashMap<Integer, Image> charImages;
     private final HashMap<Integer, int[][]> charGrids;
     private final HashMap<Integer, int[][]> charColors;
@@ -55,7 +56,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         public void buildMap() {
             transCharMap = new HashMap<>();
             sortedTransCharList = new ArrayList<>(transCharMap.values());
-            int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
+            int[][] mapData = getCharacterMapData(mapEditor.getCurrentMapId());
             int height = mapData.length;
             int width = mapData[0].length;
             if (width > 1 && height > 1) {
@@ -233,6 +234,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     public AnalyzeCharTransDialog(
         JFrame parent,
         MapEditor mapEditor,
+        DataSet dataSet,
         HashMap<Integer, Image> charImages,
         HashMap<Integer, int[][]> charGrids,
         HashMap<Integer, int[][]> charColors,
@@ -241,6 +243,7 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
     ) {
         super(parent, "Analyze Character Transitions");
         this.mapEditor = mapEditor;
+        this.dataSet = dataSet;
         this.charImages = charImages;
         this.charGrids = charGrids;
         this.charColors = charColors;
@@ -294,6 +297,11 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         mapEditor.addMapChangeListener(this);
     }
 
+    // Map as characters, also in metatile mode
+    private int[][] getCharacterMapData(int mapIndex) {
+        return MetatileConverter.toCharacterMap(mapEditor.getMapData(mapIndex), dataSet.getMetatileSize(), dataSet.getMetatiles());
+    }
+
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == transitionTypeComboBox) {
             transitionType = (TransitionType) transitionTypeComboBox.getSelectedItem();
@@ -319,16 +327,16 @@ public class AnalyzeCharTransDialog extends JDialog implements ActionListener, M
         if (sortedTransCharList != null && jTable.getSelectedRow() != -1 && sortedTransCharList.size() > jTable.getSelectedRow()) {
             mapEditor.removeAllHighlights();
             TransChar transChar =  sortedTransCharList.get(jTable.convertRowIndexToModel(jTable.getSelectedRow()));
-            int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
+            int[][] mapData = getCharacterMapData(mapEditor.getCurrentMapId());
             int height = mapData.length;
             int width = mapData[0].length;
             if (height > 1 && width > 1) {
                 for (int y = transitionType.getYStart(wrap); y < height - transitionType.getYEnd(wrap); y++) {
                     for (int x = transitionType.getXStart(wrap); x < width - transitionType.getXEnd(wrap); x++) {
                         if (transChar.equals(new TransChar(transitionType, x, y, mapData))) {
-                            mapEditor.highlightCell(x, y);
+                            mapEditor.highlightCharacter(x, y);
                             for (int i = 0; i < transitionType.getSize(); i++) {
-                                mapEditor.highlightCell(floorMod(x + transitionType.getXOffsets()[i], width), floorMod(y + transitionType.getYOffsets()[i], height));
+                                mapEditor.highlightCharacter(floorMod(x + transitionType.getXOffsets()[i], width), floorMod(y + transitionType.getYOffsets()[i], height));
                             }
                         }
                     }
