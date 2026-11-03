@@ -19,13 +19,8 @@ import static com.dreamcodex.ti.util.ColorMode.*;
 public class CVBasicDataFileExporter extends Exporter {
     private final StringBuilder lineBuffer = new StringBuilder();
 
-    private final int metatileSize;
-    private final HashMap<Integer, int[][]> metatiles;
-
     public CVBasicDataFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
-        metatileSize = dataSet.getMetatileSize();
-        metatiles = dataSet.getMetatiles();
     }
 
     public void writeCVBasicDataFile(File mapDataFile, Preferences preferences) throws Exception {

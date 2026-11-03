@@ -5,6 +5,7 @@ import com.dreamcodex.ti.actions.FileAction;
 import com.dreamcodex.ti.component.MagellanExportDialog;
 import com.dreamcodex.ti.component.MapEditor;
 import com.dreamcodex.ti.util.DataSet;
+import com.dreamcodex.ti.util.MetatileConverter;
 import com.dreamcodex.ti.util.Preferences;
 import com.dreamcodex.ti.util.TIGlobals;
 
@@ -30,7 +31,8 @@ public class ExportXBDisplayMergeAction extends FileAction {
 
                 if (lineNo >= 0 && lineNo <= 32710 && (dispWidth == 28 || dispWidth == 32)) {
                     int currentMap = mapEditor.getCurrentMapId();
-                    int[][] map = mapEditor.getMapData(currentMap);
+                    // Characters, also in metatile mode
+                    int[][] map = MetatileConverter.toCharacterMap(mapEditor.getMapData(currentMap), dataSet.getMetatileSize(), dataSet.getMetatiles());
 
                     byte[] init = {7, 'T', 'I', 'F', 'I', 'L', 'E', 'S', 0, 6, (byte) 0x80, 1, (byte) 0x8B, (byte) 0xA3, 6};
                     byte[] tifiles = new byte[1664];

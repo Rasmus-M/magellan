@@ -104,7 +104,7 @@ public class XBDataFileExporter extends Exporter {
             int mapTicker = 1;
             for (int m = 0; m < mapEditor.getMapCount(); m++) {
                 if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
-                    int[][] mapToSave = mapEditor.getMapData(m);
+                    int[][] mapToSave = getCharacterMapData(m);
                     mapCols = mapToSave[0].length;
                     mapRows = mapToSave.length;
                     mapDataStart[m] = currLine;
@@ -294,7 +294,7 @@ public class XBDataFileExporter extends Exporter {
             int mapTicker = 1;
             for (int m = 0; m < mapEditor.getMapCount(); m++) {
                 if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
-                    int[][] mapToSave = mapEditor.getMapData(m);
+                    int[][] mapToSave = getCharacterMapData(m);
                     mapCols = mapToSave[0].length;
                     mapRows = mapToSave.length;
                     if (m != 0) {
@@ -383,7 +383,7 @@ public class XBDataFileExporter extends Exporter {
             mapTicker = 1;
             for (int m = 0; m < mapEditor.getMapCount(); m++) {
                 if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
-                    int[][] mapToSave = mapEditor.getMapData(m);
+                    int[][] mapToSave = getCharacterMapData(m);
                     mapCols = mapToSave[0].length;
                     mapRows = mapToSave.length;
 

@@ -50,6 +50,14 @@ public class MetatileConverter {
     }
 
     /**
+     * The map as character numbers: in metatile mode the metatiles are expanded,
+     * otherwise the map is returned as it is.
+     */
+    public static int[][] toCharacterMap(int[][] map, int metatileSize, HashMap<Integer, int[][]> metatiles) {
+        return metatileSize != 0 ? expand(map, metatiles, metatileSize, TIGlobals.SPACECHAR) : map;
+    }
+
+    /**
      * Expands a map of metatile numbers into a map of character numbers.
      * Undefined metatiles become blank characters.
      */

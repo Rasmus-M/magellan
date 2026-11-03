@@ -58,7 +58,7 @@ public class ScrollFileExporter extends Exporter {
         List<TransChar> sortedTransChars = new ArrayList<>();
         for (int m = 0; m < mapEditor.getMapCount(); m++) {
             if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
-                int[][] mapData = mapEditor.getMapData(m);
+                int[][] mapData = getCharacterMapData(m);
                 if (mapData.length > 1 && mapData[0].length > 1) {
                     allColorsOK &= findCharacterTransitionsForMap(mapData, transChars, sortedTransChars, usedChars, colorSets, startAndEndChar, transitionType, wrap);
                 }
@@ -87,7 +87,7 @@ public class ScrollFileExporter extends Exporter {
         // Create maps
         for (int m = 0; m < mapEditor.getMapCount(); m++) {
             if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
-                int[][] mapData = mapEditor.getMapData(m);
+                int[][] mapData = getCharacterMapData(m);
                 if (mapData.length > 1 && mapData[0].length > 1) {
                     createTransitionMap(mapData, transChars, transMaps, transitionType, wrap);
                 }

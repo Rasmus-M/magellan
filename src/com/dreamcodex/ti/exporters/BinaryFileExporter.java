@@ -68,7 +68,7 @@ public class BinaryFileExporter extends Exporter {
         if ((chunkFlags & BIN_CHUNK_MAPS) == BIN_CHUNK_MAPS) {
             for (int m = 0; m < mapEditor.getMapCount(); m++) {
                 if (!currMapOnly || m == mapEditor.getCurrentMapId()) {
-                    int[][] mapToSave = mapEditor.getMapData(m);
+                    int[][] mapToSave = getCharacterMapData(m);
                     int mapCols = mapToSave[0].length;
                     int mapRows = mapToSave.length;
                     int mapSize = mapCols * mapRows;

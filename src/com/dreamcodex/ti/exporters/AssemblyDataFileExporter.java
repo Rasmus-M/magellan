@@ -18,13 +18,8 @@ import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class AssemblyDataFileExporter extends Exporter {
 
-    private final int metatileSize;
-    private final HashMap<Integer, int[][]> metatiles;
-
     public AssemblyDataFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
-        metatileSize = dataSet.getMetatileSize();
-        metatiles = dataSet.getMetatiles();
     }
 
     public void writeAssemblyDataFile(File mapDataFile, Preferences preferences) throws Exception{

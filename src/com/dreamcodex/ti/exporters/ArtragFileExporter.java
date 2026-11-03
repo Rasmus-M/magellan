@@ -47,7 +47,7 @@ public class ArtragFileExporter extends Exporter {
             TransChar[] transCharSet = new TransChar[256];
             transCharSetArr[m] = transCharSet;
             int yOffset = m == 0 ? 8 : 0;
-            int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
+            int[][] mapData = getCharacterMapData(mapEditor.getCurrentMapId());
             if (mapData.length > 1 && mapData[0].length > 1) {
                 int i = 0;
                 for (int y = yOffset; y < yOffset + 8; y++) {

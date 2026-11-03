@@ -21,7 +21,7 @@ public class IsometricFileExporter extends Exporter {
         FileWriter writer = null;
         try {
             writer = new FileWriter(mapDataFile);
-            int[][] mapData = mapEditor.getMapData(mapEditor.getCurrentMapId());
+            int[][] mapData = getCharacterMapData(mapEditor.getCurrentMapId());
             int[][] transMapData = new int[mapData.length - 1][mapData[0].length - 2];
             Map<String, Integer> transCharLookup = new HashMap<String, Integer>();
             int[][][] transCharGrids = new int[256][16][24];

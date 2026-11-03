@@ -17,13 +17,8 @@ import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class DataFileExporter extends Exporter {
 
-    private final int metatileSize;
-    private final HashMap<Integer, int[][]> metatiles;
-
     public DataFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
-        metatileSize = dataSet.getMetatileSize();
-        metatiles = dataSet.getMetatiles();
     }
 
     public void writeDataFile(File mapDataFile, int characterSetSize) throws IOException {

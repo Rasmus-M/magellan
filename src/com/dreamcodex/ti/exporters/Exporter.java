@@ -39,6 +39,9 @@ public abstract class Exporter {
     protected ECMPalette[] ecmSpritePalettes;
     protected ColorMode colorMode;
     protected int offset;
+    // Metatile mode: 0 = off, otherwise the metatile size, and the metatile definitions
+    protected int metatileSize;
+    protected HashMap<Integer, int[][]> metatiles;
 
     public Exporter() {
     }
@@ -61,6 +64,16 @@ public abstract class Exporter {
                 preferences.getColorMode(),
                 preferences.getOffset()
         );
+        metatileSize = dataSet.getMetatileSize();
+        metatiles = dataSet.getMetatiles();
+    }
+
+    /**
+     * Map as character numbers, for exports that work on characters. In metatile mode the
+     * metatiles are expanded, as if metatile mode had been switched off before exporting.
+     */
+    protected int[][] getCharacterMapData(int mapIndex) {
+        return MetatileConverter.toCharacterMap(mapEditor.getMapData(mapIndex), metatileSize, metatiles);
     }
 
     public Exporter(
