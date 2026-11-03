@@ -322,7 +322,7 @@ public class DataFileImporter extends Importer {
     /**
      * Parses the characters of a metatile, row by row. Missing or invalid values become spaces.
      */
-    private int[][] parseMetatile(String value, int size) {
+    static int[][] parseMetatile(String value, int size) {
         int[][] metatile = MetatileConverter.createBlankMetatile(size, TIGlobals.SPACECHAR);
         String[] values = value.split("\\|");
         for (int i = 0; i < Math.min(values.length, size * size); i++) {

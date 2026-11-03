@@ -3,8 +3,10 @@ package com.dreamcodex.ti.util;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Converts maps between character numbers and metatile numbers.
@@ -85,6 +87,14 @@ public class MetatileConverter {
      * @return the converted maps and metatiles, or null if more than count metatiles are needed
      */
     public static Result compress(List<int[][]> charMaps, int size, HashMap<Integer, int[][]> existing, int count, int blankChar) {
+        return compress(charMaps, size, existing, count, blankChar, Collections.<Integer>emptySet());
+    }
+
+    /**
+     * As above, but never stores new blocks in the reserved slots, e.g. metatiles used by maps
+     * that are not being converted.
+     */
+    public static Result compress(List<int[][]> charMaps, int size, HashMap<Integer, int[][]> existing, int count, int blankChar, Set<Integer> reserved) {
         HashMap<Integer, int[][]> metatiles = new HashMap<>();
         boolean reuse = existing != null && hasSize(existing, size, count);
         for (int i = 0; i < count; i++) {
@@ -99,7 +109,7 @@ public class MetatileConverter {
             if (!index.containsKey(key)) {
                 index.put(key, i);
             }
-            else if (key.equals(blankKey)) {
+            else if (key.equals(blankKey) && !reserved.contains(i)) {
                 freeSlots.add(i);
             }
         }
