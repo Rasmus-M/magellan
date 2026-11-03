@@ -58,7 +58,6 @@ public class MagellanUI {
     private static final int[] METATILE_SIZES = {0, 2, 4};
     private ButtonGroup metatileModeButtonGroup;
     private final JMenuItem[] metatileModeMenuItems = new JMenuItem[METATILE_SIZES.length];
-    private JMenuItem[] charMapMenuItems = new JMenuItem[0];
 
     // Character editor
     private GridCanvas charGridCanvas;
@@ -421,12 +420,6 @@ public class MagellanUI {
         // Add menu
         menuBar.add(helpMenu);
 
-        // These write maps as character numbers, so they are disabled in metatile mode until they
-        // support metatiles. (Exports and Analyze tools that work on characters expand the metatiles.)
-        charMapMenuItems = new JMenuItem[] {
-            jmitImportVramDump
-        };
-
         return menuBar;
     }
 
@@ -460,14 +453,11 @@ public class MagellanUI {
     }
 
     /**
-     * Shows or hides the Metatiles tab and enables the menu items that only work with character maps.
+     * Shows or hides the Metatiles tab and selects the metatile option in the Options menu.
      * Size is 0 for no metatiles, otherwise the metatile width/height in characters.
      */
     public void setMetatileMode(int size) {
         boolean enabled = size != 0;
-        for (JMenuItem menuItem : charMapMenuItems) {
-            menuItem.setEnabled(!enabled);
-        }
         setMetatileModeOption(size);
         int tabIndex = editorTabbedPane.indexOfComponent(metatileEditorPanel);
         if (enabled) {

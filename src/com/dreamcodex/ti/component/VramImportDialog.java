@@ -31,7 +31,7 @@ public class VramImportDialog extends JDialog implements PropertyChangeListener
         jchkBitmapMode = new JCheckBox("Bitmap Mode", hexValuesSet);
         jchkHexValues = new JCheckBox("Use Hexadecimal", hexValuesSet);
 
-		Object[] objForm = new Object[8];
+		Object[] objForm = new Object[12];
 		int objCount = 0;
 		objForm[objCount] = new JLabel("Character Data Block Start"); objCount++;
 		objForm[objCount] = jtxtCharDataOffset; objCount++;

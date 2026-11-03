@@ -59,21 +59,37 @@ public class ImportVRAMDumpAction extends FileAction {
                     fib.close();
                 } else {
                     VramImportDialog importDialog = new VramImportDialog(parent);
-                    if (importDialog.isOkay()) {
-                        charOffset = importDialog.getCharDataOffset();
-                        mapOffset = importDialog.getMapDataOffset();
-                        colorOffset = importDialog.getColorDataOffset();
-                        spriteOffset = importDialog.getSpriteDataOffset();
-                        spriteAttrOffset = importDialog.getSpriteAttrDataOffset();
-                        bitmapMode = importDialog.isBitmapMode();
+                    if (!importDialog.isOkay()) {
+                        return;
                     }
+                    charOffset = importDialog.getCharDataOffset();
+                    mapOffset = importDialog.getMapDataOffset();
+                    colorOffset = importDialog.getColorDataOffset();
+                    spriteOffset = importDialog.getSpriteDataOffset();
+                    spriteAttrOffset = importDialog.getSpriteAttrDataOffset();
+                    bitmapMode = importDialog.isBitmapMode();
                 }
+            } catch (Exception e) {
+                showError("Error importing file", e.getMessage());
+                return;
+            }
+            // The screen is imported as characters: in metatile mode, switch to no metatiles
+            // while importing and back afterwards, which turns the imported map into metatiles
+            int metatileSize = dataSet.getMetatileSize();
+            if (metatileSize != 0) {
+                parent.setMetatileMode(0);
+            }
+            try {
                 VRAMDumpImporter importer = new VRAMDumpImporter(mapEditor, dataSet, preferences);
                 importer.readVRAMDumpFile(file, charOffset, mapOffset, colorOffset, spriteOffset, spriteAttrOffset, bitmapMode, textMode, textColor, screenColor);
             } catch (Exception e) {
                 showError("Error importing file", e.getMessage());
             }
             parent.updateAll();
+            if (metatileSize != 0) {
+                // Shows an error and stays in no metatiles if the maps need too many metatiles
+                parent.setMetatileMode(metatileSize);
+            }
             parent.setModified(true);
         }
     }
