@@ -24,6 +24,12 @@ public class ImportMapImageAction extends FileAction {
         if (file != null) {
             MagellanImportDialog importDialog = new MagellanImportDialog(MagellanImportDialog.TYPE_MAP_IMAGE, parent, parent, preferences, dataSet);
             if (importDialog.isOkay()) {
+                // The image is imported as characters: in metatile mode, switch to no metatiles
+                // while importing and back afterwards, which turns the imported map into metatiles
+                int metatileSize = dataSet.getMetatileSize();
+                if (metatileSize != 0) {
+                    parent.setMetatileMode(0);
+                }
                 try {
                     MapImageFileImporter importer = new MapImageFileImporter(mapEditor, dataSet, preferences);
                     importer.readMapImageFile(file, importDialog.getStartChar(), importDialog.getEndChar(), importDialog.getStartPalette(), importDialog.getTolerance());
@@ -32,6 +38,10 @@ public class ImportMapImageAction extends FileAction {
                     showError("Error importing file", e.getMessage());
                 }
                 parent.updateAll();
+                if (metatileSize != 0) {
+                    // Shows an error and stays in no metatiles if the maps need too many metatiles
+                    parent.setMetatileMode(metatileSize);
+                }
                 parent.setModified(true);
             }
         }
