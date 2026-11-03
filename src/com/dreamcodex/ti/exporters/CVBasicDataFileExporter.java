@@ -19,8 +19,13 @@ import static com.dreamcodex.ti.util.ColorMode.*;
 public class CVBasicDataFileExporter extends Exporter {
     private final StringBuilder lineBuffer = new StringBuilder();
 
+    private final int metatileSize;
+    private final HashMap<Integer, int[][]> metatiles;
+
     public CVBasicDataFileExporter(MapEditor mapEditor, DataSet dataSet, Preferences preferences) {
         super(mapEditor, dataSet, preferences);
+        metatileSize = dataSet.getMetatileSize();
+        metatiles = dataSet.getMetatiles();
     }
 
     public void writeCVBasicDataFile(File mapDataFile, Preferences preferences) throws Exception {
@@ -361,6 +366,11 @@ private void writeColors(
         BufferedWriter bw
     ) throws Exception {
         if (includeComments) printSectionHeader(bw, "Map Data");
+        int lastMetatile = -1;
+        if (metatileSize != 0) {
+            lastMetatile = getLastMetatileUsed(currMapOnly);
+            checkMetatileCharacters(lastMetatile);
+        }
         int mapCount = currMapOnly ? 1 : mapEditor.getMapCount();
         printLine(bw, "MCOUNT:  DATA BYTE " + mapCount, null);
 
@@ -368,45 +378,17 @@ private void writeColors(
             if (currMapOnly && mid != mapEditor.getCurrentMapId()) continue;
 
             int[][] mapGrid = mapEditor.getMapData(mid);
-            if (includeComments) {
-                printLine(bw, " == Map #" + mid + " ==", false);
-            }
-            printLine(bw, "MC" + mid + ":  DATA BYTE " + mapEditor.getScreenColor(mid),
-                      null);
-
-            // dimensions
-            lineBuffer.setLength(0);
-            lineBuffer.append("MS").append(mid).append(":  DATA $")
-                      .append(Globals.toHexString(mapGrid[0].length, 4))
-                      .append(", $").append(Globals.toHexString(mapGrid.length, 4))
-                      .append(", $").append(Globals.toHexString(
-                          mapGrid.length * mapGrid[0].length, 4));
-            printLine(bw, lineBuffer.toString(),
-                      new String(includeComments ? "Width, Height, Size" : ""));
-            lineBuffer.setLength(0);
-
-            // data
-            if (compression == MagellanExportDialog.COMPRESSION_NONE) {
-                writeMapRows(mapGrid, mid, bw, includeComments);
-            }
-            else if (compression == MagellanExportDialog.COMPRESSION_RLE_BYTE) {
-                writeRleByteData(mapGrid, mid, bw);
-            }
-            else if (compression == MagellanExportDialog.COMPRESSION_RLE_WORD) {
-                writeRleWordData(mapGrid, mid, bw);
-            }
-            else if (compression == MagellanExportDialog.COMPRESSION_META_2
-                  || compression == MagellanExportDialog.COMPRESSION_META_4
-                  || compression == MagellanExportDialog.COMPRESSION_META_8) {
-                int size = (compression == MagellanExportDialog.COMPRESSION_META_2) ? 2
-                        : (compression == MagellanExportDialog.COMPRESSION_META_4) ? 4 : 8;
-                writeMetatileData(size, mapGrid, mid, bw, includeComments);
-            }
-            else if (compression == MagellanExportDialog.COMPRESSION_NYBBLES) {
-                writeNybblesData(mapGrid, mid, bw, includeComments);
+            if (metatileSize != 0) {
+                // Metatile mode: the map holds the project's metatile numbers, the size is given in characters
+                writeMapHeader(mid, mapGrid[0].length * metatileSize, mapGrid.length * metatileSize, includeComments, bw);
+                if (includeComments) {
+                    printSectionHeader(bw, " Metatile Map");
+                }
+                writeMetatileMap(bw, mapGrid, mid);
             }
             else {
-                throw new RuntimeException("Unsupported compression mode: " + compression);
+                writeMapHeader(mid, mapGrid[0].length, mapGrid.length, includeComments, bw);
+                writeCompressedMap(mid, mapGrid, compression, includeComments, bw);
             }
             printLine(bw, "", null);
 
@@ -414,6 +396,102 @@ private void writeColors(
             if (includeSpriteData) {
                 writeSpriteLocations(includeComments, paletteMap, bw, mid);
             }
+        }
+        if (metatileSize != 0) {
+            writeMetatileTable(lastMetatile, includeComments, bw);
+        }
+    }
+
+    private void writeMapHeader(int mid, int width, int height, boolean includeComments, BufferedWriter bw) throws IOException {
+        if (includeComments) {
+            printLine(bw, " == Map #" + mid + " ==", false);
+        }
+        printLine(bw, "MC" + mid + ":  DATA BYTE " + mapEditor.getScreenColor(mid),
+                  null);
+
+        // dimensions
+        lineBuffer.setLength(0);
+        lineBuffer.append("MS").append(mid).append(":  DATA $")
+                  .append(Globals.toHexString(width, 4))
+                  .append(", $").append(Globals.toHexString(height, 4))
+                  .append(", $").append(Globals.toHexString(
+                      height * width, 4));
+        printLine(bw, lineBuffer.toString(),
+                  new String(includeComments ? "Width, Height, Size" : ""));
+        lineBuffer.setLength(0);
+    }
+
+    private void writeCompressedMap(int mid, int[][] mapGrid, int compression, boolean includeComments, BufferedWriter bw) throws Exception {
+        if (compression == MagellanExportDialog.COMPRESSION_NONE) {
+            writeMapRows(mapGrid, mid, bw, includeComments);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_RLE_BYTE) {
+            writeRleByteData(mapGrid, mid, bw);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_RLE_WORD) {
+            writeRleWordData(mapGrid, mid, bw);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_META_2
+              || compression == MagellanExportDialog.COMPRESSION_META_4
+              || compression == MagellanExportDialog.COMPRESSION_META_8) {
+            int size = (compression == MagellanExportDialog.COMPRESSION_META_2) ? 2
+                    : (compression == MagellanExportDialog.COMPRESSION_META_4) ? 4 : 8;
+            writeMetatileData(size, mapGrid, mid, bw, includeComments);
+        }
+        else if (compression == MagellanExportDialog.COMPRESSION_NYBBLES) {
+            writeNybblesData(mapGrid, mid, bw, includeComments);
+        }
+        else {
+            throw new RuntimeException("Unsupported compression mode: " + compression);
+        }
+    }
+
+    // ---------- Metatile mode ----------
+
+    private int getLastMetatileUsed(boolean currMapOnly) {
+        int last = 0;
+        for (int mid = 0; mid < mapEditor.getMapCount(); mid++) {
+            if (!currMapOnly || mid == mapEditor.getCurrentMapId()) {
+                for (int[] row : mapEditor.getMapData(mid)) {
+                    for (int metatileNum : row) {
+                        last = Math.max(last, metatileNum);
+                    }
+                }
+            }
+        }
+        return last;
+    }
+
+    /**
+     * Metatile definitions are written as bytes, so their characters must be < 256.
+     */
+    private void checkMetatileCharacters(int lastMetatile) throws Exception {
+        for (int i = TIGlobals.MIN_METATILE; i <= lastMetatile; i++) {
+            for (int[] row : metatiles.get(i)) {
+                for (int charNum : row) {
+                    if (charNum > 255) {
+                        throw new Exception("Metatile " + i + " uses character " + charNum + ", but metatile data only supports characters up to 255.");
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Writes the definitions of metatiles 0 up to the last one used, shared by all maps,
+     * so a metatile's characters are at MT000 + number * size * size.
+     */
+    private void writeMetatileTable(int lastMetatile, boolean includeComments, BufferedWriter bw) throws IOException {
+        if (includeComments) {
+            printSectionHeader(bw, " Metatile Definitions");
+        }
+        for (int i = TIGlobals.MIN_METATILE; i <= lastMetatile; i++) {
+            int[][] metatile = metatiles.get(i);
+            int[] tiles = new int[metatileSize * metatileSize];
+            for (int y = 0; y < metatileSize; y++) {
+                System.arraycopy(metatile[y], 0, tiles, y * metatileSize, metatileSize);
+            }
+            writeMetatileDefinition(bw, "MT" + Globals.padl(i, 3), tiles, metatileSize);
         }
     }
 
@@ -592,7 +670,13 @@ private void writeMetatileData(
     if (includeComments) {
         printSectionHeader(bw, " Metatile Map");
     }
-    writeMetatileMap(bw, metaGrid, mapId);
+    int[][] numbers = new int[metaRows][metaCols];
+    for (int ry = 0; ry < metaRows; ry++) {
+        for (int cx = 0; cx < metaCols; cx++) {
+            numbers[ry][cx] = metaGrid[ry][cx].getNumber();
+        }
+    }
+    writeMetatileMap(bw, numbers, mapId);
 
     // Emit the metatile definitions themselves
     if (includeComments) {
@@ -602,14 +686,14 @@ private void writeMetatileData(
 }
 
     private void writeMetatileMap(
-        BufferedWriter bw, Metatile[][] grid, int mapId
+        BufferedWriter bw, int[][] numbers, int mapId
     ) throws IOException {
         int lineCount = 0;
         boolean first = true;
-        for (Metatile[] row : grid) {
-            for (Metatile mt : row) {
+        for (int[] row : numbers) {
+            for (int number : row) {
                 lineCount = printByte(bw, lineBuffer, lineCount,
-                                      mt.getNumber(),
+                                      number,
                                       first ? "MD" + mapId : null);
                 first = false;
             }
@@ -623,20 +707,25 @@ private void writeMetatileData(
         List<Metatile> list = new ArrayList<>(tiles);
         list.sort(Comparator.comparingInt(Metatile::getNumber));
         for (Metatile mt : list) {
-            lineBuffer.setLength(0);
-            int cnt = 0;
-            boolean first = true;
-            for (int t : mt.getTiles()) {
-                cnt = printByte(bw, lineBuffer, cnt, t,
-                                first ? "MT" + mapId + Globals.padl(mt.getNumber(), 3) : null);
-                first = false;
-            }
-            // pad up to 8
-            while (cnt < blockSize) {
-                cnt = printByte(bw, lineBuffer, cnt, 0, null);
-            }
-            printLine(bw, lineBuffer.toString(), null);
+            writeMetatileDefinition(bw, "MT" + mapId + Globals.padl(mt.getNumber(), 3), mt.getTiles(), blockSize);
         }
+    }
+
+    private void writeMetatileDefinition(
+        BufferedWriter bw, String label, int[] tiles, int blockSize
+    ) throws IOException {
+        lineBuffer.setLength(0);
+        int cnt = 0;
+        boolean first = true;
+        for (int t : tiles) {
+            cnt = printByte(bw, lineBuffer, cnt, t, first ? label : null);
+            first = false;
+        }
+        // pad up to 8
+        while (cnt < blockSize) {
+            cnt = printByte(bw, lineBuffer, cnt, 0, null);
+        }
+        printLine(bw, lineBuffer.toString(), null);
     }
 
     // ---------- NYBBLES ----------
@@ -685,8 +774,10 @@ private void writeMetatileData(
 
       if (includeComments) printSectionHeader(bw, " Sprite Locations");
 
-      boolean small = mapEditor.getGridWidth() <= 32
-                  && mapEditor.getGridHeight() <= 32;
+      // Map size in characters (in metatile mode the grid is in metatiles)
+      int charsPerCell = Math.max(metatileSize, 1);
+      boolean small = mapEditor.getGridWidth() * charsPerCell <= 32
+                  && mapEditor.getGridHeight() * charsPerCell <= 32;
 
       // Build ordered points
       List<Point> pts = new ArrayList<>(spr.keySet());

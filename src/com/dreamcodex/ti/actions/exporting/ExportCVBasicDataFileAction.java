@@ -20,7 +20,9 @@ public class ExportCVBasicDataFileAction extends FileAction {
 
     @Override
     public void actionPerformed(ActionEvent evt) {
-        MagellanExportDialog exportDialog = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, parent, preferences);
+        // In metatile mode the compression is the project's metatile size
+        int lockedCompression = MagellanExportDialog.getMetatileCompression(dataSet.getMetatileSize());
+        MagellanExportDialog exportDialog = new MagellanExportDialog(MagellanExportDialog.TYPE_ASM, parent, parent, preferences, lockedCompression);
         if (exportDialog.isOkay()) {
             File file = getFileFromChooser(preferences.getCurrentDirectory(), JFileChooser.SAVE_DIALOG, CVBEXTS, "CVBasic Source Files");
             if (file != null) {
@@ -48,7 +50,9 @@ public class ExportCVBasicDataFileAction extends FileAction {
                 preferences.setIncludeMapData(exportDialog.includeMapData());
                 preferences.setDefStartSprite(Math.min(sSprite, eSprite));
                 preferences.setDefEndSprite(Math.max(sSprite, eSprite));
-                preferences.setCompression(exportDialog.getCompression());
+                if (lockedCompression == -1) {
+                    preferences.setCompression(exportDialog.getCompression());
+                }
                 CVBasicDataFileExporter exporter = new CVBasicDataFileExporter(mapEditor, dataSet, preferences);
                 try {
                     exporter.writeCVBasicDataFile(file, preferences);

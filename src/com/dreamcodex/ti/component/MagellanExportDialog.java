@@ -66,6 +66,19 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
     }
 
     /**
+     * @return the compression to lock the dialog to for a metatile size, or -1 when not in metatile mode
+     */
+    public static int getMetatileCompression(int metatileSize) {
+        if (metatileSize == 2) {
+            return COMPRESSION_META_2;
+        }
+        else if (metatileSize == 4) {
+            return COMPRESSION_META_4;
+        }
+        return -1;
+    }
+
+    /**
      * @param lockedCompression compression option to select and lock, or -1 to let the user choose
      */
     public MagellanExportDialog(int type, JFrame parent, IconProvider ip, Preferences preferences, int lockedCompression) {

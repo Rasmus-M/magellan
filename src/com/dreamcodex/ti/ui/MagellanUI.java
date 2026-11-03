@@ -426,7 +426,7 @@ public class MagellanUI {
         charMapMenuItems = new JMenuItem[] {
             jmitAppend,
             jmitImportVramDump, jmitImportBinaryMap, jmitImportMapImage,
-            jmitExportData, jmitExportBasic, jmitExportExec, jmitExportXB256, jmitExportXBDisMer, jmitExportCVB,
+            jmitExportData, jmitExportBasic, jmitExportExec, jmitExportXB256, jmitExportXBDisMer,
             jmitExportScrollMap, jmitExportBin, jmitExportBinMap,
             jmitAnalyzeCharUsage, jmitAnalyzeCharTrans
         };
