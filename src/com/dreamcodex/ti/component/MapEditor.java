@@ -129,53 +129,35 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
         jlblPosLabel = getLabel(" Pos", JLabel.RIGHT);
         jlblPosIndic = getLabel("", JLabel.CENTER);
 
-        JPanel jpnlTools = getPanel(new FlowLayout(FlowLayout.LEFT));
-        jpnlTools.setOpaque(true);
-        jpnlTools.setBackground(Globals.CLR_COMPONENTBACK);
-        jpnlTools.add(getLabel("Screen", JLabel.RIGHT));
-        jpnlTools.add(jcmbScreen);
-        jpnlTools.add(getLabel("Mag", JLabel.RIGHT));
-        jpnlTools.add(jcmbMagnif);
-        jpnlTools.add(jbtnToggleGrid);
-        jpnlTools.add(jcmbGridScale);
-        jpnlTools.add(new JLabel("  "));
-        jpnlTools.add(jbtnLook);
-        jpnlTools.add(jbtnClone);
-        jpnlTools.add(jbtnTextCursor);
-        jpnlTools.add(jbtnFloodFillMode);
-        jpnlTools.add(new JLabel("  "));
-        jpnlTools.add(jbtnFillSpace);
-        jpnlTools.add(jbtnFillActive);
-        jpnlTools.add(new JLabel("  "));
-        jpnlTools.add(jbtnRotateLeft);
-        jpnlTools.add(jbtnRotateRight);
-        jpnlTools.add(jbtnFlipH);
-        jpnlTools.add(jbtnFlipV);
-        jpnlTools.add(new JLabel("  "));
-        jpnlTools.add(jbtnShiftLeft);
-        jpnlTools.add(jbtnShiftRight);
-        jpnlTools.add(jbtnShiftUp);
-        jpnlTools.add(jbtnShiftDown);
-        jpnlTools.add(new JLabel("  "));
-        jpnlTools.add(jbtnAddMap);
-        jpnlTools.add(jbtnPrevMap);
-        jpnlTools.add(jlblMapNum);
-        jpnlTools.add(jbtnNextMap);
-        jpnlTools.add(jbtnDelMap);
-        jpnlTools.add(new JLabel("  "));
-        jpnlTools.add(jbtnBackMap);
-        jpnlTools.add(jbtnForwMap);
-        jpnlTools.add(getLabel(" W:", JLabel.RIGHT));
-        jpnlTools.add(jtxtWidth);
-        jpnlTools.add(getLabel(" H:", JLabel.RIGHT));
-        jpnlTools.add(jtxtHeight);
+        // The toolbar wraps onto more rows when the window is too narrow. Each group of tools
+        // wraps as a unit, and the space between groups replaces the former spacer labels.
+        JPanel jpnlTools = getPanel(new WrapLayout(FlowLayout.LEFT));
+        jpnlTools.add(getToolGroup(getLabel("Screen", JLabel.RIGHT), jcmbScreen, getLabel("Mag", JLabel.RIGHT), jcmbMagnif, jbtnToggleGrid, jcmbGridScale));
+        jpnlTools.add(getToolGroup(jbtnLook, jbtnClone, jbtnTextCursor, jbtnFloodFillMode));
+        jpnlTools.add(getToolGroup(jbtnFillSpace, jbtnFillActive));
+        jpnlTools.add(getToolGroup(jbtnRotateLeft, jbtnRotateRight, jbtnFlipH, jbtnFlipV));
+        jpnlTools.add(getToolGroup(jbtnShiftLeft, jbtnShiftRight, jbtnShiftUp, jbtnShiftDown));
+        jpnlTools.add(getToolGroup(jbtnAddMap, jbtnPrevMap, jlblMapNum, jbtnNextMap, jbtnDelMap));
+        jpnlTools.add(getToolGroup(jbtnBackMap, jbtnForwMap, getLabel(" W:", JLabel.RIGHT), jtxtWidth, getLabel(" H:", JLabel.RIGHT), jtxtHeight));
+        // The number of rows depends on the width, which is only known after a layout
+        jpnlTools.addComponentListener(new ComponentAdapter() {
+            private int lastWidth = -1;
+
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (e.getComponent().getWidth() != lastWidth) {
+                    lastWidth = e.getComponent().getWidth();
+                    SwingUtilities.invokeLater(() -> ((JComponent) e.getComponent()).revalidate());
+                }
+            }
+        });
 
         JPanel jpnlUndoRedo = getPanel(new FlowLayout());
         jpnlUndoRedo.add(jbtnUndo);
         jpnlUndoRedo.add(jbtnRedo);
 
         JPanel jpnlToolsContainer = getPanel(new BorderLayout());
-        jpnlToolsContainer.add(jpnlTools, BorderLayout.WEST);
+        jpnlToolsContainer.add(jpnlTools, BorderLayout.CENTER);
         jpnlToolsContainer.add(jpnlUndoRedo, BorderLayout.EAST);
 
         JPanel jpnlStatus = getPanel(new FlowLayout(FlowLayout.LEFT));
@@ -702,6 +684,15 @@ public class MapEditor extends JPanel implements ItemListener, ActionListener, K
     }
 
 // Component Builder Methods ---------------------------------------------------------------/
+
+    // A group of tools that is kept on one row when the toolbar wraps
+    private JPanel getToolGroup(Component... components) {
+        JPanel jpnlGroup = getPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        for (Component component : components) {
+            jpnlGroup.add(component);
+        }
+        return jpnlGroup;
+    }
 
     protected JPanel getPanel(LayoutManager layout) {
         JPanel jpnlRtn = new JPanel(layout);
