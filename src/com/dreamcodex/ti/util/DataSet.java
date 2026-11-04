@@ -27,10 +27,10 @@ public class DataSet {
     private HashMap<Integer, Image> spriteImages;
     private int[] spriteColors = new int[TIGlobals.MAX_SPRITE + 1];
 
-    // Metatile mode: 0 = off, otherwise the width/height of a metatile in characters (2 or 4).
+    // Metatile mode: 0 = off, otherwise the width/height of a metatile in characters (2, 4 or 8).
     // When on, map entries are metatile numbers instead of character numbers.
     private int metatileSize = 0;
-    // Metatile definitions per metatile size, so switching between 2x2 and 4x4 keeps both sets.
+    // Metatile definitions per metatile size, so switching between sizes keeps each set.
     // A set maps metatile number -> [y][x] grid of character numbers.
     private final HashMap<Integer, HashMap<Integer, int[][]>> metatileSets = new HashMap<>();
     private HashMap<Integer, Image> metatileImages = new HashMap<>();

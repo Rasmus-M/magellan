@@ -55,7 +55,7 @@ public class MagellanUI {
     private JMenuItem characterSetExpandedMenuItem;
     private JMenuItem characterSetSuperMenuItem;
 
-    private static final int[] METATILE_SIZES = {0, 2, 4};
+    private static final int[] METATILE_SIZES = {0, 2, 4, 8};
     private ButtonGroup metatileModeButtonGroup;
     private final JMenuItem[] metatileModeMenuItems = new JMenuItem[METATILE_SIZES.length];
 
@@ -753,7 +753,7 @@ public class MagellanUI {
 
     /**
      * Rebuilds the metatile dock. Characters keep the same size as in the character dock,
-     * so a row holds 4 metatiles of 2x2 or 2 metatiles of 4x4.
+     * so a row holds 4 metatiles of 2x2, 2 of 4x4 or 1 of 8x8.
      */
     private void buildMetatileDock(int size) {
         int cols = FONT_COLS / size;

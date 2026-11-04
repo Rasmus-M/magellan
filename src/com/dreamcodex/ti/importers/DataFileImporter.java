@@ -308,12 +308,12 @@ public class DataFileImporter extends Importer {
     }
 
     /**
-     * @return 2 or 4, or 0 (no metatiles) for anything else
+     * @return 2, 4 or 8, or 0 (no metatiles) for anything else
      */
     static int parseMetatileSize(String value) {
         try {
             int size = Integer.parseInt(value.trim());
-            return size == 2 || size == 4 ? size : 0;
+            return size == 2 || size == 4 || size == 8 ? size : 0;
         } catch (NumberFormatException e) {
             return 0;
         }

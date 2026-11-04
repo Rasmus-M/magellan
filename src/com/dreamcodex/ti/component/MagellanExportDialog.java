@@ -75,6 +75,9 @@ public class MagellanExportDialog extends JDialog implements PropertyChangeListe
         else if (metatileSize == 4) {
             return COMPRESSION_META_4;
         }
+        else if (metatileSize == 8) {
+            return COMPRESSION_META_8;
+        }
         return -1;
     }
 
