@@ -391,7 +391,7 @@ public class MagellanUI {
 
         optionsMenu.addSeparator();
 
-        JMenuItem jmitViewCharLayer = new JCheckBoxMenuItem(new ToggleViewCharLayerAction("View Character Layer", parent, mapEditor, dataSet, preferences));
+        JMenuItem jmitViewCharLayer = new JCheckBoxMenuItem(new ToggleViewCharLayerAction("View Tile Layer", parent, mapEditor, dataSet, preferences));
         jmitViewCharLayer.setSelected(mapEditor.getViewCharLayer());
         optionsMenu.add(jmitViewCharLayer);
         JMenuItem jmitViewSpriteLayer = new JCheckBoxMenuItem(new ToggleViewSpriteLayerAction("View Sprite Layer", parent, mapEditor, dataSet, preferences));
