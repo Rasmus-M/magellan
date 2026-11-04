@@ -1098,6 +1098,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         if (dataSet.isMetatileMode()) {
             updateActiveMetatileButton();
             ui.getCharacterPicker().setSelectedChar(activeChar);
+            // The definitions may have been replaced, e.g. when maps were appended
+            int[][] activeMetatileGrid = dataSet.getMetatiles().get(activeMetatile);
+            if (ui.getMetatileCanvas().getMetatile() != activeMetatileGrid) {
+                ui.getMetatileCanvas().setMetatile(activeMetatileGrid);
+            }
         }
         // Map
         mapEditor.updateComponents();
@@ -1326,14 +1331,23 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         int[][] metatile = dataSet.getMetatiles().get(activeMetatile);
         if (metatile[y][x] != charNum) {
             metatile[y][x] = charNum;
-            updateMetatile(activeMetatile);
+            // The editor records the undo step when the mouse is released
+            refreshMetatile(activeMetatile);
         }
     }
 
     /**
-     * Call after changing a metatile definition.
+     * Call after changing the active metatile with a tool: records an undo step and updates the display.
      */
     public void updateMetatile(int metatileNum) {
+        ui.getMetatileCanvas().saveUndoState();
+        refreshMetatile(metatileNum);
+    }
+
+    /**
+     * Updates the image of a changed metatile, the editor and the map.
+     */
+    public void refreshMetatile(int metatileNum) {
         updateMetatileImage(metatileNum);
         ui.getMetatileCanvas().repaint();
         mapEditor.redrawCanvas();

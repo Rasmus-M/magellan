@@ -692,24 +692,33 @@ public class MagellanUI {
     }
 
     private JPanel createMetatileEditorPanel(Insets insets, Insets insets2) {
+        // Laid out like the character editor: toolbar on the left, shift buttons around the editor
         JPanel jpnlMetatileTools = getPanel(new GridBagLayout());
 
         // Toolbar on the left side of the metatile editor
-        JPanel jpnlToolButtons = getPanel(new GridLayout(3, 1, 0, 2));
+        JPanel jpnlToolButtons = getPanel(new GridLayout(5, 1, 0, 2));
         jpnlToolButtons.add(getToolButton(Globals.CMD_FILL_CHR, "Fill with active character", new FillMetatileAction("", parent, mapEditor, dataSet, preferences)));
         jpnlToolButtons.add(getToolButton(Globals.CMD_CLEAR_CHR, "Clear", new ClearMetatileAction("", parent, mapEditor, dataSet, preferences)));
         jpnlToolButtons.add(getToolButton(Globals.CMD_GRID_CHR, "Toggle Grid", new ToggleGridMetatileAction("", parent, mapEditor, dataSet, preferences)));
-        jpnlMetatileTools.add(jpnlToolButtons, new GridBagConstraints(1, 1, 1, 2, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+        JButton metatileUndoButton = getToolButton(Globals.CMD_UNDO_CHR, "Undo Edit", new UndoMetatileAction("", parent, mapEditor, dataSet, preferences));
+        metatileUndoButton.setEnabled(false);
+        jpnlToolButtons.add(metatileUndoButton);
+        JButton metatileRedoButton = getToolButton(Globals.CMD_REDO_CHR, "Redo Edit", new RedoMetatileAction("", parent, mapEditor, dataSet, preferences));
+        metatileRedoButton.setEnabled(false);
+        jpnlToolButtons.add(metatileRedoButton);
+        jpnlMetatileTools.add(jpnlToolButtons, new GridBagConstraints(1, 1, 1, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.VERTICAL, insets, 2, 2));
 
-        // Metatile number
-        JPanel jpnlLabels = getPanel(new FlowLayout(FlowLayout.CENTER));
+        // Metatile number and shift buttons around the editor
         metatileIntLabel = getLabel();
         metatileIntLabel.setPreferredSize(Globals.DM_TEXT);
-        jpnlLabels.add(metatileIntLabel);
+        jpnlMetatileTools.add(metatileIntLabel, new GridBagConstraints(3, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlMetatileTools.add(getToolButton(Globals.CMD_SHIFTU_CHR, "Shift Up", Globals.CLR_BUTTON_SHIFT, new ShiftUpMetatileAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(4, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
         metatileHexLabel = getLabel();
         metatileHexLabel.setPreferredSize(Globals.DM_TEXT);
-        jpnlLabels.add(metatileHexLabel);
-        jpnlMetatileTools.add(jpnlLabels, new GridBagConstraints(2, 1, 1, 1, 1, 0, GridBagConstraints.NORTH, GridBagConstraints.HORIZONTAL, insets, 2, 2));
+        jpnlMetatileTools.add(metatileHexLabel, new GridBagConstraints(5, 1, 1, 1, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlMetatileTools.add(getToolButton(Globals.CMD_SHIFTL_CHR, "Shift Left", Globals.CLR_BUTTON_SHIFT, new ShiftLeftMetatileAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(2, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlMetatileTools.add(getToolButton(Globals.CMD_SHIFTR_CHR, "Shift Right", Globals.CLR_BUTTON_SHIFT, new ShiftRightMetatileAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(6, 3, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlMetatileTools.add(getToolButton(Globals.CMD_SHIFTD_CHR, "Shift Down", Globals.CLR_BUTTON_SHIFT, new ShiftDownMetatileAction("", parent, mapEditor, dataSet, preferences)), new GridBagConstraints(4, 5, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
 
         // Editor: left click sets a cell to the active character, right click picks the character from a cell
         metatileCanvas = new MetatileCanvas(dataSet.getCharImages(), (x, y, e) -> {
@@ -722,10 +731,14 @@ public class MagellanUI {
             }
         });
         metatileCanvas.setToolTipText("Left click: set character, right click: pick character");
+        metatileCanvas.addUndoRedoListener((canUndo, canRedo, source) -> {
+            metatileUndoButton.setEnabled(canUndo);
+            metatileRedoButton.setEnabled(canRedo);
+        });
         Dimension editorDimension = new Dimension(EDITOR_GRID_SIZE, EDITOR_GRID_SIZE);
         metatileCanvas.setPreferredSize(editorDimension);
         metatileCanvas.setMinimumSize(editorDimension);
-        jpnlMetatileTools.add(metatileCanvas, new GridBagConstraints(2, 2, 1, 1, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
+        jpnlMetatileTools.add(metatileCanvas, new GridBagConstraints(3, 2, 3, 3, 2, 2, GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 2, 2));
 
         // Character picker, in place of the color dock, drawn like the character dock
         characterPicker = new CharacterPicker(charButtons, this::getCharacterRowLabel, preferences.getCharacterSetStart(), preferences.getCharacterSetEnd(), (charNum, e) ->
