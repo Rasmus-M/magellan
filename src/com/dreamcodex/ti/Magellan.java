@@ -1337,6 +1337,35 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     }
 
     /**
+     * Swaps the definitions of two metatiles and their numbers in all maps, so the maps look the same.
+     */
+    public void swapMetatiles(int metatileA, int metatileB) {
+        if (metatileA == metatileB) {
+            return;
+        }
+        HashMap<Integer, int[][]> metatiles = dataSet.getMetatiles();
+        int[][] tmp = metatiles.get(metatileA);
+        metatiles.put(metatileA, metatiles.get(metatileB));
+        metatiles.put(metatileB, tmp);
+        for (int m = 0; m < mapEditor.getMapCount(); m++) {
+            for (int[] row : mapEditor.getMapData(m)) {
+                for (int x = 0; x < row.length; x++) {
+                    if (row[x] == metatileA) {
+                        row[x] = metatileB;
+                    }
+                    else if (row[x] == metatileB) {
+                        row[x] = metatileA;
+                    }
+                }
+            }
+        }
+        updateMetatileImage(metatileA);
+        updateMetatileImage(metatileB);
+        mapEditor.redrawCanvas();
+        setModified(true);
+    }
+
+    /**
      * Call after changing the active metatile with a tool: records an undo step and updates the display.
      */
     public void updateMetatile(int metatileNum) {

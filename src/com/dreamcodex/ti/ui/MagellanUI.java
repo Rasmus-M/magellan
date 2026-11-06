@@ -696,7 +696,7 @@ public class MagellanUI {
         JPanel jpnlMetatileTools = getPanel(new GridBagLayout());
 
         // Toolbar on the left side of the metatile editor
-        JPanel jpnlToolButtons = getPanel(new GridLayout(5, 1, 0, 2));
+        JPanel jpnlToolButtons = getPanel(new GridLayout(7, 1, 0, 2));
         jpnlToolButtons.add(getToolButton(Globals.CMD_FILL_CHR, "Fill with active character", new FillMetatileAction("", parent, mapEditor, dataSet, preferences)));
         jpnlToolButtons.add(getToolButton(Globals.CMD_CLEAR_CHR, "Clear", new ClearMetatileAction("", parent, mapEditor, dataSet, preferences)));
         jpnlToolButtons.add(getToolButton(Globals.CMD_GRID_CHR, "Toggle Grid", new ToggleGridMetatileAction("", parent, mapEditor, dataSet, preferences)));
@@ -706,6 +706,16 @@ public class MagellanUI {
         JButton metatileRedoButton = getToolButton(Globals.CMD_REDO_CHR, "Redo Edit", new RedoMetatileAction("", parent, mapEditor, dataSet, preferences));
         metatileRedoButton.setEnabled(false);
         jpnlToolButtons.add(metatileRedoButton);
+        Action copyMetatileAction = new CopyMetatileAction("", parent, mapEditor, dataSet, preferences);
+        JButton metatileCopyButton = getToolButton(Globals.CMD_COPY_CHR, "Copy (Ctrl+C)", copyMetatileAction);
+        metatileCopyButton.getActionMap().put(Globals.CMD_COPY_CHR, copyMetatileAction);
+        metatileCopyButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) copyMetatileAction.getValue(Action.ACCELERATOR_KEY), Globals.CMD_COPY_CHR);
+        jpnlToolButtons.add(metatileCopyButton);
+        Action pasteMetatileAction = new PasteMetatileAction("", parent, mapEditor, dataSet, preferences);
+        JButton metatilePasteButton = getToolButton(Globals.CMD_PASTE_CHR, "Paste (Ctrl+V)", pasteMetatileAction);
+        metatilePasteButton.getActionMap().put(Globals.CMD_PASTE_CHR, pasteMetatileAction);
+        metatilePasteButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) pasteMetatileAction.getValue(Action.ACCELERATOR_KEY), Globals.CMD_PASTE_CHR);
+        jpnlToolButtons.add(metatilePasteButton);
         jpnlMetatileTools.add(jpnlToolButtons, new GridBagConstraints(1, 1, 1, 5, 1, 1, GridBagConstraints.NORTH, GridBagConstraints.VERTICAL, insets, 2, 2));
 
         // Metatile number and shift buttons around the editor

@@ -7,6 +7,7 @@ import com.dreamcodex.ti.util.DataSet;
 import com.dreamcodex.ti.util.Preferences;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 public class EditMetatileAction extends EditorAction {
 
@@ -19,7 +20,11 @@ public class EditMetatileAction extends EditorAction {
 
     @Override
     protected void performAction(ActionEvent e) {
+        int oldActiveMetatile = parent.getActiveMetatile();
         parent.setActiveMetatile(metatileNum);
+        if ((e.getModifiers() & (ActionEvent.SHIFT_MASK | KeyEvent.CTRL_MASK)) != 0) {
+            parent.swapMetatiles(metatileNum, oldActiveMetatile);
+        }
         parent.getUI().getMetatileCanvas().setMetatile(dataSet.getMetatiles().get(metatileNum));
         mapEditor.setPaintValue(metatileNum);
         mapEditor.setCloneModeOn(false);
