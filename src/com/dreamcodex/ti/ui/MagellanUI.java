@@ -219,11 +219,13 @@ public class MagellanUI {
         JMenuItem jmitNew = new JMenuItem();
         jmitNew.setAction(new NewProjectAction("New Map Project", parent, mapEditor, dataSet, preferences));
         fileMenu.add(jmitNew);
+        fileMenu.addSeparator();
         JMenuItem jmitOpen = new JMenuItem();
         jmitOpen.setAction(new OpenDataFileAction("Open Map Project", null, parent, mapEditor, dataSet, preferences));
         fileMenu.add(jmitOpen);
         JMenu jmenuOpenRecent = new RecentMenu(preferences.getRecentFiles(), parent, mapEditor, dataSet, preferences);
         fileMenu.add(jmenuOpenRecent);
+        fileMenu.addSeparator();
         JMenuItem jmitSave = new JMenuItem();
         jmitSave.setAction(new SaveDataFileAction("Save Map Project", parent, mapEditor, dataSet, preferences));
         fileMenu.add(jmitSave);
@@ -248,12 +250,14 @@ public class MagellanUI {
         JMenuItem jmitImportChrImgColor = new JMenuItem();
         jmitImportChrImgColor.setAction(new ImportCharImageAction(true, "Character Image (Color)", parent, mapEditor, dataSet, preferences));
         importMenu.add(jmitImportChrImgColor);
+        importMenu.addSeparator();
         JMenuItem jmitImportVramDump = new JMenuItem();
         jmitImportVramDump.setAction(new ImportVRAMDumpAction("VRAM Dump", parent, mapEditor, dataSet, preferences));
         importMenu.add(jmitImportVramDump);
         JMenuItem jmitImportBinaryMap = new JMenuItem();
         jmitImportBinaryMap.setAction(new ImportBinaryMapAction("Binary Map", parent, mapEditor, dataSet, preferences));
         importMenu.add(jmitImportBinaryMap);
+        importMenu.addSeparator();
         JMenuItem jmitImportMapImage = new JMenuItem();
         jmitImportMapImage.setAction(new ImportMapImageAction("Map Image", parent, mapEditor, dataSet, preferences));
         importMenu.add(jmitImportMapImage);
