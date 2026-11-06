@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 
-import static com.dreamcodex.ti.util.ColorMode.COLOR_MODE_ECM_2;
+import static com.dreamcodex.ti.util.ColorMode.*;
 
 public class MapImageFileImporter extends Importer {
 
@@ -130,6 +130,8 @@ public class MapImageFileImporter extends Importer {
                             rgbGrid[y][x] = bufferedImage.getRGB(x + x1, y + y1) | 0xff000000;
                         }
                     }
+                    // Match on what the block will look like, so colors that can't be shown don't make new characters
+                    reduceColors(rgbGrid);
                     // Find exact match in the existing characters
                     int ch = -1;
                     for (int i = 0; i < patterns.size() && ch == -1; i++) {
@@ -587,6 +589,85 @@ public class MapImageFileImporter extends Importer {
             ecmPalettes[paletteIndex + startPalette].setSafeColors(palArray);
             this.charGrids.put(i + startIndex, grid);
             ecmCharPalettes[i + startIndex] = ecmPalettes[paletteIndex + startPalette];
+        }
+    }
+
+    /**
+     * Reduces the colors of an 8x8 block to the colors it can have in the current color mode:
+     * Graphics 1: the two most used TI colors of the block.
+     * Bitmap: the two most used TI colors of each row.
+     * ECM: the most used F18A colors of the block, as many as a palette holds.
+     * Other colors are replaced by the closest of the kept colors.
+     */
+    private void reduceColors(int[][] rgbGrid) {
+        switch (colorMode) {
+            case COLOR_MODE_GRAPHICS_1:
+                toTIColors(rgbGrid);
+                limitColors(rgbGrid, 0, rgbGrid.length, 2);
+                break;
+            case COLOR_MODE_BITMAP:
+                toTIColors(rgbGrid);
+                for (int y = 0; y < rgbGrid.length; y++) {
+                    limitColors(rgbGrid, y, y + 1, 2);
+                }
+                break;
+            case COLOR_MODE_ECM_2:
+            case COLOR_MODE_ECM_3:
+                for (int[] row : rgbGrid) {
+                    for (int x = 0; x < row.length; x++) {
+                        row[x] = Globals.getECMSafeColor(new Color(row[x])).getRGB();
+                    }
+                }
+                limitColors(rgbGrid, 0, rgbGrid.length, colorMode == COLOR_MODE_ECM_2 ? 4 : 8);
+                break;
+        }
+    }
+
+    // Closest TI color of each RGB value seen so far
+    private final HashMap<Integer, Integer> tiColorCache = new HashMap<>();
+
+    private void toTIColors(int[][] rgbGrid) {
+        for (int[] row : rgbGrid) {
+            for (int x = 0; x < row.length; x++) {
+                row[x] = tiColorCache.computeIfAbsent(row[x], rgb -> TIGlobals.TI_PALETTE_OPAQUE[Globals.getClosestColorIndex(new Color(rgb), TIGlobals.TI_PALETTE_OPAQUE, 0)].getRGB());
+            }
+        }
+    }
+
+    /**
+     * Keeps the most used colors of rows y1 to y2 - 1 and replaces the others with the closest kept color.
+     */
+    private void limitColors(int[][] rgbGrid, int y1, int y2, int maxColors) {
+        // Colors in order of first appearance, with counts
+        LinkedHashMap<Integer, Integer> counts = new LinkedHashMap<>();
+        for (int y = y1; y < y2; y++) {
+            for (int color : rgbGrid[y]) {
+                counts.merge(color, 1, Integer::sum);
+            }
+        }
+        if (counts.size() <= maxColors) {
+            return;
+        }
+        ArrayList<Integer> colors = new ArrayList<>(counts.keySet());
+        // Stable sort, so equally used colors keep their order
+        colors.sort((c1, c2) -> counts.get(c2) - counts.get(c1));
+        java.util.List<Integer> kept = colors.subList(0, maxColors);
+        for (int y = y1; y < y2; y++) {
+            int[] row = rgbGrid[y];
+            for (int x = 0; x < row.length; x++) {
+                if (!kept.contains(row[x])) {
+                    int closest = kept.get(0);
+                    double minDist = Double.MAX_VALUE;
+                    for (int color : kept) {
+                        double dist = Globals.colorDistance(row[x], color);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closest = color;
+                        }
+                    }
+                    row[x] = closest;
+                }
+            }
         }
     }
 
