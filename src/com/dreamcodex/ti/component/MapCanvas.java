@@ -16,6 +16,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MapCanvas extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
 // Constants -------------------------------------------------------------------------------/
@@ -81,9 +82,14 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
 // Components ------------------------------------------------------------------------------/
 
+    // The characters and sprites of the map at 1x, without the cursor and other overlays
     protected BufferedImage gridImage;
-    protected Image gridImageScaled;
-    protected Image spritesPerLineImageScaled;
+    protected BufferedImage spritesPerLineImage;
+    // What gridImage shows, so only changes need to be drawn
+    private int[][] renderedGrid;
+    private HashMap<Integer, Image> renderedCellImages = new HashMap<>();
+    private ArrayList<RenderedSprite> renderedSprites = new ArrayList<>();
+    private boolean fullRedrawNeeded = true;
 
 // Listeners -------------------------------------------------------------------------------/
 
@@ -236,6 +242,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setCellSize(int cellSize) {
         this.cellSize = cellSize;
+        fullRedrawNeeded = true;
         removeAllHighlights();
     }
 
@@ -250,6 +257,9 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void setColorScreen(int i) {
+        if (colorScreen != i) {
+            fullRedrawNeeded = true;
+        }
         colorScreen = i;
     }
 
@@ -428,6 +438,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setMetatileMode(boolean metatileMode) {
         this.metatileMode = metatileMode;
+        fullRedrawNeeded = true;
     }
 
     // Image for a map value: a metatile in metatile mode, otherwise a character
@@ -484,6 +495,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setViewCharLayer(boolean viewCharLayer) {
         this.viewCharLayer = viewCharLayer;
+        fullRedrawNeeded = true;
         redrawCanvas();
     }
 
@@ -544,12 +556,14 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     public void highlightCharacter(int x, int y) {
         if (y >= 0 && y < highlightLayer.length && x >= 0 && x < highlightLayer[y].length) {
             highlightLayer[y][x] = true;
+            fullRedrawNeeded = true;
         }
     }
 
     public void removeAllHighlights() {
         int charsPerCell = getCharsPerCell();
         highlightLayer = new boolean[getGridHeight() * charsPerCell][getGridWidth() * charsPerCell];
+        fullRedrawNeeded = true;
     }
 
     // Characters per cell in each direction: 1, or the metatile size in metatile mode
@@ -581,56 +595,267 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     // Rendering Methods -----------------------------------------------------------------------/
 
+    /**
+     * Brings the map image up to date and repaints. Only the cells that changed since the last
+     * call are drawn again: cells with a new value, cells whose character (or metatile) image
+     * was replaced, and cells under sprites that were added, removed or changed.
+     * The cursor, clone selection and other overlays are drawn in paintComponent.
+     */
     public void redrawCanvas() {
         int gridWidth = gridData[0].length;
         int gridHeight = gridData.length;
         int bufferWidth = gridWidth * cellSize;
         int bufferHeight = gridHeight * cellSize;
-        gridImage = getImageBuffer(bufferWidth, bufferHeight);
-        Graphics g = gridImage.getGraphics();
-        g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
-        g.fillRect(0, 0, gridImage.getWidth(this), gridImage.getHeight(this));
-        if (viewCharLayer) {
-            boolean painted;
-            for (int y = 0; y < gridHeight; y++) {
+        HashMap<Integer, Image> cellImages = metatileMode ? hmMetatileImages : hmCharImages;
+        ArrayList<RenderedSprite> sprites = getRenderedSprites();
+        boolean spritesChanged = !sprites.equals(renderedSprites);
+        boolean full = fullRedrawNeeded || gridImage == null || gridImage.getWidth() != bufferWidth || gridImage.getHeight() != bufferHeight
+            || renderedGrid == null || renderedGrid.length != gridHeight || renderedGrid[0].length != gridWidth;
+        if (!full) {
+            int maxDirty = gridWidth * gridHeight / 4;
+            DirtyCells dirty = new DirtyCells();
+            // Values whose image has been replaced
+            HashSet<Integer> changedValues = new HashSet<>();
+            for (Integer value : cellImages.keySet()) {
+                if (cellImages.get(value) != renderedCellImages.get(value)) {
+                    changedValues.add(value);
+                }
+            }
+            for (Integer value : renderedCellImages.keySet()) {
+                if (!cellImages.containsKey(value)) {
+                    changedValues.add(value);
+                }
+            }
+            for (int y = 0; y < gridHeight && dirty.count <= maxDirty; y++) {
+                int[] row = gridData[y];
+                int[] renderedRow = renderedGrid[y];
                 for (int x = 0; x < gridWidth; x++) {
-                    painted = false;
-                    if (gridData[y][x] != NOCHAR) {
-                        Image charImage = getCellImage(gridData[y][x]);
-                        if (charImage != null) {
-                            g.drawImage(charImage, x * cellSize, y * cellSize, cellSize, cellSize, this);
-                            painted = true;
-                        }
-                    }
-                    if (!painted) {
-                        g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
-                        g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    if (row[x] != renderedRow[x] || !changedValues.isEmpty() && changedValues.contains(row[x])) {
+                        dirty.add(y * gridWidth + x);
                     }
                 }
             }
+            if (spritesChanged) {
+                // Cells under the sprites that changed, both where they were and where they are
+                for (RenderedSprite sprite : getChangedSprites(renderedSprites, sprites)) {
+                    int x1 = Math.max(0, sprite.x / cellSize);
+                    int y1 = Math.max(0, sprite.y / cellSize);
+                    int x2 = Math.min(gridWidth - 1, (sprite.x + sprite.size - 1) / cellSize);
+                    int y2 = Math.min(gridHeight - 1, (sprite.y + sprite.size - 1) / cellSize);
+                    for (int y = y1; y <= y2 && dirty.count <= maxDirty; y++) {
+                        for (int x = x1; x <= x2; x++) {
+                            dirty.add(y * gridWidth + x);
+                        }
+                    }
+                }
+            }
+            if (dirty.count > maxDirty) {
+                full = true;
+            }
+            else if (dirty.count > 0) {
+                Graphics g = gridImage.getGraphics();
+                for (int i = 0; i < dirty.count; i++) {
+                    int x = dirty.cells[i] % gridWidth;
+                    int y = dirty.cells[i] / gridWidth;
+                    Rectangle cell = new Rectangle(x * cellSize, y * cellSize, cellSize, cellSize);
+                    g.setClip(cell);
+                    drawCell(g, x, y);
+                    drawSprites(g, sprites, cell);
+                }
+                g.dispose();
+            }
+        }
+        if (full) {
+            if (gridImage == null || gridImage.getWidth() != bufferWidth || gridImage.getHeight() != bufferHeight) {
+                gridImage = getImageBuffer(bufferWidth, bufferHeight);
+            }
+            Graphics g = gridImage.getGraphics();
+            for (int y = 0; y < gridHeight; y++) {
+                for (int x = 0; x < gridWidth; x++) {
+                    drawCell(g, x, y);
+                }
+            }
+            drawSprites(g, sprites, null);
+            g.dispose();
+            fullRedrawNeeded = false;
+        }
+        // Remember what the image shows
+        if (renderedGrid == null || renderedGrid.length != gridHeight || renderedGrid[0].length != gridWidth) {
+            renderedGrid = new int[gridHeight][gridWidth];
+        }
+        for (int y = 0; y < gridHeight; y++) {
+            System.arraycopy(gridData[y], 0, renderedGrid[y], 0, gridWidth);
+        }
+        renderedCellImages = new HashMap<>(cellImages);
+        renderedSprites = sprites;
+        if (showSpritesPerLine && (full || spritesChanged || spritesPerLineImage == null || spritesPerLineImage.getHeight() != bufferHeight)) {
+            drawSpritesPerLine(bufferHeight);
+        }
+        int scaledWidth = bufferWidth * viewScale;
+        int scaledHeight = bufferHeight * viewScale;
+        this.setPreferredSize(new Dimension(scaledWidth + (showSpritesPerLine ? SPRITES_PER_LINE_WIDTH * viewScale : 0) + 2, scaledHeight + 2));
+        this.repaint();
+    }
+
+    /**
+     * Cell indexes (y * width + x) that need to be drawn again.
+     */
+    private static class DirtyCells {
+        private int[] cells = new int[64];
+        private int count = 0;
+
+        void add(int cell) {
+            if (count == cells.length) {
+                cells = Arrays.copyOf(cells, cells.length * 2);
+            }
+            cells[count++] = cell;
+        }
+    }
+
+    /**
+     * The sprites that were added or removed, or all of them if only the drawing order changed.
+     */
+    private static ArrayList<RenderedSprite> getChangedSprites(ArrayList<RenderedSprite> oldList, ArrayList<RenderedSprite> newList) {
+        HashSet<RenderedSprite> oldSprites = new HashSet<>(oldList);
+        HashSet<RenderedSprite> newSprites = new HashSet<>(newList);
+        ArrayList<RenderedSprite> changed = new ArrayList<>();
+        if (oldSprites.equals(newSprites)) {
+            changed.addAll(newList);
+        }
+        else {
+            for (RenderedSprite sprite : oldList) {
+                if (!newSprites.contains(sprite)) {
+                    changed.add(sprite);
+                }
+            }
+            for (RenderedSprite sprite : newList) {
+                if (!oldSprites.contains(sprite)) {
+                    changed.add(sprite);
+                }
+            }
+        }
+        return changed;
+    }
+
+    /**
+     * Draws the character (or metatile) of a cell and the highlights on it, without sprites.
+     */
+    private void drawCell(Graphics g, int x, int y) {
+        int px = x * cellSize;
+        int py = y * cellSize;
+        Image cellImage = viewCharLayer && gridData[y][x] != NOCHAR ? getCellImage(gridData[y][x]) : null;
+        if (cellImage != null) {
+            g.drawImage(cellImage, px, py, cellSize, cellSize, this);
+        }
+        else {
+            g.setColor(TIGlobals.TI_PALETTE_OPAQUE[colorScreen]);
+            g.fillRect(px, py, cellSize, cellSize);
+        }
+        if (viewCharLayer) {
             // Highlighted characters
+            int charsPerCell = getCharsPerCell();
             g.setColor(CLR_COPY);
-            for (int y = 0; y < highlightLayer.length; y++) {
-                for (int x = 0; x < highlightLayer[y].length; x++) {
-                    if (highlightLayer[y][x]) {
-                        g.fillRect(x * CHAR_SIZE, y * CHAR_SIZE, CHAR_SIZE, CHAR_SIZE);
+            for (int cy = y * charsPerCell; cy < (y + 1) * charsPerCell && cy < highlightLayer.length; cy++) {
+                for (int cx = x * charsPerCell; cx < (x + 1) * charsPerCell && cx < highlightLayer[cy].length; cx++) {
+                    if (highlightLayer[cy][cx]) {
+                        g.fillRect(cx * CHAR_SIZE, cy * CHAR_SIZE, CHAR_SIZE, CHAR_SIZE);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Draws the sprites, or only those that overlap an area if it isn't null.
+     */
+    private void drawSprites(Graphics g, ArrayList<RenderedSprite> sprites, Rectangle area) {
+        for (RenderedSprite sprite : sprites) {
+            if (area == null || area.intersects(sprite.x, sprite.y, sprite.size, sprite.size)) {
+                g.drawImage(sprite.image, sprite.x, sprite.y, sprite.size, sprite.size, this);
+            }
+        }
+    }
+
+    /**
+     * The sprites to draw, in drawing order.
+     */
+    private ArrayList<RenderedSprite> getRenderedSprites() {
+        ArrayList<RenderedSprite> sprites = new ArrayList<>();
         if (viewSpriteLayer) {
+            int size = SPRITE_SIZE * spriteMagnification;
             for (Point p : spriteMap.keySet()) {
                 ArrayList<Integer> spriteList = spriteMap.get(p);
                 if (spriteList != null) {
                     for (int spriteNum : spriteList) {
                         Image spriteImage = hmSpriteImages.get(spriteNum);
                         if (spriteImage != null) {
-                            g.drawImage(spriteImage, p.x, p.y, SPRITE_SIZE * spriteMagnification, SPRITE_SIZE * spriteMagnification, this);
+                            sprites.add(new RenderedSprite(p.x, p.y, size, spriteImage));
                         }
                     }
                 }
             }
         }
+        return sprites;
+    }
+
+    /**
+     * The bar next to the map that shows how many sprites are on each pixel line.
+     */
+    private void drawSpritesPerLine(int bufferHeight) {
+        int[] spritesOnLine = new int[bufferHeight];
+        int size = SPRITE_SIZE * spriteMagnification;
+        for (Point p : spriteMap.keySet()) {
+            ArrayList<Integer> spriteList = spriteMap.get(p);
+            if (spriteList != null) {
+                for (int y = Math.max(0, p.y); y < p.y + size && y < bufferHeight; y++) {
+                    spritesOnLine[y] += spriteList.size();
+                }
+            }
+        }
+        spritesPerLineImage = getImageBuffer(SPRITES_PER_LINE_WIDTH, bufferHeight);
+        Graphics g = spritesPerLineImage.getGraphics();
+        for (int y = 0; y < bufferHeight; y++) {
+            g.setColor(SPRITE_PER_LINE_COLORS[Math.min(spritesOnLine[y], SPRITE_PER_LINE_COLORS.length - 1)]);
+            g.fillRect(0, y, SPRITES_PER_LINE_WIDTH, 1);
+        }
+        g.dispose();
+    }
+
+    /**
+     * A sprite as drawn on the map image.
+     */
+    private static class RenderedSprite {
+        private final int x;
+        private final int y;
+        private final int size;
+        private final Image image;
+
+        RenderedSprite(int x, int y, int size, Image image) {
+            this.x = x;
+            this.y = y;
+            this.size = size;
+            this.image = image;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof RenderedSprite)) {
+                return false;
+            }
+            RenderedSprite other = (RenderedSprite) o;
+            return x == other.x && y == other.y && size == other.size && image == other.image;
+        }
+
+        @Override
+        public int hashCode() {
+            return (x * 31 + y) * 31 + System.identityHashCode(image);
+        }
+    }
+
+    /**
+     * Draws the cursor, the clone selection and the text cursor, in map pixel coordinates.
+     */
+    private void drawOverlays(Graphics g) {
         if (cloneModeOn) {
             if (cloneArray != null) {
                 if (!hotCell.equals(PT_OFFGRID)) {
@@ -654,63 +879,69 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         if (!hotCell.equals(PT_OFFGRID)) {
             highlightCell(g, hotCell.getX(), hotCell.getY());
         }
-        g.dispose();
-        int scaledWidth = bufferWidth * viewScale;
-        int scaledHeight = bufferHeight * viewScale;
-        gridImageScaled = gridImage.getScaledInstance(scaledWidth, scaledHeight, BufferedImage.SCALE_REPLICATE);
-        if (showSpritesPerLine) {
-            BufferedImage spritesPerLineImage = getImageBuffer(SPRITES_PER_LINE_WIDTH, bufferHeight);
-            g = spritesPerLineImage.getGraphics();
-            for (int y = 0; y < bufferHeight; y++) {
-               int spritesOnLine = getSpritesOnLine(y);
-               g.setColor(SPRITE_PER_LINE_COLORS[Math.min(spritesOnLine, SPRITE_PER_LINE_COLORS.length - 1)]);
-               g.drawRect(0, y, SPRITES_PER_LINE_WIDTH, 1);
-            }
-            g.dispose();
-            spritesPerLineImageScaled = spritesPerLineImage.getScaledInstance(SPRITES_PER_LINE_WIDTH * viewScale, scaledHeight, BufferedImage.SCALE_REPLICATE);
-        }
-        this.setPreferredSize(new Dimension(scaledWidth + (showSpritesPerLine ? SPRITES_PER_LINE_WIDTH * viewScale : 0) + 2, scaledHeight + 2));
-        this.repaint();
     }
 
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        try {
-            int gridWidth = gridData[0].length;
-            int gridHeight = gridData.length;
-            int size = cellSize * viewScale;
-            int width = size * gridWidth;
-            int height = size * gridHeight;
-            // this.setPreferredSize(new Dimension((gridWidth + (showSpritesPerLine ? 1 : 0)) * size, gridHeight * size));
-            Rectangle currBounds = this.getBounds();
-            gridOffsetX = (currBounds.width - width) / 2;
-            gridOffsetY = (currBounds.height - height) / 2;
-            g.drawRect(gridOffsetX - 1, gridOffsetY - 1, width + 1, height + 1);
-            if (gridImageScaled != null) {
-                g.drawImage(gridImageScaled, gridOffsetX, gridOffsetY, this);
-            }
+        if (gridImage == null) {
+            return;
+        }
+        int gridWidth = gridData[0].length;
+        int gridHeight = gridData.length;
+        int size = cellSize * viewScale;
+        int width = size * gridWidth;
+        int height = size * gridHeight;
+        Rectangle currBounds = this.getBounds();
+        gridOffsetX = (currBounds.width - width) / 2;
+        gridOffsetY = (currBounds.height - height) / 2;
+        g.drawRect(gridOffsetX - 1, gridOffsetY - 1, width + 1, height + 1);
+        // Only the visible part of the map, scaled while drawing
+        Rectangle clip = g.getClipBounds();
+        if (clip == null) {
+            clip = new Rectangle(0, 0, currBounds.width, currBounds.height);
+        }
+        Rectangle visible = clip.intersection(new Rectangle(gridOffsetX, gridOffsetY, width, height));
+        if (!visible.isEmpty()) {
+            int sx1 = (visible.x - gridOffsetX) / viewScale;
+            int sy1 = (visible.y - gridOffsetY) / viewScale;
+            int sx2 = Math.min(gridImage.getWidth(), (visible.x + visible.width - gridOffsetX + viewScale - 1) / viewScale);
+            int sy2 = Math.min(gridImage.getHeight(), (visible.y + visible.height - gridOffsetY + viewScale - 1) / viewScale);
+            g.drawImage(gridImage,
+                gridOffsetX + sx1 * viewScale, gridOffsetY + sy1 * viewScale, gridOffsetX + sx2 * viewScale, gridOffsetY + sy2 * viewScale,
+                sx1, sy1, sx2, sy2, this);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.clipRect(gridOffsetX, gridOffsetY, width, height);
+            g2.translate(gridOffsetX, gridOffsetY);
+            g2.scale(viewScale, viewScale);
+            drawOverlays(g2);
+            g2.dispose();
             if (showGrid) {
                 g.setColor(clrGrid);
                 int gridSize = size * gridScale;
-                for (int y = 0; y < gridHeight / gridScale; y++) {
-                    for (int x = 0; x < gridWidth / gridScale; x++) {
+                int x1 = Math.max(0, (visible.x - gridOffsetX) / gridSize);
+                int y1 = Math.max(0, (visible.y - gridOffsetY) / gridSize);
+                int x2 = Math.min(gridWidth / gridScale - 1, (visible.x + visible.width - gridOffsetX) / gridSize);
+                int y2 = Math.min(gridHeight / gridScale - 1, (visible.y + visible.height - gridOffsetY) / gridSize);
+                for (int y = y1; y <= y2; y++) {
+                    for (int x = x1; x <= x2; x++) {
                         g.drawRect(x * gridSize + gridOffsetX, y * gridSize + gridOffsetY, gridSize - 1, gridSize - 1);
                     }
                 }
             }
-            if (showSpritesPerLine && viewSpriteLayer && spritesPerLineImageScaled != null) {
-                g.drawImage(spritesPerLineImageScaled, gridOffsetX + width + 1, gridOffsetY, this);
-            }
-            Rectangle removeIcon = getRemoveIconBounds();
-            if (removeIcon != null) {
-                paintRemoveIcon((Graphics2D) g, removeIcon);
-            }
-            if (overlay != null) {
-                ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.33f));
-                g.drawImage(overlay, gridOffsetX, gridOffsetY, width, height, this);
-            }
-            g.dispose();
-        } catch (NullPointerException npe) { /* component not yet initialised */ }
+        }
+        if (showSpritesPerLine && viewSpriteLayer && spritesPerLineImage != null) {
+            g.drawImage(spritesPerLineImage, gridOffsetX + width + 1, gridOffsetY, SPRITES_PER_LINE_WIDTH * viewScale, height, this);
+        }
+        Rectangle removeIcon = getRemoveIconBounds();
+        if (removeIcon != null) {
+            paintRemoveIcon((Graphics2D) g, removeIcon);
+        }
+        if (overlay != null) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.33f));
+            g2.drawImage(overlay, gridOffsetX, gridOffsetY, width, height, this);
+            g2.dispose();
+        }
     }
 
     // Sprite remove icon ----------------------------------------------------------------------/
@@ -799,16 +1030,6 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             undoManager.undoableEditHappened(new UndoableEditEvent(this, new SpriteEdit(hoverSpritePoint.x, hoverSpritePoint.y, -1, hoverSpriteNum)));
         }
         clearSpriteHover();
-    }
-
-    private int getSpritesOnLine(int y) {
-        int spritesOnLine = 0;
-        for (Point p : spriteMap.keySet()) {
-            if (y >= p.y && y < p.y + SPRITE_SIZE * spriteMagnification) {
-                spritesOnLine += spriteMap.get(p).size();
-            }
-        }
-        return spritesOnLine;
     }
 
     private void outlineCell(Graphics g, int x, int y, Color clr) {
@@ -1099,7 +1320,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         if (removeIconPressed) {
             removeIconPressed = false;
             updateSpriteHover(me.getPoint());
-            redrawCanvas();
+            repaint();
             return;
         }
         if (cloneModeOn) {
@@ -1137,7 +1358,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
     public void mouseExited(MouseEvent me) {
         clearSpriteHover();
         setHotCell(PT_OFFGRID);
-        redrawCanvas();
+        repaint();
     }
 
     /* MouseMotionListener methods */
@@ -1150,7 +1371,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
         clearSpriteHover();
         if (cloneModeOn) {
             setHotCell(getMouseCell(me.getPoint()));
-            redrawCanvas();
+            repaint();
         } else {
             processCellAtPoint(me.getPoint(), me.getButton());
             parentMouseMotionListener.mouseDragged(me);
@@ -1175,7 +1396,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
                     lookChar = NOCHAR;
                 }
             }
-            redrawCanvas();
+            repaint();
             parentMouseMotionListener.mouseMoved(me);
         }
         // Release sticky clone mode
@@ -1203,7 +1424,7 @@ public class MapCanvas extends JPanel implements MouseListener, MouseMotionListe
             setCloneCell(PT_OFFGRID);
             rectClone = null;
             cloneArray = null;
-            redrawCanvas();
+            repaint();
         }
     }
 

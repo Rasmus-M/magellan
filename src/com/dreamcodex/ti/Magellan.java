@@ -94,6 +94,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     private boolean updatingAllChars = false;
     // Pixels of each character image, used to rebuild metatile images only when a character's look changes
     private final HashMap<Integer, int[]> charPixelCache = new HashMap<>();
+    private final HashMap<Integer, int[]> spritePixelCache = new HashMap<>();
 
     public int getActiveMetatile() {
         return activeMetatile;
@@ -851,6 +852,7 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
             buildColorDocks();
         }
         // Characters
+        Arrays.fill(dataSet.getEcmCharTransparency(), false);
         int charNum = TIGlobals.MIN_CHAR;
         for (int r = 0; r < preferences.getCharacterSetSize() / FONT_COLS; r++) {
             dataSet.getClrSets()[r][Globals.INDEX_CLR_BACK] = 0;
@@ -1109,11 +1111,16 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         }
         // Generate icon image
         IconImage iconImage = generateIconImage(charNum, screenColor);
-        // Save image
-        dataSet.getCharImages().put(charNum, iconImage.getImage());
-        mapEditor.setCharImage(charNum, iconImage.getImage());
+        boolean imageChanged = imageChanged(charPixelCache, charNum, iconImage.getImage());
+        // Save image. Keep the old image object if it looks the same, so the map doesn't redraw it.
+        Image image = dataSet.getCharImages().get(charNum);
+        if (imageChanged || image == null) {
+            image = iconImage.getImage();
+            dataSet.getCharImages().put(charNum, image);
+        }
+        mapEditor.setCharImage(charNum, image);
         // Rebuild the metatiles that use this character if it looks different
-        if (charImageChanged(charNum, iconImage.getImage()) && dataSet.isMetatileMode() && !updatingAllChars) {
+        if (imageChanged && dataSet.isMetatileMode() && !updatingAllChars) {
             updateMetatileImagesUsing(charNum);
         }
         if (dataSet.isMetatileMode()) {
@@ -1177,16 +1184,16 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     }
 
     /**
-     * Compares the image with the previous image of the character, and remembers it.
+     * Compares the image with the previous image of a character or sprite, and remembers it.
      */
-    private boolean charImageChanged(int charNum, Image image) {
+    private boolean imageChanged(HashMap<Integer, int[]> pixelCache, int num, Image image) {
         if (!(image instanceof BufferedImage)) {
-            charPixelCache.remove(charNum);
+            pixelCache.remove(num);
             return true;
         }
         BufferedImage bufferedImage = (BufferedImage) image;
         int[] pixels = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), null, 0, bufferedImage.getWidth());
-        int[] oldPixels = charPixelCache.put(charNum, pixels);
+        int[] oldPixels = pixelCache.put(num, pixels);
         return !Arrays.equals(pixels, oldPixels);
     }
 
@@ -1450,7 +1457,11 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         }
         // Generate icon image
         Image image = generateSpriteImage(spriteNum);
-        // Save image
+        // Save image. Keep the old image object if it looks the same, so the map doesn't redraw it.
+        Image oldImage = dataSet.getSpriteImages().get(spriteNum);
+        if (!imageChanged(spritePixelCache, spriteNum, image) && oldImage != null) {
+            image = oldImage;
+        }
         dataSet.getSpriteImages().put(spriteNum, image);
         mapEditor.setSpriteImage(spriteNum, image);
         // Display a default text if image is empty
