@@ -257,6 +257,9 @@ public class MagellanUI {
         JMenuItem jmitImportBinaryMap = new JMenuItem();
         jmitImportBinaryMap.setAction(new ImportBinaryMapAction("Binary Map", parent, mapEditor, dataSet, preferences));
         importMenu.add(jmitImportBinaryMap);
+        JMenuItem jmitImportCharPad = new JMenuItem();
+        jmitImportCharPad.setAction(new ImportCharPadAction("C64 CharPad Project", parent, mapEditor, dataSet, preferences));
+        importMenu.add(jmitImportCharPad);
         importMenu.addSeparator();
         JMenuItem jmitImportMapImage = new JMenuItem();
         jmitImportMapImage.setAction(new ImportMapImageAction("Map Image", parent, mapEditor, dataSet, preferences));

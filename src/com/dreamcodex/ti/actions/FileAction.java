@@ -28,6 +28,8 @@ public abstract class FileAction extends MagellanAction {
     protected final String[] BINEXTS = {BINEXT, "bin"};
     protected final String VDPEXT = "vdp";
     protected final String[] VDPEXTS = {VDPEXT, "vram", "bin"};
+    protected final String CTMEXT = "ctm";
+    protected final String[] CTMEXTS = {CTMEXT};
     protected final String ANY = "";
     protected final String[] ANYS = {ANY};
 
