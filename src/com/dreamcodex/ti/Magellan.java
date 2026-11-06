@@ -498,15 +498,14 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     }
 
     protected void setGraphicsColorMode() {
-        ColorMode oldColorMode = dataSet.getColorMode();
-        CharColorConverter.Snapshot charSnapshot = CharColorConverter.capture(dataSet);
+        ColorModeConverter.Snapshot snapshot = ColorModeConverter.capture(dataSet);
         Color[] oldScreenPalette = getScreenColorPalette();
         ColorMode newColorMode = COLOR_MODE_GRAPHICS_1;
         dataSet.setColorMode(newColorMode);
         preferences.setColorMode(newColorMode);
         buildColorDocks();
         // Characters
-        int[] screenColors = convertCharColors(charSnapshot, oldScreenPalette);
+        int[] screenColors = convertColors(snapshot, oldScreenPalette);
         GridCanvas charCanvas = ui.getCharGridCanvas();
         charCanvas.setColorMode(newColorMode , TIGlobals.TI_PALETTE_OPAQUE);
         int[] clrSet = dataSet.getClrSets()[activeChar / 8];
@@ -518,9 +517,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         }
         updateCharButtons();
         // Sprites
-        if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
-            limitSpriteGrids(2, oldColorMode == COLOR_MODE_ECM_2 ? 4 : 8);
-        }
         GridCanvas spriteCanvas = ui.getSpriteGridCanvas();
         spriteCanvas.setColorMode(newColorMode, TIGlobals.TI_PALETTE_OPAQUE);
         spriteCanvas.setColorBack(0);
@@ -534,15 +530,14 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     }
 
     protected void setBitmapColorMode() {
-        ColorMode oldColorMode = dataSet.getColorMode();
-        CharColorConverter.Snapshot charSnapshot = CharColorConverter.capture(dataSet);
+        ColorModeConverter.Snapshot snapshot = ColorModeConverter.capture(dataSet);
         Color[] oldScreenPalette = getScreenColorPalette();
         ColorMode newColorMode = COLOR_MODE_BITMAP;
         dataSet.setColorMode(newColorMode);
         preferences.setColorMode(newColorMode);
         buildColorDocks();
         // Characters
-        int[] screenColors = convertCharColors(charSnapshot, oldScreenPalette);
+        int[] screenColors = convertColors(snapshot, oldScreenPalette);
         GridCanvas charCanvas = ui.getCharGridCanvas();
         ui.getCharGridCanvas().setColorMode(newColorMode, TIGlobals.TI_PALETTE_OPAQUE);
         DualClickButton[] charColorDockButtons = ui.getCharColorDockButtons();
@@ -552,9 +547,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
         updateCharButtons();
         // Sprites
         ui.getSpriteGridCanvas().setColorMode(COLOR_MODE_GRAPHICS_1, TIGlobals.TI_PALETTE_OPAQUE);
-        if (oldColorMode == COLOR_MODE_ECM_2 || oldColorMode == COLOR_MODE_ECM_3) {
-            limitSpriteGrids(2, oldColorMode == COLOR_MODE_ECM_2 ? 4 : 8);
-        }
         GridCanvas spriteCanvas = ui.getSpriteGridCanvas();
         spriteCanvas.setColorBack(0);
         spriteCanvas.setColorDraw(dataSet.getSpriteColors()[activeSprite]);
@@ -567,17 +559,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     }
 
     protected void setECM2ColorMode() {
-        ColorMode oldColorMode = dataSet.getColorMode();
-        CharColorConverter.Snapshot charSnapshot = CharColorConverter.capture(dataSet);
+        ColorModeConverter.Snapshot snapshot = ColorModeConverter.capture(dataSet);
         Color[] oldScreenPalette = getScreenColorPalette();
-        if (oldColorMode == COLOR_MODE_ECM_3) {
-            limitSpriteGrids(4, 8);
-        }
         ColorMode newColorMode = COLOR_MODE_ECM_2;
         preferences.setColorMode(newColorMode);
         dataSet.setColorMode(newColorMode);
         buildColorDocks();
-        int[] screenColors = convertCharColors(charSnapshot, oldScreenPalette);
+        int[] screenColors = convertColors(snapshot, oldScreenPalette);
         ui.getCharGridCanvas().setColorMode(newColorMode, dataSet.getEcmCharPalettes()[activeChar].getColors());
         updateCharButtons();
         ui.getSpriteGridCanvas().setColorMode(newColorMode, dataSet.getEcmSpritePalettes()[activeSprite].getColors());
@@ -586,19 +574,13 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     }
 
     protected void setECM3ColorMode() {
-        CharColorConverter.Snapshot charSnapshot = CharColorConverter.capture(dataSet);
+        ColorModeConverter.Snapshot snapshot = ColorModeConverter.capture(dataSet);
         Color[] oldScreenPalette = getScreenColorPalette();
-        int[] spriteColors = dataSet.getSpriteColors();
-        for (int i = 0; i < spriteColors.length; i++) {
-            if (spriteColors[i] > 7) {
-                spriteColors[i] >>= 1;
-            }
-        }
         ColorMode newColorMode = COLOR_MODE_ECM_3;
         preferences.setColorMode(newColorMode);
         dataSet.setColorMode(newColorMode);
         buildColorDocks();
-        int[] screenColors = convertCharColors(charSnapshot, oldScreenPalette);
+        int[] screenColors = convertColors(snapshot, oldScreenPalette);
         ui.getCharGridCanvas().setColorMode(newColorMode, dataSet.getEcmCharPalettes()[activeChar].getColors());
         updateCharButtons();
         ui.getSpriteGridCanvas().setColorMode(newColorMode, dataSet.getEcmSpritePalettes()[activeSprite].getColors());
@@ -607,31 +589,32 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
     }
 
     /**
-     * Converts the characters to the new color mode from a snapshot taken before the switch.
-     * Call after the color docks have been rebuilt.
+     * Converts the characters and sprites to the new color mode from a snapshot taken before the
+     * switch. Call after the color docks have been rebuilt.
      *
      * @return the closest screen color of each map in the new mode
      */
-    private int[] convertCharColors(CharColorConverter.Snapshot charSnapshot, Color[] oldScreenPalette) {
-        CharColorConverter.apply(dataSet, charSnapshot);
+    private int[] convertColors(ColorModeConverter.Snapshot snapshot, Color[] oldScreenPalette) {
+        ColorModeConverter.apply(dataSet, snapshot);
         updateScreenColorPalette();
         Color[] newScreenPalette = getScreenColorPalette();
         boolean tiColors = dataSet.getColorMode() == COLOR_MODE_GRAPHICS_1 || dataSet.getColorMode() == COLOR_MODE_BITMAP;
         int[] screenColors = new int[mapEditor.getMapCount()];
         for (int m = 0; m < screenColors.length; m++) {
             Color oldColor = oldScreenPalette[mapEditor.getScreenColor(m)];
-            screenColors[m] = tiColors ? CharColorConverter.getTIColorIndex(oldColor) : Globals.getClosestColorIndex(oldColor, newScreenPalette);
+            screenColors[m] = tiColors ? ColorModeConverter.getTIColorIndex(oldColor) : Globals.getClosestColorIndex(oldColor, newScreenPalette);
         }
         return screenColors;
     }
 
     /**
-     * Shows the active character again, so the editor uses the converted data and starts a new
-     * undo history, then sets the screen colors. Setting the screen color redraws the editors,
+     * Shows the active character and sprite again, so the editors use the converted data and start
+     * a new undo history, then sets the screen colors. Setting the screen color redraws the editors,
      * so it must wait until they are in the new mode.
      */
     private void finishColorModeSwitch(int[] screenColors) {
         new EditCharAction(activeChar, "", this, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
+        new EditSpriteAction(activeSprite, "", this, mapEditor, dataSet, preferences).actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, ""));
         for (int m = 0; m < screenColors.length; m++) {
             if (m == mapEditor.getCurrentMapId()) {
                 mapEditor.setColorScreen(screenColors[m]);
@@ -968,22 +951,6 @@ public class Magellan extends JFrame implements Runnable, WindowListener, MouseL
 
     public void showError(String title, String message) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
-    }
-
-    protected void limitSpriteGrids(int newColors, int oldColors) {
-        int factor = oldColors / newColors;
-        for (int ch = TIGlobals.MIN_SPRITE; ch <= TIGlobals.MAX_SPRITE; ch++) {
-            int[][] charGrid = dataSet.getSpriteGrids().get(ch);
-            if (charGrid != null) {
-                for (int[] row : charGrid) {
-                    for (int x = 0; x < row.length; x++) {
-                        if (row[x] > newColors - 1) {
-                            row[x] /= factor;
-                        }
-                    }
-                }
-            }
-        }
     }
 
     protected int getECMPaletteIndex(ECMPalette ecmPalette) {
